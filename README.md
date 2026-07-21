@@ -12,11 +12,10 @@
   <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-orange">
 </p>
 
+<!-- Screenshots go here once captured. Drop the files in docs/images/ and
+     restore the image line below — see docs/images/README.md for what to shoot.
 ![Cook Control view](docs/images/cook-control.png)
-
-> 📸 _Screenshots live in [`docs/images/`](docs/images/). If you are reading this
-> straight after cloning, drop your own `cook-control.png` and `settings.png` in
-> there — see [`docs/images/README.md`](docs/images/README.md)._
+-->
 
 ---
 

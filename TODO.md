@@ -37,7 +37,7 @@ Loosely ordered by "how much better does this make the dashboard per hour of wor
 
 ## 📸 Presentation
 
-- [ ] **Add the screenshots** `docs/images/cook-control.png`, `probes.png` and `settings.png` (see `docs/images/README.md`) — the README links to them already. This is now the most visible gap: the README opens with a broken image.
+- [ ] **Add the screenshots** `docs/images/cook-control.png`, `probes.png` and `settings.png` (see `docs/images/README.md`). The README's image line is commented out so nothing renders broken in the meantime — uncomment it once the file exists. Capturing these needs either the Claude in Chrome extension connected, or the ha-mcp add-on's *dashboard screenshot* beta feature enabled; neither was available when this was written.
 - [ ] **A short GIF** of tapping a recipe preset and watching the gauge and status pill change would sell the dashboard in three seconds.
 - [ ] **Light theme variant.** Every colour is hardcoded for the dark charcoal/ember look. A light palette (or reading the HA theme variables) would help people who do not run dark mode.
 - [ ] **Post it to the community.** The Home Assistant forum "Share your Projects" section and r/homeassistant are where dashboards like this find users — and it repays the integration author with visibility.
