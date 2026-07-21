@@ -582,3 +582,4 @@ views:
         style: |
           ha-card { background: linear-gradient(180deg,#211b16,#2b231d); border:1px solid #3a2f27; border-radius:18px; color:#f5ede4; padding:4px; }
   panel: true
+  back_path: /dashboard-bbq/cook

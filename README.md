@@ -144,6 +144,12 @@ This dashboard stands on other people's work:
 
 Not affiliated with or endorsed by Inkbird. "Inkbird" and "INT-14S-BW" are trademarks of their respective owner; this is an unofficial community dashboard.
 
+## 📦 Is this installable from HACS?
+
+Not today, and not without a rewrite — HACS has no repository type for a Lovelace dashboard config. Its "Dashboard" category installs **JavaScript** cards into `www/community/`, not view layouts. The two custom cards this dashboard *depends on* (button-card, card-mod) come from HACS; the dashboard itself is copy-paste.
+
+The route to a real one-click install is to ship this as a **dashboard strategy** — a JS module that generates the views at render time, installs through HACS like any other frontend resource, and could discover your Inkbird entities automatically instead of making you search-and-replace entity ids. See [`TODO.md`](TODO.md#hacs-compatibility) for the trade-offs.
+
 ## 🗺️ Roadmap
 
 Ideas, known gaps and nice-to-haves live in [`TODO.md`](TODO.md). Suggestions and PRs welcome.

@@ -27,7 +27,8 @@ Loosely ordered by "how much better does this make the dashboard per hour of wor
 ## 🧹 Structure & maintainability
 
 - [ ] **Entity ids are repeated ~20 times.** Every probe card, the automation and the template sensors each spell out `sensor.overig_inkbird_int_14_probe_N_food_1_temperature`. Anyone adopting this has to search-and-replace across two files. Consider a `sensor` → `input_text` indirection, or ship a small `setup.sh` that rewrites the prefix in one go.
-- [ ] **Turn the notification automation into a Blueprint.** Then adding a phone is a dropdown in the UI instead of hand-editing a `choose:` block, and the °C margin becomes an input. This is the single biggest usability win for other people installing this.
+- [ ] **Turn the notification automation into a Blueprint.** Then adding a phone is a dropdown in the UI instead of hand-editing a `choose:` block, and the °C margin becomes an input. Blueprints import with a single click from a raw GitHub URL via `my.home-assistant.io/redirect/blueprint_import/` — no HACS needed — so this is the cheapest real "one-click install" win available. Cheap to do, high payoff.
+- [ ] **Ship the dashboard as a HACS-installable Lovelace *strategy*.** See [HACS compatibility](#hacs-compatibility) below — this is the only route that makes the repo genuinely installable from HACS, and it would fix the entity-id duplication above at the same time.
 - [ ] **Pick one language.** The Cook Control view is English, the Settings view and helper names are Dutch (`BBQ Notificatie apparaat`, "Beheer notificaties…"). Either commit to English for a public repo, or add a proper `nl`/`en` variant of the dashboard file.
 - [ ] **CI check.** A GitHub Action running `yamllint` plus a script asserting `bbq-dashboard.yaml` and `bbq-dashboard.json` parse to the same object would stop the two exports drifting apart.
 - [ ] **Version the dashboard.** A `CHANGELOG.md` and git tags, so people can tell whether their copy is current.
@@ -38,6 +39,31 @@ Loosely ordered by "how much better does this make the dashboard per hour of wor
 - [ ] **A short GIF** of tapping a recipe preset and watching the gauge and status pill change would sell the dashboard in three seconds.
 - [ ] **Light theme variant.** Every colour is hardcoded for the dark charcoal/ember look. A light palette (or reading the HA theme variables) would help people who do not run dark mode.
 - [ ] **Post it to the community.** The Home Assistant forum "Share your Projects" section and r/homeassistant are where dashboards like this find users — and it repays the integration author with visibility.
+
+## 📦 HACS compatibility
+
+**A Lovelace dashboard config cannot be distributed through HACS as-is.** HACS has exactly six repository types and none of them carries a view/card YAML layout:
+
+| HACS type | What it actually installs | Where it lands |
+|---|---|---|
+| Integration | Python custom component | `custom_components/` |
+| **Dashboard** | **JavaScript** frontend resources (cards, views, strategies) | `www/community/` |
+| Theme | Theme YAML (CSS variables) | `themes/` |
+| Template | Jinja2 macro files | `custom_templates/` |
+| AppDaemon | AppDaemon apps | `appdaemon/apps/` |
+| Python Script | `python_script` snippets | `python_scripts/` |
+
+The "Dashboard" type is the confusing one — it means *custom cards you register under Settings → Dashboards → Resources*, i.e. `.js` files. It does not mean "a dashboard someone designed".
+
+So there are three honest paths, in increasing order of effort:
+
+1. **Keep copy-paste (today).** Fine, but the README has to carry the install steps and users must hand-edit entity ids.
+2. **Blueprint for the automation.** Native HA feature, one-click import from a raw GitHub URL, no HACS. Covers the notification half of the project. Low effort, real payoff.
+3. **Rewrite the probe card as a real custom card, or better, ship a dashboard *strategy*.** A strategy is a JS module that *generates* the whole dashboard at render time — and strategies install through HACS's Dashboard category like any other card. This is the only route to a true one-click install, and it kills two other birds:
+   - it can **discover the Inkbird entities at runtime** from the device registry, so nobody has to search-and-replace `overig_` ever again;
+   - it removes the **button-card and card-mod dependencies**, since the rendering would be the strategy's own code.
+
+   Cost: a real frontend project (a few hundred lines of TypeScript/JS, a build step, a `hacs.json`, and a release tag). That is the difference between "a config I published" and "an add-on people install".
 
 ## 🤔 Maybe
 

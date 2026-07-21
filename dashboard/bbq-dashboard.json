@@ -659,7 +659,8 @@
           ]
         }
       ],
-      "panel": true
+      "panel": true,
+      "back_path": "/dashboard-bbq/cook"
     }
   ]
 }
