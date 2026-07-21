@@ -1,0 +1,56 @@
+[
+  {
+    "id": "bbq_thema_wijzigen",
+    "alias": "BBQ Thema wijzigen",
+    "description": "Past het frontend-thema aan wanneer de gebruiker een keuze maakt op de BBQ settings-pagina.",
+    "triggers": [
+      {"trigger": "state", "entity_id": "input_select.bbq_thema"}
+    ],
+    "conditions": [
+      {"condition": "not", "conditions": [{"condition": "state", "entity_id": "input_select.bbq_thema", "state": ["unknown", "unavailable"]}]}
+    ],
+    "actions": [
+      {"action": "frontend.set_theme", "data": {"name": "{{ trigger.to_state.state }}"}}
+    ],
+    "mode": "single"
+  },
+  {
+    "id": "1784547602803",
+    "alias": "BBQ probe reached target",
+    "description": "Stuurt een persistent notification (en optioneel een notify-apparaat) als een BBQ-probe zijn doeltemperatuur bereikt.",
+    "triggers": [
+      {"trigger": "state", "entity_id": "sensor.bbq_probe_1_status", "to": "ready", "id": "1"},
+      {"trigger": "state", "entity_id": "sensor.bbq_probe_2_status", "to": "ready", "id": "2"},
+      {"trigger": "state", "entity_id": "sensor.bbq_probe_3_status", "to": "ready", "id": "3"},
+      {"trigger": "state", "entity_id": "sensor.bbq_probe_4_status", "to": "ready", "id": "4"}
+    ],
+    "actions": [
+      {"variables": {
+        "idx": "{{ trigger.id }}",
+        "pname": "{{ states('input_text.inkbird_name_' ~ trigger.id) }}",
+        "ptemp": "{{ states('sensor.overig_inkbird_int_14_probe_' ~ trigger.id ~ '_food_1_temperature') }}",
+        "ptarget": "{{ states('input_number.inkbird_target_' ~ trigger.id) }}"
+      }},
+      {"action": "persistent_notification.create", "data": {
+        "title": "🔥 {{ pname }} is ready",
+        "message": "Probe {{ idx }} reached its target of {{ ptarget }}°C (now {{ ptemp }}°C).",
+        "notification_id": "inkbird_ready_{{ idx }}"
+      }},
+      {"choose": [
+        {"conditions": [{"condition": "state", "entity_id": "input_select.bbq_notificatie_apparaat", "state": "mobile_app_oneplus13"}],
+         "sequence": [{"action": "notify.mobile_app_oneplus13", "data": {"title": "🔥 {{ pname }} is ready", "message": "Probe {{ idx }} reached its target of {{ ptarget }}°C (now {{ ptemp }}°C)."}}]},
+        {"conditions": [{"condition": "state", "entity_id": "input_select.bbq_notificatie_apparaat", "state": "mobile_app_sm_t870"}],
+         "sequence": [{"action": "notify.mobile_app_sm_t870", "data": {"title": "🔥 {{ pname }} is ready", "message": "Probe {{ idx }} reached its target of {{ ptarget }}°C (now {{ ptemp }}°C)."}}]},
+        {"conditions": [{"condition": "state", "entity_id": "input_select.bbq_notificatie_apparaat", "state": "mobile_app_galaxy_watch7_h2ct"}],
+         "sequence": [{"action": "notify.mobile_app_galaxy_watch7_h2ct", "data": {"title": "🔥 {{ pname }} is ready", "message": "Probe {{ idx }} reached its target of {{ ptarget }}°C (now {{ ptemp }}°C)."}}]},
+        {"conditions": [{"condition": "state", "entity_id": "input_select.bbq_notificatie_apparaat", "state": "notify_pushover"}],
+         "sequence": [{"action": "notify.notify_pushover", "data": {"title": "🔥 {{ pname }} is ready", "message": "Probe {{ idx }} reached its target of {{ ptarget }}°C (now {{ ptemp }}°C)."}}]},
+        {"conditions": [{"condition": "state", "entity_id": "input_select.bbq_notificatie_apparaat", "state": "remcovangeel_gmail_com"}],
+         "sequence": [{"action": "notify.remcovangeel_gmail_com", "data": {"title": "🔥 {{ pname }} is ready", "message": "Probe {{ idx }} reached its target of {{ ptarget }}°C (now {{ ptemp }}°C)."}}]},
+        {"conditions": [{"condition": "state", "entity_id": "input_select.bbq_notificatie_apparaat", "state": "living_room_tv"}],
+         "sequence": [{"action": "notify.living_room_tv", "data": {"title": "🔥 {{ pname }} is ready", "message": "Probe {{ idx }} reached its target of {{ ptarget }}°C (now {{ ptemp }}°C)."}}]}
+      ], "default": []}
+    ],
+    "mode": "parallel"
+  }
+]
