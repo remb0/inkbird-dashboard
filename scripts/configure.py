@@ -38,6 +38,10 @@ AREA_RE = re.compile(r"(sensor\.[a-z0-9_]+)_probe_1_food_1_temperature")
 DEVICE_RE = re.compile(r"binary_sensor\.([a-z0-9_]+)_ble_connected")
 DEVICE_DOMAINS = ("sensor", "binary_sensor", "select", "button")
 
+# Domains the area-prefixed ids show up under. `button` matters: the BLE
+# diagnostic button is area-prefixed like the sensors are.
+AREA_DOMAINS = ("sensor", "binary_sensor", "button", "select", "switch")
+
 UPDATE_RE = re.compile(r"(update\.[a-z0-9_]+)")
 
 
@@ -99,18 +103,26 @@ def main() -> int:
         count = 0
 
         if args.prefix and args.prefix != old_area:
-            text, n = re.subn(re.escape(old_area) + r"(?=_)", args.prefix, text)
-            count += n
-
-            # The package's fallback prefix is deliberately split as
-            # 'sensor.' ~ 'object_id' so Spook does not read it as a broken
-            # entity reference. That half has no domain, so the substitution
-            # above misses it — catch the quoted bare object id separately.
             old_obj = old_area.split(".", 1)[1]
             new_obj = args.prefix.split(".", 1)[1]
-            if old_obj != new_obj:
-                text, n = re.subn(r"'" + re.escape(old_obj) + r"'", f"'{new_obj}'", text)
+
+            # Match the object id under every domain the integration uses, with
+            # no trailing-underscore lookahead. An earlier version anchored on
+            # "sensor.<prefix>_" and so silently skipped two real cases: the
+            # area-prefixed `button.<prefix>_capture_ble_diagnostics`, and the
+            # bare `prefix:` variable on each probe card, which has nothing
+            # after it. Both were left pointing at the original install.
+            for domain in AREA_DOMAINS:
+                text, n = re.subn(
+                    re.escape(f"{domain}.{old_obj}"), f"{domain}.{new_obj}", text
+                )
                 count += n
+
+            # The package splits its fallback as 'sensor.' ~ 'object_id' so
+            # Spook does not read it as a broken entity reference. That half
+            # carries no domain, so catch the quoted bare object id too.
+            text, n = re.subn(r"'" + re.escape(old_obj) + r"'", f"'{new_obj}'", text)
+            count += n
 
         if args.device and args.device != old_device:
             # Anchored on the domain so this cannot eat the area-prefixed ids,

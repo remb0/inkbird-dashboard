@@ -78,6 +78,8 @@ Everything that reads the helper falls back to the repo default if it is empty o
 | `input_number.bbq_battery_threshold` | Number, 5–50 % | The level the warning fires below. Referenced directly by the automation's `below:`, so changing the slider takes effect immediately — no reload |
 | `input_boolean.bbq_stall_alerts` | Toggle | Silences stall detection |
 | `input_number.bbq_snooze_minutes` | Number, 5–60 min | How long Snooze waits before re-notifying. Also sets the button's label, so the phone shows "Snooze 20 min" |
+| `input_number.bbq_rest_minutes` | Number, 0–120 min | Rest reminder after a probe hits its target. **0 switches it off** — the automation has a `numeric_state above: 0` condition, so it never even starts a delay |
+| `input_boolean.bbq_show_help` | Toggle | Reveals the explanatory paragraph under Alerts, Spoken announcements and Setup |
 
 ## Spoken announcements
 
@@ -124,6 +126,18 @@ These drive the card border, the arc colour, the status pill, the alerts card an
 ## `script.inkbird_apply_recipe`
 
 Fields: `label` (text) and `target` (number). Reads `input_select.inkbird_active_probe`, then writes `target` to that probe's `input_number` and `label` to its `input_text`. Mode `parallel`, max 10, so rapid taps do not queue up.
+
+## Custom recipe
+
+| Entity | What it does |
+|---|---|
+| `input_boolean.bbq_custom_open` | Whether the form is showing. The Custom button toggles it; Apply and Cancel turn it off |
+| `input_text.bbq_custom_name` | Name written to the probe. Falls back to "Custom" if left empty |
+| `input_number.bbq_custom_target` | Target in °C |
+
+The form deliberately reuses the *existing* helpers for probe, notify target and announcements rather than duplicating them per recipe — those are instance-wide settings, and a per-recipe copy would quietly diverge from what the alerts actually read.
+
+`script.inkbird_apply_custom_recipe` reads the name and target, hands them to `script.inkbird_apply_recipe` — the same path the presets use — and closes the form.
 
 ## `script.bbq_notify`
 

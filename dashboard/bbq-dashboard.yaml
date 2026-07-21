@@ -245,7 +245,6 @@ button_card_templates:
             - font-size: 1.3rem
   inkbird_recipe:
     show_icon: true
-    icon: mdi:silverware-fork-knife
     styles:
       card:
       - padding: 14px
@@ -275,8 +274,16 @@ button_card_templates:
         [[[
           var u = states['input_select.inkbird_unit'];
           var uf = u ? u.state.indexOf('F') >= 0 : false;
-          var v = uf ? Math.round(variables.temp * 9/5 + 32) : variables.temp;
           var us = uf ? '\u00b0F' : '\u00b0C';
+          var c = variables.temp;
+          if (variables.rname === 'Custom') {
+            var o = states['input_number.bbq_custom_target'];
+            c = o ? parseFloat(o.state) : NaN;
+            if (isNaN(c) || c <= 0) {
+              return `<div style="font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:#77695c">\u2014</div>`;
+            }
+          }
+          var v = uf ? Math.round(c * 9/5 + 32) : Math.round(c);
           return `<div style="font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:#ff6a2c">${v}<span style="font-size:.74rem;color:#a89a8c">${us}</span></div>`;
         ]]]
       s: |
@@ -510,6 +517,7 @@ views:
           temp: 93
           note: Low & slow
           color: '#b0442a'
+        icon: mdi:cow
       - type: custom:button-card
         template: inkbird_recipe
         name: Chicken
@@ -518,6 +526,7 @@ views:
           temp: 74
           note: Food-safe
           color: '#e0a23a'
+        icon: mdi:food-drumstick
       - type: custom:button-card
         template: inkbird_recipe
         name: Medium Steak
@@ -526,6 +535,7 @@ views:
           temp: 57
           note: Pull temp
           color: '#c25a3c'
+        icon: mdi:food-steak
       - type: custom:button-card
         template: inkbird_recipe
         name: Pork Ribs
@@ -534,6 +544,7 @@ views:
           temp: 90
           note: Fall-off
           color: '#a9563b'
+        icon: mdi:pig
       - type: custom:button-card
         template: inkbird_recipe
         name: Salmon
@@ -542,11 +553,131 @@ views:
           temp: 52
           note: Just flaky
           color: '#e07a52'
+        icon: mdi:fish
+      - type: custom:button-card
+        template: inkbird_recipe
+        name: Custom
+        icon: mdi:tune-variant
+        variables:
+          rname: Custom
+          temp: 0
+          note: Set it yourself
+          color: '#8a8f98'
+        tap_action:
+          action: call-service
+          service: input_boolean.toggle
+          target:
+            entity_id: input_boolean.bbq_custom_open
       card_mod:
         style: |
           #root {
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
           }
+    - type: conditional
+      conditions:
+      - condition: state
+        entity: input_boolean.bbq_custom_open
+        state: 'on'
+      card:
+        type: vertical-stack
+        cards:
+        - type: markdown
+          content: |
+            #### 🧪 Custom recipe
+            Set it up, then **Apply to probe**. Everything below is a normal helper — the recipe presets write to the same places.
+          card_mod:
+            style: |
+              ha-card { background:none;border:none;box-shadow:none;color:#a89a8c; }
+        - type: grid
+          columns: 2
+          square: false
+          card_mod:
+            style: |
+              #root {
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+              }
+          cards:
+          - type: tile
+            entity: input_text.bbq_custom_name
+            name: Name
+            icon: mdi:pencil
+          - type: tile
+            entity: input_number.bbq_custom_target
+            name: Target
+            icon: mdi:thermometer-alert
+            features:
+            - type: numeric-input
+              style: slider
+            features_position: bottom
+          - type: tile
+            entity: input_select.inkbird_active_probe
+            name: Probe
+            icon: mdi:target
+            features:
+            - type: select-options
+            features_position: bottom
+          - type: tile
+            entity: input_number.bbq_rest_minutes
+            name: Rest reminder
+            icon: mdi:timer-sand
+            features:
+            - type: numeric-input
+              style: slider
+            features_position: bottom
+          - type: tile
+            entity: input_select.bbq_notify_target
+            name: Notify
+            icon: mdi:bell-ring
+            features:
+            - type: select-options
+            features_position: bottom
+          - type: tile
+            entity: input_boolean.bbq_tts_alerts
+            name: Announce out loud
+            icon: mdi:bullhorn
+            features:
+            - type: toggle
+            features_position: bottom
+        - type: grid
+          columns: 2
+          square: false
+          cards:
+          - type: custom:button-card
+            icon: mdi:check
+            name: Apply to probe
+            show_name: true
+            show_icon: true
+            styles:
+              card:
+              - background: '#ff6a2c'
+              - border-radius: 14px
+              - padding: 12px
+              - color: '#1a1207'
+              name:
+              - font-weight: 650
+              - font-size: .9rem
+            tap_action:
+              action: call-service
+              service: script.inkbird_apply_custom_recipe
+          - type: custom:button-card
+            icon: mdi:close
+            name: Cancel
+            show_name: true
+            show_icon: true
+            styles:
+              card:
+              - background: '#211b16'
+              - border: '1px solid #3a2f27'
+              - border-radius: 14px
+              - padding: 12px
+              - color: '#a89a8c'
+              name:
+              - font-size: .9rem
+            tap_action:
+              action: call-service
+              service: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.bbq_custom_open
   panel: true
 - title: Probes
   path: probes
@@ -1080,15 +1211,6 @@ views:
       name: Model
       icon: mdi:tag-outline
     - type: tile
-      entity: sensor.overig_inkbird_int_14_base_battery
-      name: Base battery
-      icon: mdi:battery
-      features: &id001
-      - type: bar-gauge
-        min: 0
-        max: 100
-      features_position: bottom
-    - type: tile
       entity: binary_sensor.inkbird_int_14_base_charging
       name: Charging
       icon: mdi:power-plug
@@ -1132,29 +1254,36 @@ views:
   - type: grid
     cards:
     - type: heading
-      heading: Probe batteries
+      heading: Batteries
       heading_style: title
       icon: mdi:battery-heart-variant
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_1_battery
-      name: Probe 1
-      features: *id001
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_2_battery
-      name: Probe 2
-      features: *id001
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_3_battery
-      name: Probe 3
-      features: *id001
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_4_battery
-      name: Probe 4
-      features: *id001
-      features_position: bottom
+    - type: custom:battery-state-card
+      title: null
+      sort:
+        by: state
+        desc: false
+      collapse: 0
+      secondary_info: '{last_changed}'
+      colors:
+        steps:
+        - value: 20
+          color: '#e8503a'
+        - value: 40
+          color: '#f2b441'
+        - value: 100
+          color: '#56c271'
+        gradient: true
+      entities:
+      - entity: sensor.overig_inkbird_int_14_base_battery
+        name: Base station
+      - entity: sensor.overig_inkbird_int_14_probe_1_battery
+        name: Probe 1
+      - entity: sensor.overig_inkbird_int_14_probe_2_battery
+        name: Probe 2
+      - entity: sensor.overig_inkbird_int_14_probe_3_battery
+        name: Probe 3
+      - entity: sensor.overig_inkbird_int_14_probe_4_battery
+        name: Probe 4
   - type: grid
     cards:
     - type: heading
@@ -1181,6 +1310,13 @@ views:
       icon: mdi:target
       features:
       - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: input_boolean.bbq_show_help
+      name: Show help
+      icon: mdi:help-circle-outline
+      features:
+      - type: toggle
       features_position: bottom
   - type: grid
     cards:
@@ -1218,6 +1354,15 @@ views:
       - type: numeric-input
         style: slider
       features_position: bottom
+    - type: conditional
+      conditions:
+      - condition: state
+        entity: input_boolean.bbq_show_help
+        state: 'on'
+      card:
+        type: markdown
+        content: |
+          **Low battery alerts** watch every probe and fire once a battery drops below the threshold. **Stall alerts** fire when a probe stops climbing for 45 minutes while still below target — the classic brisket stall, and the moment you decide whether to wrap. **Snooze duration** is how long the Snooze button on a push notification waits before reminding you; it also sets the button's label.
   - type: grid
     cards:
     - type: heading
@@ -1242,6 +1387,15 @@ views:
     - type: markdown
       content: |
         Paste entity ids, e.g. `media_player.kitchen` and `tts.home_assistant_cloud`. Leave either empty to disable speech.
+    - type: conditional
+      conditions:
+      - condition: state
+        entity: input_boolean.bbq_show_help
+        state: 'on'
+      card:
+        type: markdown
+        content: |
+          Announcements are spoken through any media player. Paste the entity ids, e.g. `media_player.kitchen` and `tts.home_assistant_cloud`. Each alert has its own spoken wording — emoji and `°C` read badly out loud, so the speaker says "has reached 93 degrees" rather than the on-screen text. Leave either field empty, or the toggle off, and nothing is spoken.
   - type: grid
     cards:
     - type: heading
@@ -1299,8 +1453,17 @@ views:
       icon: mdi:identifier
     - type: markdown
       content: |
-        The area-prefixed base of your Inkbird entities, **without** a trailing underscore — e.g. `sensor.kitchen_inkbird_int_14`. Find it under **Developer Tools → States**, filtering on `inkbird`.
+        The area-prefixed base of your Inkbird entities, **without** a trailing underscore — e.g. `sensor.overig_inkbird_int_14`. Find it under **Developer Tools → States**, filtering on `inkbird`.
 
         Changing this re-points the four probe cards, the status sensors and every automation immediately.
 
         It does **not** reach the rate sensors or the Probes page — Home Assistant resolves those entity ids when the config loads, not when they render. Run `scripts/configure.py` once for those.
+    - type: conditional
+      conditions:
+      - condition: state
+        entity: input_boolean.bbq_show_help
+        state: 'on'
+      card:
+        type: markdown
+        content: |
+          The **sensor prefix** is the shared start of your Inkbird entity ids, without a trailing underscore. Changing it immediately re-points the four probe cards, the status sensors and every automation. It cannot reach the rate sensors or the Probes page — Home Assistant fixes those entity ids when the config loads, not when they render — so run `scripts/configure.py` once for those.

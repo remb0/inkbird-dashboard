@@ -39,7 +39,7 @@
 
 input_text:
   # The area-prefixed base of your Inkbird sensors, without a trailing
-  # underscore, e.g. sensor.kitchen_inkbird_int_14
+  # underscore, e.g. sensor.overig_inkbird_int_14
   inkbird_sensor_prefix:
     name: Inkbird sensor prefix
     icon: mdi:identifier
@@ -56,6 +56,12 @@ input_text:
     max: 100
   inkbird_name_4:
     name: Probe 4 name
+    max: 100
+
+  # Name typed into the custom-recipe form on Cook Control.
+  bbq_custom_name:
+    name: BBQ custom recipe name
+    icon: mdi:pencil
     max: 100
 
   # Leave either of these empty to disable spoken announcements entirely.
@@ -111,6 +117,26 @@ input_number:
     unit_of_measurement: "%"
     mode: slider
 
+  bbq_custom_target:
+    name: BBQ custom recipe target
+    icon: mdi:thermometer-alert
+    min: 0
+    max: 300
+    step: 1
+    unit_of_measurement: "°C"
+    mode: slider
+
+  # Rest reminder after a probe hits its target. Minimum 0 means "off" —
+  # carryover cooking is real, but not everyone wants a second alert.
+  bbq_rest_minutes:
+    name: BBQ rest reminder
+    icon: mdi:timer-sand
+    min: 0
+    max: 120
+    step: 5
+    unit_of_measurement: min
+    mode: slider
+
   # Minimum is 5 rather than 1 so a fresh install has a usable default
   # without needing `initial:`.
   bbq_snooze_minutes:
@@ -132,6 +158,16 @@ input_boolean:
   bbq_tts_alerts:
     name: BBQ spoken announcements
     icon: mdi:bullhorn
+
+  # Reveals the explanatory text beside each Settings section.
+  bbq_show_help:
+    name: BBQ show help
+    icon: mdi:help-circle-outline
+
+  # Reveals the custom-recipe form on Cook Control.
+  bbq_custom_open:
+    name: BBQ custom recipe open
+    icon: mdi:tune-variant
 
 input_select:
   inkbird_active_probe:
@@ -309,6 +345,28 @@ script:
           value: "{{ label }}"
 
   # --------------------------------------------------------------------------
+  #  Custom recipe — same as tapping a preset, but with the name and target
+  #  typed into the form on Cook Control. Closes the form afterwards so the
+  #  button behaves like a dialog.
+  # --------------------------------------------------------------------------
+  inkbird_apply_custom_recipe:
+    alias: Inkbird — apply the custom recipe
+    icon: mdi:tune-variant
+    mode: single
+    sequence:
+      - variables:
+          label: >
+            {% set n = states('input_text.bbq_custom_name') %}
+            {{ n if n not in ['unknown', 'unavailable', ''] else 'Custom' }}
+      - action: script.inkbird_apply_recipe
+        data:
+          label: "{{ label }}"
+          target: "{{ states('input_number.bbq_custom_target') | float(60) }}"
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.bbq_custom_open
+
+  # --------------------------------------------------------------------------
   #  One notification router for every alert in this package: persistent
   #  notification, optional push, optional spoken announcement.
   #
@@ -447,6 +505,52 @@ automation:
               title: "Snooze {{ snooze }} min"
             - action: "BBQ_DISMISS_{{ idx }}"
               title: Dismiss
+    mode: parallel
+
+  # --------------------------------------------------------------------------
+  #  Rest reminder. Carryover cooking keeps raising the internal temperature
+  #  after the meat leaves the heat, so "ready" is not "serve now". Set the
+  #  rest period to 0 on the Settings page to switch this off.
+  # --------------------------------------------------------------------------
+  - id: inkbird_bbq_rest_reminder
+    alias: BBQ rest reminder
+    description: >
+      Waits input_number.bbq_rest_minutes after a probe reaches its target,
+      then says the rest is done. Skipped entirely when that number is 0.
+    triggers:
+      - trigger: state
+        entity_id: sensor.bbq_probe_1_status
+        to: ready
+        id: "1"
+      - trigger: state
+        entity_id: sensor.bbq_probe_2_status
+        to: ready
+        id: "2"
+      - trigger: state
+        entity_id: sensor.bbq_probe_3_status
+        to: ready
+        id: "3"
+      - trigger: state
+        entity_id: sensor.bbq_probe_4_status
+        to: ready
+        id: "4"
+    conditions:
+      - condition: numeric_state
+        entity_id: input_number.bbq_rest_minutes
+        above: 0
+    actions:
+      - variables:
+          idx: "{{ trigger.id }}"
+          rest: "{{ states('input_number.bbq_rest_minutes') | int(0) }}"
+          pname: "{{ states('input_text.inkbird_name_' ~ trigger.id) }}"
+      - delay:
+          minutes: "{{ rest }}"
+      - action: script.bbq_notify
+        data:
+          title: "\U0001f957 {{ pname }} has rested"
+          message: "{{ rest }} minutes up. Probe {{ idx }} is ready to carve."
+          tts_message: "{{ pname }} has finished resting."
+          tag: "inkbird_rest_{{ idx }}"
     mode: parallel
 
   # --------------------------------------------------------------------------

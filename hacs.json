@@ -1,0 +1,7 @@
+{
+  "name": "Inkbird BBQ Dashboard",
+  "content_in_root": false,
+  "filename": "inkbird-bbq-strategy.js",
+  "render_readme": true,
+  "homeassistant": "2024.10.0"
+}

@@ -1,0 +1,90 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PyYAML
+        run: pip install --quiet pyyaml
+
+      - name: Everything parses
+        run: |
+          python3 - <<'PY'
+          import json, yaml, pathlib
+          yaml.safe_load(pathlib.Path('packages/inkbird_bbq.yaml').read_text())
+          yaml.safe_load(pathlib.Path('dashboard/bbq-dashboard.yaml').read_text())
+          json.loads(pathlib.Path('dashboard/bbq-dashboard.json').read_text())
+          json.loads(pathlib.Path('hacs.json').read_text())
+          print('ok')
+          PY
+
+      # The two dashboard files are generated from one source. If they drift,
+      # whichever one you did not edit is silently stale.
+      - name: YAML and JSON dashboards are identical
+        run: |
+          python3 - <<'PY'
+          import json, yaml, pathlib, sys
+          y = yaml.safe_load(pathlib.Path('dashboard/bbq-dashboard.yaml').read_text())
+          j = json.loads(pathlib.Path('dashboard/bbq-dashboard.json').read_text())
+          if y != j:
+              sys.exit('dashboard YAML and JSON differ — regenerate, do not hand-edit')
+          print('in sync')
+          PY
+
+      # dist/ is generated. A stale commit ships a strategy that does not match
+      # the dashboard it claims to be built from.
+      - name: Strategy bundle is up to date
+        run: |
+          cp dist/inkbird-bbq-strategy.js /tmp/committed.js
+          python3 scripts/build_strategy.py >/dev/null
+          diff -q /tmp/committed.js dist/inkbird-bbq-strategy.js \
+            || { echo "dist/ is stale — run: python3 scripts/build_strategy.py"; exit 1; }
+
+      - name: Strategy is valid JS and resolves entity ids
+        run: node scripts/test_strategy.mjs
+
+      - name: configure.py round-trips cleanly
+        run: |
+          cp dashboard/bbq-dashboard.yaml /tmp/before.yaml
+          python3 scripts/configure.py --prefix sensor.ci_test_inkbird_int_14 >/dev/null
+          if grep -q "overig" dashboard/bbq-dashboard.yaml; then
+            echo "configure.py left stale ids behind:"; grep -n "overig" dashboard/bbq-dashboard.yaml; exit 1
+          fi
+          python3 scripts/configure.py --prefix sensor.overig_inkbird_int_14 >/dev/null
+          diff -q /tmp/before.yaml dashboard/bbq-dashboard.yaml \
+            || { echo "configure.py is not reversible"; exit 1; }
+
+      - name: No broken links or images in markdown
+        run: |
+          python3 - <<'PY'
+          import re, pathlib, sys
+          def strip(md):
+              md = re.sub(r'<!--.*?-->', '', md, flags=re.S)
+              md = re.sub(r'```.*?```', '', md, flags=re.S)
+              return re.sub(r'`[^`\n]*`', '', md)
+          bad = []
+          for f in pathlib.Path('.').rglob('*.md'):
+              if '.git' in str(f):
+                  continue
+              for m in re.finditer(r'\[[^\]]*\]\(([^)#][^)]*)\)', strip(f.read_text())):
+                  t = m.group(1).split('#')[0]
+                  if not t or t.startswith(('http://', 'https://', 'mailto:')):
+                      continue
+                  if not (f.parent / t).resolve().exists():
+                      bad.append(f'{f}: {t}')
+          if bad:
+              sys.exit('broken links:\n  ' + '\n  '.join(bad))
+          print('ok')
+          PY
