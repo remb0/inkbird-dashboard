@@ -42,10 +42,19 @@ button_card_templates:
           var name = states[variables.pname].state;
           var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';
           var label = s==='ready' ? 'Ready' : s==='close' ? 'Almost there' : s==='heating' ? 'Heating' : 'Not connected';
+          var bs = states[variables.pbatt];
+          var bv = bs ? parseInt(bs.state) : NaN;
+          var bok = !isNaN(bv);
+          var bcol = !bok ? '#77695c' : bv < 20 ? '#e8503a' : bv < 40 ? '#f2b441' : '#56c271';
           return `<div style="display:flex;align-items:center;gap:11px;font-family:system-ui">
-            <div style="width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
-                 font-family:ui-monospace,monospace;font-weight:700;background:#33291f;
-                 border:1px solid #4d3f33;color:#f5ede4">P${variables.num}</div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px"
+                 title="probe ${variables.num} battery">
+              <div style="width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+                   font-family:ui-monospace,monospace;font-weight:700;background:#33291f;
+                   border:1px solid #4d3f33;color:#f5ede4">P${variables.num}</div>
+              <div style="font-family:ui-monospace,monospace;font-size:.62rem;font-weight:700;
+                   line-height:1;color:${bcol}">${bok?bv+'%':'\u2014'}</div>
+            </div>
             <div style="flex:1;font-weight:620;font-size:1rem;color:#f5ede4">${name}
               <div style="font-size:.74rem;color:#a89a8c;font-weight:500">Probe ${variables.num}</div></div>
             <div style="font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
@@ -125,23 +134,10 @@ button_card_templates:
           var footer = !connected ? 'Insert a probe to begin'
             : (s==='ready' ? 'Reached target \u2014 resting'
             : Math.max(0, togo) + '\u00b0 to go');
-          var bs = states[variables.pbatt];
-          var bv = bs ? parseInt(bs.state) : NaN;
-          var bok = !isNaN(bv);
-          var bcol = !bok ? '#77695c' : bv < 20 ? '#e8503a' : bv < 40 ? '#f2b441' : '#56c271';
-          return `<div style="display:flex;flex-direction:column;gap:10px;font-family:system-ui">
+          return `<div style="display:flex;flex-direction:column;gap:12px;font-family:system-ui">
             <div style="display:flex;align-items:center;gap:10px">
               <span style="flex:1;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:#77695c">Target</span>
               <span style="font-family:ui-monospace,monospace;font-weight:600;font-size:1.05rem;color:#f5ede4">${cv(g)}${us}</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px" title="probe battery">
-              <span style="flex:1;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:#77695c">Battery</span>
-              <span style="width:26px;height:12px;border:1.5px solid #77695c;border-radius:3px;padding:1.5px;
-                display:inline-block;position:relative">
-                <span style="display:block;height:100%;width:${bok?bv:0}%;background:${bcol};border-radius:1px"></span>
-              </span>
-              <span style="font-family:ui-monospace,monospace;font-size:.82rem;font-weight:600;color:${bcol};
-                min-width:34px;text-align:right">${bok?bv+'%':'\u2014'}</span>
             </div>
             <div style="font-size:.78rem;color:#a89a8c">${footer}</div>
           </div>`;
@@ -327,28 +323,6 @@ views:
             background: linear-gradient(180deg,#211b16,#2b231d);
             border:1px solid #3a2f27; border-radius:18px; color:#f5ede4;
           }
-    - type: custom:button-card
-      icon: mdi:cog-outline
-      show_name: true
-      show_icon: true
-      name: Settings
-      size: 22px
-      styles:
-        card:
-        - background: '#211b16'
-        - border: '1px solid #3a2f27'
-        - border-radius: 14px
-        - padding: 10px 16px
-        - justify-self: end
-        - width: 150px
-        name:
-        - font-size: .82rem
-        - color: '#a89a8c'
-        icon:
-        - color: '#a89a8c'
-      tap_action:
-        action: navigate
-        navigation_path: /dashboard-bbq/settings
     - type: custom:button-card
       tap_action:
         action: none
@@ -1013,76 +987,176 @@ views:
 - title: Settings
   path: settings
   icon: mdi:cog
-  subview: true
+  type: sections
+  max_columns: 3
   background: '#16120f'
-  cards:
-  - type: vertical-stack
-    card_mod:
-      style: |
-        :host { max-width: 900px; margin: 0 auto; display:block; }
-    cards:
-    - type: custom:button-card
-      icon: mdi:arrow-left
-      show_name: true
-      show_icon: true
-      name: Cook Control
-      styles:
-        card:
-        - background: '#211b16'
-        - border: '1px solid #3a2f27'
-        - border-radius: 14px
-        - padding: 10px 16px
-        - justify-self: start
-        - width: 170px
-        name:
-        - font-size: .82rem
-        - color: '#a89a8c'
-        icon:
-        - color: '#a89a8c'
-      tap_action:
-        action: navigate
-        navigation_path: /dashboard-bbq/cook
-    - type: markdown
+  header:
+    layout: responsive
+    card:
+      type: markdown
+      text_only: true
       content: |
-        ## ⚙️ BBQ Settings
-        Beheer notificaties, eenheden en links voor het Inkbird BBQ-dashboard.
-      card_mod:
-        style: |
-          ha-card { background:none;border:none;box-shadow:none;color:#f5ede4; }
+        {% set model = states('sensor.inkbird_int_14_configured_model') %}{% set probes = states('sensor.inkbird_int_14_physical_probe_count') %}{% set tr = states('sensor.inkbird_int_14_active_transport') %}{% set ble = is_state('binary_sensor.inkbird_int_14_ble_connected','on') %}{% set bb = states('sensor.overig_inkbird_int_14_base_battery') %}{% set upd = states('update.inkbird_int_update') %}
+        ## ⚙️ Settings
+        **{{ model }}** · {{ probes }} probes · base battery **{{ bb }}%**
+
+        {{ '🟢 Connected' if ble else '🟠 ' ~ tr }} · {{ '🔷 Integration update available' if upd == 'on' else '✅ Integration up to date' }}
+  sections:
+  - type: grid
+    cards:
+    - type: heading
+      heading: Base station
+      heading_style: title
+      icon: mdi:grill
+    - type: tile
+      entity: sensor.inkbird_int_14_configured_model
+      name: Model
+      icon: mdi:tag-outline
+    - type: tile
+      entity: sensor.overig_inkbird_int_14_base_battery
+      name: Base battery
+      icon: mdi:battery
+      features: &id001
+      - type: bar-gauge
+        min: 0
+        max: 100
+      features_position: bottom
+    - type: tile
+      entity: binary_sensor.inkbird_int_14_base_charging
+      name: Charging
+      icon: mdi:power-plug
+    - type: tile
+      entity: sensor.overig_inkbird_int_14_base_temperature
+      name: Base temperature
+      icon: mdi:thermometer
+    - type: tile
+      entity: sensor.inkbird_int_14_physical_probe_count
+      name: Probes detected
+      icon: mdi:counter
+  - type: grid
+    cards:
+    - type: heading
+      heading: Connection
+      heading_style: title
+      icon: mdi:bluetooth
+    - type: tile
+      entity: select.inkbird_int_14_transport_mode
+      name: Transport mode
+      icon: mdi:swap-horizontal
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: sensor.inkbird_int_14_active_transport
+      name: Active transport
+      icon: mdi:transit-connection-variant
+    - type: tile
+      entity: binary_sensor.inkbird_int_14_ble_connected
+      name: Bluetooth
+      icon: mdi:bluetooth-connect
+    - type: tile
+      entity: binary_sensor.inkbird_int_14_wi_fi_connected
+      name: Wi-Fi
+      icon: mdi:wifi
+    - type: tile
+      entity: sensor.inkbird_int_14_battery_report_quality
+      name: Battery reporting
+      icon: mdi:signal-cellular-3
+  - type: grid
+    cards:
+    - type: heading
+      heading: Probe batteries
+      heading_style: title
+      icon: mdi:battery-heart-variant
+    - type: tile
+      entity: sensor.overig_inkbird_int_14_probe_1_battery
+      name: Probe 1
+      features: *id001
+      features_position: bottom
+    - type: tile
+      entity: sensor.overig_inkbird_int_14_probe_2_battery
+      name: Probe 2
+      features: *id001
+      features_position: bottom
+    - type: tile
+      entity: sensor.overig_inkbird_int_14_probe_3_battery
+      name: Probe 3
+      features: *id001
+      features_position: bottom
+    - type: tile
+      entity: sensor.overig_inkbird_int_14_probe_4_battery
+      name: Probe 4
+      features: *id001
+      features_position: bottom
+  - type: grid
+    cards:
+    - type: heading
+      heading: Preferences
+      heading_style: title
+      icon: mdi:tune
+    - type: tile
+      entity: input_select.inkbird_unit
+      name: Temperature unit
+      icon: mdi:thermometer
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: input_select.bbq_notificatie_apparaat
+      name: Notification device
+      icon: mdi:bell-ring
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: input_select.inkbird_active_probe
+      name: Active probe
+      icon: mdi:target
+      features:
+      - type: select-options
+      features_position: bottom
+  - type: grid
+    cards:
+    - type: heading
+      heading: Integration
+      heading_style: title
+      icon: mdi:puzzle-outline
     - type: tile
       entity: update.inkbird_int_update
-      name: Integratie versie
+      name: Inkbird INT version
       icon: mdi:update
       features:
       - type: update-actions
-    - type: grid
-      columns: 2
-      square: false
-      cards:
-      - type: tile
-        entity: input_select.inkbird_unit
-        name: Temperature unit
-        icon: mdi:thermometer
-        features:
-        - type: select-options
-      - type: tile
-        entity: input_select.bbq_notificatie_apparaat
-        name: Notificatie-apparaat
-        icon: mdi:bell-ring
-        features:
-        - type: select-options
+      features_position: bottom
+    - type: tile
+      entity: sensor.inkbird_int_14_model_support_status
+      name: Model support
+      icon: mdi:shield-check-outline
+    - type: tile
+      entity: sensor.overig_inkbird_int_14_ble_diagnostic_status
+      name: Last BLE diagnostic
+      icon: mdi:stethoscope
+    - type: tile
+      entity: button.overig_inkbird_int_14_capture_ble_diagnostics
+      name: Run BLE diagnostic
+      icon: mdi:play-circle-outline
+    - type: tile
+      entity: button.inkbird_int_14_request_snapshot
+      name: Request snapshot
+      icon: mdi:camera-outline
+  - type: grid
+    cards:
+    - type: heading
+      heading: Links
+      heading_style: title
+      icon: mdi:link-variant
     - type: markdown
       content: |
         {% set integration_name = 'Inkbird INT' %}
         {% set integration_domain = 'inkbird_int14' %}
         {% set gh_integration = 'https://github.com/zampix1/ha-inkbird-int14' %}
         {% set gh_dashboard = 'https://github.com/remb0/inkbird-dashboard' %}
-        ### Links
         - 🍖 [food.remb0.nl](http://food.remb0.nl)
-        - 🧩 Integratie: **{{ integration_name }}** (`{{ integration_domain }}`) — [GitHub]({{ gh_integration }})
+        - 🧩 Integration: **{{ integration_name }}** (`{{ integration_domain }}`) — [GitHub]({{ gh_integration }})
         - 📊 Dashboard: [GitHub]({{ gh_dashboard }})
-      card_mod:
-        style: |
-          ha-card { background: linear-gradient(180deg,#211b16,#2b231d); border:1px solid #3a2f27; border-radius:18px; color:#f5ede4; padding:4px; }
-  panel: true
-  back_path: /dashboard-bbq/cook
+        - 🔬 Probes page adapted from the [INT-12E-BW community dashboard]({{ gh_integration }}/blob/main/docs/int12e_dashboard.md)

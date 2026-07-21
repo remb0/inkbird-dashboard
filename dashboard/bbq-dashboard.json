@@ -74,10 +74,10 @@
         }
       },
       "custom_fields": {
-        "header": "[[[\n  var s = states[variables.pstate].state;\n  var name = states[variables.pname].state;\n  var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';\n  var label = s==='ready' ? 'Ready' : s==='close' ? 'Almost there' : s==='heating' ? 'Heating' : 'Not connected';\n  return `<div style=\"display:flex;align-items:center;gap:11px;font-family:system-ui\">\n    <div style=\"width:30px;height:30px;border-radius:9px;display:grid;place-items:center;\n         font-family:ui-monospace,monospace;font-weight:700;background:#33291f;\n         border:1px solid #4d3f33;color:#f5ede4\">P${variables.num}</div>\n    <div style=\"flex:1;font-weight:620;font-size:1rem;color:#f5ede4\">${name}\n      <div style=\"font-size:.74rem;color:#a89a8c;font-weight:500\">Probe ${variables.num}</div></div>\n    <div style=\"font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;\n         padding:5px 11px;border-radius:999px;color:${col};\n         background:${col}26;border:1px solid ${col}66\">${label}</div>\n  </div>`;\n]]]\n",
+        "header": "[[[\n  var s = states[variables.pstate].state;\n  var name = states[variables.pname].state;\n  var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';\n  var label = s==='ready' ? 'Ready' : s==='close' ? 'Almost there' : s==='heating' ? 'Heating' : 'Not connected';\n  var bs = states[variables.pbatt];\n  var bv = bs ? parseInt(bs.state) : NaN;\n  var bok = !isNaN(bv);\n  var bcol = !bok ? '#77695c' : bv < 20 ? '#e8503a' : bv < 40 ? '#f2b441' : '#56c271';\n  return `<div style=\"display:flex;align-items:center;gap:11px;font-family:system-ui\">\n    <div style=\"display:flex;flex-direction:column;align-items:center;gap:3px\"\n         title=\"probe ${variables.num} battery\">\n      <div style=\"width:30px;height:30px;border-radius:9px;display:grid;place-items:center;\n           font-family:ui-monospace,monospace;font-weight:700;background:#33291f;\n           border:1px solid #4d3f33;color:#f5ede4\">P${variables.num}</div>\n      <div style=\"font-family:ui-monospace,monospace;font-size:.62rem;font-weight:700;\n           line-height:1;color:${bcol}\">${bok?bv+'%':'\\u2014'}</div>\n    </div>\n    <div style=\"flex:1;font-weight:620;font-size:1rem;color:#f5ede4\">${name}\n      <div style=\"font-size:.74rem;color:#a89a8c;font-weight:500\">Probe ${variables.num}</div></div>\n    <div style=\"font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;\n         padding:5px 11px;border-radius:999px;color:${col};\n         background:${col}26;border:1px solid ${col}66\">${label}</div>\n  </div>`;\n]]]\n",
         "fig": "[[[\n  var s = states[variables.pstate].state;\n  var connected = s !== 'idle';\n  var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';\n  var tip = connected ? col : '#77695c';\n  var glow = connected ? `filter:drop-shadow(0 0 4px ${col})` : '';\n  return `<svg viewBox=\"0 0 26 150\" style=\"height:148px;width:auto;display:block;margin:auto\">\n    <defs>\n      <linearGradient id=\"st${variables.num}\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"0\">\n        <stop offset=\"0\" stop-color=\"#6c7075\"/><stop offset=\".28\" stop-color=\"#eef1f3\"/>\n        <stop offset=\".5\" stop-color=\"#c4c9ce\"/><stop offset=\".72\" stop-color=\"#eef1f3\"/>\n        <stop offset=\"1\" stop-color=\"#5c6065\"/></linearGradient>\n      <linearGradient id=\"gl${variables.num}\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"0\">\n        <stop offset=\"0\" stop-color=\"#0c0c0e\"/><stop offset=\".3\" stop-color=\"#3a3a40\"/>\n        <stop offset=\".5\" stop-color=\"#141418\"/><stop offset=\".75\" stop-color=\"#2a2a30\"/>\n        <stop offset=\"1\" stop-color=\"#050506\"/></linearGradient>\n      <linearGradient id=\"rg${variables.num}\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"0\">\n        <stop offset=\"0\" stop-color=\"#8a8e93\"/><stop offset=\".5\" stop-color=\"#f2f4f6\"/>\n        <stop offset=\"1\" stop-color=\"#7a7e83\"/></linearGradient>\n    </defs>\n    <ellipse cx=\"13\" cy=\"6\" rx=\"7.5\" ry=\"2.6\" fill=\"url(#rg${variables.num})\"/>\n    <path d=\"M5.5 6 L20.5 6 L17 52 L9 52 Z\" fill=\"url(#gl${variables.num})\" stroke=\"#000\" stroke-width=\".6\"/>\n    <text x=\"13\" y=\"30\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\"\n          font-weight=\"700\" font-size=\"10\" fill=\"${connected?'#f0f0f2':'#8a8a8c'}\">${variables.num}</text>\n    <rect x=\"8.5\" y=\"52\" width=\"9\" height=\"4\" rx=\"1\" fill=\"url(#rg${variables.num})\"/>\n    <rect x=\"10\" y=\"56\" width=\"6\" height=\"82\" fill=\"url(#st${variables.num})\"/>\n    <path d=\"M10 138 L16 138 L13 150 Z\" fill=\"${tip}\" style=\"${glow}\"/>\n  </svg>`;\n]]]\n",
         "gauge": "[[[\n  var t = parseFloat(states[variables.probe].state);\n  var g = parseFloat(states[variables.target].state);\n  var s = states[variables.pstate].state;\n  var amb = 22, connected = !isNaN(t);\n  var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';\n  var pct = connected ? Math.max(0, Math.min(1,(t-amb)/(g-amb))) : 0;\n  var R=52, C=2*Math.PI*R, ARC=0.75;\n  var dash=(C*ARC*pct).toFixed(1)+' '+C;\n  var uf = states['input_select.inkbird_unit'].state.indexOf('F') >= 0;\n  var us = uf ? '°F' : '°C';\n  var cv = function(c){ return uf ? Math.round(c*9/5+32) : Math.round(c*10)/10; };\n  var temp = connected ? cv(t) : '—';\n  return `<div style=\"position:relative;width:128px;height:128px;margin:auto\">\n    <svg width=\"128\" height=\"128\" viewBox=\"0 0 128 128\" style=\"transform:rotate(135deg)\">\n      <circle cx=\"64\" cy=\"64\" r=\"${R}\" fill=\"none\" stroke=\"#33291f\" stroke-width=\"9\"\n        stroke-linecap=\"round\" stroke-dasharray=\"${(C*ARC).toFixed(1)} ${C}\"/>\n      <circle cx=\"64\" cy=\"64\" r=\"${R}\" fill=\"none\" stroke=\"${col}\" stroke-width=\"9\"\n        stroke-linecap=\"round\" stroke-dasharray=\"${dash}\"\n        style=\"transition:stroke-dasharray .6s ease,stroke .4s\"/>\n    </svg>\n    <div style=\"position:absolute;inset:0;display:flex;flex-direction:column;\n         align-items:center;justify-content:center;font-family:ui-monospace,monospace\">\n      <div style=\"font-size:1.7rem;font-weight:650;color:#f5ede4;line-height:1\">${temp}<span style=\"font-size:.9rem;color:#a89a8c\">${us}</span></div>\n      <div style=\"font-size:.72rem;color:#77695c;margin-top:2px\">${connected?'target '+cv(g)+'°':'no probe'}</div>\n    </div>\n  </div>`;\n]]]\n",
-        "side": "[[[\n  var t = parseFloat(states[variables.probe].state);\n  var g = parseFloat(states[variables.target].state);\n  var s = states[variables.pstate].state;\n  var connected = !isNaN(t);\n  var uf = states['input_select.inkbird_unit'].state.indexOf('F') >= 0;\n  var us = uf ? '\\u00b0F' : '\\u00b0C';\n  var cv = function(c){ return uf ? Math.round(c*9/5+32) : Math.round(c*10)/10; };\n  var togo = uf ? Math.round((g-t)*9/5) : Math.round((g-t)*10)/10;\n  var footer = !connected ? 'Insert a probe to begin'\n    : (s==='ready' ? 'Reached target \\u2014 resting'\n    : Math.max(0, togo) + '\\u00b0 to go');\n  var bs = states[variables.pbatt];\n  var bv = bs ? parseInt(bs.state) : NaN;\n  var bok = !isNaN(bv);\n  var bcol = !bok ? '#77695c' : bv < 20 ? '#e8503a' : bv < 40 ? '#f2b441' : '#56c271';\n  return `<div style=\"display:flex;flex-direction:column;gap:10px;font-family:system-ui\">\n    <div style=\"display:flex;align-items:center;gap:10px\">\n      <span style=\"flex:1;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:#77695c\">Target</span>\n      <span style=\"font-family:ui-monospace,monospace;font-weight:600;font-size:1.05rem;color:#f5ede4\">${cv(g)}${us}</span>\n    </div>\n    <div style=\"display:flex;align-items:center;gap:8px\" title=\"probe battery\">\n      <span style=\"flex:1;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:#77695c\">Battery</span>\n      <span style=\"width:26px;height:12px;border:1.5px solid #77695c;border-radius:3px;padding:1.5px;\n        display:inline-block;position:relative\">\n        <span style=\"display:block;height:100%;width:${bok?bv:0}%;background:${bcol};border-radius:1px\"></span>\n      </span>\n      <span style=\"font-family:ui-monospace,monospace;font-size:.82rem;font-weight:600;color:${bcol};\n        min-width:34px;text-align:right\">${bok?bv+'%':'\\u2014'}</span>\n    </div>\n    <div style=\"font-size:.78rem;color:#a89a8c\">${footer}</div>\n  </div>`;\n]]]\n",
+        "side": "[[[\n  var t = parseFloat(states[variables.probe].state);\n  var g = parseFloat(states[variables.target].state);\n  var s = states[variables.pstate].state;\n  var connected = !isNaN(t);\n  var uf = states['input_select.inkbird_unit'].state.indexOf('F') >= 0;\n  var us = uf ? '\\u00b0F' : '\\u00b0C';\n  var cv = function(c){ return uf ? Math.round(c*9/5+32) : Math.round(c*10)/10; };\n  var togo = uf ? Math.round((g-t)*9/5) : Math.round((g-t)*10)/10;\n  var footer = !connected ? 'Insert a probe to begin'\n    : (s==='ready' ? 'Reached target \\u2014 resting'\n    : Math.max(0, togo) + '\\u00b0 to go');\n  return `<div style=\"display:flex;flex-direction:column;gap:12px;font-family:system-ui\">\n    <div style=\"display:flex;align-items:center;gap:10px\">\n      <span style=\"flex:1;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:#77695c\">Target</span>\n      <span style=\"font-family:ui-monospace,monospace;font-weight:600;font-size:1.05rem;color:#f5ede4\">${cv(g)}${us}</span>\n    </div>\n    <div style=\"font-size:.78rem;color:#a89a8c\">${footer}</div>\n  </div>`;\n]]]\n",
         "minus": {
           "card": {
             "type": "custom:button-card",
@@ -303,53 +303,6 @@
               "content": "{% set ns = namespace(rows=[]) %}\n{% for i in range(1,5) %}\n  {% set s = states('sensor.bbq_probe_' ~ i ~ '_status') %}\n  {% set n = states('input_text.inkbird_name_' ~ i) %}\n  {% set g = states('input_number.inkbird_target_' ~ i) | int %}\n  {% if s == 'ready' %}\n    {% set ns.rows = ns.rows + ['🟢 **' ~ n ~ '** reached ' ~ g ~ '°C — ready'] %}\n  {% elif s == 'close' %}\n    {% set ns.rows = ns.rows + ['🟡 **' ~ n ~ '** almost there (target ' ~ g ~ '°C)'] %}\n  {% endif %}\n{% endfor %}\n### Alerts\n{% if ns.rows | length == 0 %}\n_No alerts. Everything's on track._\n{% else %}\n{% for r in ns.rows %}- {{ r }}\n{% endfor %}\n{% endif %}\n",
               "card_mod": {
                 "style": "ha-card {\n  background: linear-gradient(180deg,#211b16,#2b231d);\n  border:1px solid #3a2f27; border-radius:18px; color:#f5ede4;\n}\n"
-              }
-            },
-            {
-              "type": "custom:button-card",
-              "icon": "mdi:cog-outline",
-              "show_name": true,
-              "show_icon": true,
-              "name": "Settings",
-              "size": "22px",
-              "styles": {
-                "card": [
-                  {
-                    "background": "#211b16"
-                  },
-                  {
-                    "border": "1px solid #3a2f27"
-                  },
-                  {
-                    "border-radius": "14px"
-                  },
-                  {
-                    "padding": "10px 16px"
-                  },
-                  {
-                    "justify-self": "end"
-                  },
-                  {
-                    "width": "150px"
-                  }
-                ],
-                "name": [
-                  {
-                    "font-size": ".82rem"
-                  },
-                  {
-                    "color": "#a89a8c"
-                  }
-                ],
-                "icon": [
-                  {
-                    "color": "#a89a8c"
-                  }
-                ]
-              },
-              "tap_action": {
-                "action": "navigate",
-                "navigation_path": "/dashboard-bbq/settings"
               }
             },
             {
@@ -1301,120 +1254,287 @@
       "title": "Settings",
       "path": "settings",
       "icon": "mdi:cog",
-      "subview": true,
+      "type": "sections",
+      "max_columns": 3,
       "background": "#16120f",
-      "cards": [
+      "header": {
+        "layout": "responsive",
+        "card": {
+          "type": "markdown",
+          "text_only": true,
+          "content": "{% set model = states('sensor.inkbird_int_14_configured_model') %}{% set probes = states('sensor.inkbird_int_14_physical_probe_count') %}{% set tr = states('sensor.inkbird_int_14_active_transport') %}{% set ble = is_state('binary_sensor.inkbird_int_14_ble_connected','on') %}{% set bb = states('sensor.overig_inkbird_int_14_base_battery') %}{% set upd = states('update.inkbird_int_update') %}\n## ⚙️ Settings\n**{{ model }}** · {{ probes }} probes · base battery **{{ bb }}%**\n\n{{ '🟢 Connected' if ble else '🟠 ' ~ tr }} · {{ '🔷 Integration update available' if upd == 'on' else '✅ Integration up to date' }}\n"
+        }
+      },
+      "sections": [
         {
-          "type": "vertical-stack",
-          "card_mod": {
-            "style": ":host { max-width: 900px; margin: 0 auto; display:block; }\n"
-          },
+          "type": "grid",
           "cards": [
             {
-              "type": "custom:button-card",
-              "icon": "mdi:arrow-left",
-              "show_name": true,
-              "show_icon": true,
-              "name": "Cook Control",
-              "styles": {
-                "card": [
-                  {
-                    "background": "#211b16"
-                  },
-                  {
-                    "border": "1px solid #3a2f27"
-                  },
-                  {
-                    "border-radius": "14px"
-                  },
-                  {
-                    "padding": "10px 16px"
-                  },
-                  {
-                    "justify-self": "start"
-                  },
-                  {
-                    "width": "170px"
-                  }
-                ],
-                "name": [
-                  {
-                    "font-size": ".82rem"
-                  },
-                  {
-                    "color": "#a89a8c"
-                  }
-                ],
-                "icon": [
-                  {
-                    "color": "#a89a8c"
-                  }
-                ]
-              },
-              "tap_action": {
-                "action": "navigate",
-                "navigation_path": "/dashboard-bbq/cook"
-              }
+              "type": "heading",
+              "heading": "Base station",
+              "heading_style": "title",
+              "icon": "mdi:grill"
             },
             {
-              "type": "markdown",
-              "content": "## ⚙️ BBQ Settings\nBeheer notificaties, eenheden en links voor het Inkbird BBQ-dashboard.\n",
-              "card_mod": {
-                "style": "ha-card { background:none;border:none;box-shadow:none;color:#f5ede4; }\n"
-              }
+              "type": "tile",
+              "entity": "sensor.inkbird_int_14_configured_model",
+              "name": "Model",
+              "icon": "mdi:tag-outline"
+            },
+            {
+              "type": "tile",
+              "entity": "sensor.overig_inkbird_int_14_base_battery",
+              "name": "Base battery",
+              "icon": "mdi:battery",
+              "features": [
+                {
+                  "type": "bar-gauge",
+                  "min": 0,
+                  "max": 100
+                }
+              ],
+              "features_position": "bottom"
+            },
+            {
+              "type": "tile",
+              "entity": "binary_sensor.inkbird_int_14_base_charging",
+              "name": "Charging",
+              "icon": "mdi:power-plug"
+            },
+            {
+              "type": "tile",
+              "entity": "sensor.overig_inkbird_int_14_base_temperature",
+              "name": "Base temperature",
+              "icon": "mdi:thermometer"
+            },
+            {
+              "type": "tile",
+              "entity": "sensor.inkbird_int_14_physical_probe_count",
+              "name": "Probes detected",
+              "icon": "mdi:counter"
+            }
+          ]
+        },
+        {
+          "type": "grid",
+          "cards": [
+            {
+              "type": "heading",
+              "heading": "Connection",
+              "heading_style": "title",
+              "icon": "mdi:bluetooth"
+            },
+            {
+              "type": "tile",
+              "entity": "select.inkbird_int_14_transport_mode",
+              "name": "Transport mode",
+              "icon": "mdi:swap-horizontal",
+              "features": [
+                {
+                  "type": "select-options"
+                }
+              ],
+              "features_position": "bottom"
+            },
+            {
+              "type": "tile",
+              "entity": "sensor.inkbird_int_14_active_transport",
+              "name": "Active transport",
+              "icon": "mdi:transit-connection-variant"
+            },
+            {
+              "type": "tile",
+              "entity": "binary_sensor.inkbird_int_14_ble_connected",
+              "name": "Bluetooth",
+              "icon": "mdi:bluetooth-connect"
+            },
+            {
+              "type": "tile",
+              "entity": "binary_sensor.inkbird_int_14_wi_fi_connected",
+              "name": "Wi-Fi",
+              "icon": "mdi:wifi"
+            },
+            {
+              "type": "tile",
+              "entity": "sensor.inkbird_int_14_battery_report_quality",
+              "name": "Battery reporting",
+              "icon": "mdi:signal-cellular-3"
+            }
+          ]
+        },
+        {
+          "type": "grid",
+          "cards": [
+            {
+              "type": "heading",
+              "heading": "Probe batteries",
+              "heading_style": "title",
+              "icon": "mdi:battery-heart-variant"
+            },
+            {
+              "type": "tile",
+              "entity": "sensor.overig_inkbird_int_14_probe_1_battery",
+              "name": "Probe 1",
+              "features": [
+                {
+                  "type": "bar-gauge",
+                  "min": 0,
+                  "max": 100
+                }
+              ],
+              "features_position": "bottom"
+            },
+            {
+              "type": "tile",
+              "entity": "sensor.overig_inkbird_int_14_probe_2_battery",
+              "name": "Probe 2",
+              "features": [
+                {
+                  "type": "bar-gauge",
+                  "min": 0,
+                  "max": 100
+                }
+              ],
+              "features_position": "bottom"
+            },
+            {
+              "type": "tile",
+              "entity": "sensor.overig_inkbird_int_14_probe_3_battery",
+              "name": "Probe 3",
+              "features": [
+                {
+                  "type": "bar-gauge",
+                  "min": 0,
+                  "max": 100
+                }
+              ],
+              "features_position": "bottom"
+            },
+            {
+              "type": "tile",
+              "entity": "sensor.overig_inkbird_int_14_probe_4_battery",
+              "name": "Probe 4",
+              "features": [
+                {
+                  "type": "bar-gauge",
+                  "min": 0,
+                  "max": 100
+                }
+              ],
+              "features_position": "bottom"
+            }
+          ]
+        },
+        {
+          "type": "grid",
+          "cards": [
+            {
+              "type": "heading",
+              "heading": "Preferences",
+              "heading_style": "title",
+              "icon": "mdi:tune"
+            },
+            {
+              "type": "tile",
+              "entity": "input_select.inkbird_unit",
+              "name": "Temperature unit",
+              "icon": "mdi:thermometer",
+              "features": [
+                {
+                  "type": "select-options"
+                }
+              ],
+              "features_position": "bottom"
+            },
+            {
+              "type": "tile",
+              "entity": "input_select.bbq_notificatie_apparaat",
+              "name": "Notification device",
+              "icon": "mdi:bell-ring",
+              "features": [
+                {
+                  "type": "select-options"
+                }
+              ],
+              "features_position": "bottom"
+            },
+            {
+              "type": "tile",
+              "entity": "input_select.inkbird_active_probe",
+              "name": "Active probe",
+              "icon": "mdi:target",
+              "features": [
+                {
+                  "type": "select-options"
+                }
+              ],
+              "features_position": "bottom"
+            }
+          ]
+        },
+        {
+          "type": "grid",
+          "cards": [
+            {
+              "type": "heading",
+              "heading": "Integration",
+              "heading_style": "title",
+              "icon": "mdi:puzzle-outline"
             },
             {
               "type": "tile",
               "entity": "update.inkbird_int_update",
-              "name": "Integratie versie",
+              "name": "Inkbird INT version",
               "icon": "mdi:update",
               "features": [
                 {
                   "type": "update-actions"
                 }
-              ]
+              ],
+              "features_position": "bottom"
             },
             {
-              "type": "grid",
-              "columns": 2,
-              "square": false,
-              "cards": [
-                {
-                  "type": "tile",
-                  "entity": "input_select.inkbird_unit",
-                  "name": "Temperature unit",
-                  "icon": "mdi:thermometer",
-                  "features": [
-                    {
-                      "type": "select-options"
-                    }
-                  ]
-                },
-                {
-                  "type": "tile",
-                  "entity": "input_select.bbq_notificatie_apparaat",
-                  "name": "Notificatie-apparaat",
-                  "icon": "mdi:bell-ring",
-                  "features": [
-                    {
-                      "type": "select-options"
-                    }
-                  ]
-                }
-              ]
+              "type": "tile",
+              "entity": "sensor.inkbird_int_14_model_support_status",
+              "name": "Model support",
+              "icon": "mdi:shield-check-outline"
+            },
+            {
+              "type": "tile",
+              "entity": "sensor.overig_inkbird_int_14_ble_diagnostic_status",
+              "name": "Last BLE diagnostic",
+              "icon": "mdi:stethoscope"
+            },
+            {
+              "type": "tile",
+              "entity": "button.overig_inkbird_int_14_capture_ble_diagnostics",
+              "name": "Run BLE diagnostic",
+              "icon": "mdi:play-circle-outline"
+            },
+            {
+              "type": "tile",
+              "entity": "button.inkbird_int_14_request_snapshot",
+              "name": "Request snapshot",
+              "icon": "mdi:camera-outline"
+            }
+          ]
+        },
+        {
+          "type": "grid",
+          "cards": [
+            {
+              "type": "heading",
+              "heading": "Links",
+              "heading_style": "title",
+              "icon": "mdi:link-variant"
             },
             {
               "type": "markdown",
-              "content": "{% set integration_name = 'Inkbird INT' %}\n{% set integration_domain = 'inkbird_int14' %}\n{% set gh_integration = 'https://github.com/zampix1/ha-inkbird-int14' %}\n{% set gh_dashboard = 'https://github.com/remb0/inkbird-dashboard' %}\n### Links\n- 🍖 [food.remb0.nl](http://food.remb0.nl)\n- 🧩 Integratie: **{{ integration_name }}** (`{{ integration_domain }}`) — [GitHub]({{ gh_integration }})\n- 📊 Dashboard: [GitHub]({{ gh_dashboard }})\n",
-              "card_mod": {
-                "style": "ha-card { background: linear-gradient(180deg,#211b16,#2b231d); border:1px solid #3a2f27; border-radius:18px; color:#f5ede4; padding:4px; }\n"
-              }
+              "content": "{% set integration_name = 'Inkbird INT' %}\n{% set integration_domain = 'inkbird_int14' %}\n{% set gh_integration = 'https://github.com/zampix1/ha-inkbird-int14' %}\n{% set gh_dashboard = 'https://github.com/remb0/inkbird-dashboard' %}\n- 🍖 [food.remb0.nl](http://food.remb0.nl)\n- 🧩 Integration: **{{ integration_name }}** (`{{ integration_domain }}`) — [GitHub]({{ gh_integration }})\n- 📊 Dashboard: [GitHub]({{ gh_dashboard }})\n- 🔬 Probes page adapted from the [INT-12E-BW community dashboard]({{ gh_integration }}/blob/main/docs/int12e_dashboard.md)\n"
             }
           ]
         }
-      ],
-      "panel": true,
-      "back_path": "/dashboard-bbq/cook"
+      ]
     }
   ]
 }

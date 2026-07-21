@@ -106,7 +106,7 @@ These are **not** helpers; they are provided by [`inkbird_int14`](https://github
 | Used for | Entity on the source install |
 |---|---|
 | Probe temperature | `sensor.overig_inkbird_int_14_probe_N_food_1_temperature` |
-| Probe battery (bar on each probe card) | `sensor.overig_inkbird_int_14_probe_N_battery` |
+| Probe battery (under the P1–P4 badge, and on Settings) | `sensor.overig_inkbird_int_14_probe_N_battery` |
 | Base station battery | `sensor.overig_inkbird_int_14_base_battery` |
 | Integration version + update button | `update.inkbird_int_update` |
 | Connection pill — which link is carrying data | `sensor.inkbird_int_14_active_transport` |

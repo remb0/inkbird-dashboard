@@ -24,7 +24,7 @@
 | | |
 |---|---|
 | 🌡️ **Four probe cards** | Live temperature on a 270° arc gauge, colour-coded by state — grey `idle` · amber `heating` · orange `close` · green `ready` |
-| 🔋 **Per-probe battery** | Each card shows its probe's battery as a bar + percentage, red below 20 %, amber below 40 % |
+| 🔋 **Per-probe battery** | A bare colour-coded percentage under each card's P1–P4 badge — red below 20 %, amber below 40 % |
 | 📶 **Real connection status** | The header pill reads the actual transport — *Live · Bluetooth*, a pulsing *Connecting*, or red *Offline* — instead of assuming everything is fine |
 | 🥩 **Recipe presets** | One tap writes name + target onto the selected probe: Brisket 93 °C, Chicken 74 °C, Medium Steak 57 °C, Pork Ribs 90 °C, Salmon 52 °C |
 | 🔔 **Ready notification** | Persistent notification plus an optional phone/watch/TV target you pick from a dropdown |
@@ -32,17 +32,37 @@
 | 🚨 **Alerts card** | Rolls every probe that is `close` or `ready` into one summary at the top |
 | 🇺🇸 **°C / °F toggle** | Display-only unit switch — no need to reconfigure the device |
 | 🔬 **Probes page** | All five channels of every probe — tip, three food points and ambient — laid over probe artwork, plus per-channel tiles and a one-hour history graph |
-| ⚙️ **Settings subview** | Integration version + update button, unit and notification pickers, handy links |
+| ⚙️ **Settings page** | Live device summary plus six sections: base station, connection, probe batteries, preferences, integration health and links |
 
 ### Pages
+
+All three are tabs in the dashboard's own menu — there is no hidden subview and no in-card navigation button to hunt for.
 
 | Page | Path | What it's for |
 |---|---|---|
 | **Cook Control** | `/dashboard-bbq/cook` | The cooking view — four probe gauges, alerts, recipe presets |
 | **Probes** | `/dashboard-bbq/probes` | The diagnostic view — every channel of every probe, with history |
-| **Settings** | `/dashboard-bbq/settings` | Subview, reached from the ⚙️ button |
+| **Settings** | `/dashboard-bbq/settings` | Device health, preferences, integration status and links |
 
-Cook Control answers "is it done yet?" at a glance. Probes answers "what is actually going on inside this piece of meat?" — a brisket with the tip in the flat and the ambient sensor in the pit tells you far more than one number.
+Cook Control answers "is it done yet?" at a glance. Probes answers "what is actually going on inside this piece of meat?" — a brisket with the tip in the flat and the ambient sensor in the pit tells you far more than one number. Settings answers "why is it not working?" before you go digging in the integration's own pages.
+
+<details>
+<summary>What's on the Settings page</summary>
+
+A live header line (model · probe count · base battery · connection · whether an integration update is waiting), then:
+
+| Section | Shows |
+|---|---|
+| **Base station** | Model, base battery with a bar gauge, charging state, base temperature, probes detected |
+| **Connection** | Transport mode selector, active transport, Bluetooth and Wi-Fi connectivity, battery-reporting freshness |
+| **Probe batteries** | All four probes with bar gauges — the page to check before a long cook |
+| **Preferences** | Temperature unit, notification device, active probe |
+| **Integration** | Version + update button, model support status, last BLE diagnostic, and buttons to run a diagnostic or request a snapshot |
+| **Links** | Integration, dashboard and the community dashboard the Probes page came from |
+
+It is a native `sections` view built from stock tile and heading cards — no `card-mod`, so it survives Home Assistant upgrades better than the Cook Control page does.
+
+</details>
 
 ## 📋 Requirements
 
@@ -76,11 +96,11 @@ Everything in the package can equally be built under **Settings → Devices & Se
 
 ### 2. Add the dashboard
 
-**Settings → Dashboards → + Add dashboard → New dashboard from scratch.** Name it so the URL becomes `/dashboard-bbq` — the Settings and Back buttons navigate to `/dashboard-bbq/cook` and `/dashboard-bbq/settings`.
+**Settings → Dashboards → + Add dashboard → New dashboard from scratch.** Name it so the URL becomes `/dashboard-bbq`.
 
 Open it, then **✏️ Edit → ⋮ → Raw configuration editor**, and paste the contents of [`dashboard/bbq-dashboard.yaml`](dashboard/bbq-dashboard.yaml).
 
-> Using a different URL? Search the dashboard file for `/dashboard-bbq/` and replace both occurrences.
+The three views appear as tabs. Nothing in the config hardcodes the dashboard URL, so a different name works without edits.
 
 ### 3. Adapt the entity ids
 
