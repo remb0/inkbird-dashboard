@@ -9,6 +9,7 @@
   <img alt="Home Assistant" src="https://img.shields.io/badge/Home%20Assistant-2024.10%2B-41BDF5?logo=homeassistant&logoColor=white">
   <img alt="HACS" src="https://img.shields.io/badge/HACS-button--card%20%2B%20card--mod-41BDF5?logo=homeassistantcommunitystore&logoColor=white">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-orange">
 </p>
 
 ![Cook Control view](docs/images/cook-control.png)
@@ -27,7 +28,10 @@
 | 🔋 **Per-probe battery** | A bare colour-coded percentage under each card's P1–P4 badge — red below 20 %, amber below 40 % |
 | 📶 **Real connection status** | The header pill reads the actual transport — *Live · Bluetooth*, a pulsing *Connecting*, or red *Offline* — instead of assuming everything is fine |
 | 🥩 **Recipe presets** | One tap writes name + target onto the selected probe: Brisket 93 °C, Chicken 74 °C, Medium Steak 57 °C, Pork Ribs 90 °C, Salmon 52 °C |
-| 🔔 **Ready notification** | Persistent notification plus an optional phone/watch/TV target you pick from a dropdown |
+| 🔔 **Ready notification** | Persistent notification plus an optional phone/watch/TV target, with **Snooze 10 min** and **Dismiss** buttons on the push |
+| ⏳ **ETA to target** | "≈ 1 h 40 m" on each probe card, from a rate-of-change sensor rather than a guess |
+| 😐 **Stall detection** | Tells you when a probe has been flat for 45 minutes while still climbing — the moment you decide whether to wrap |
+| 🪫 **Low battery alerts** | Warns before a probe quits at hour six, with a threshold you set and a toggle to silence it |
 | 🎛️ **Base station card** | Battery level and an SVG rendering of the INT-14 base |
 | 🚨 **Alerts card** | Rolls every probe that is `close` or `ready` into one summary at the top |
 | 🇺🇸 **°C / °F toggle** | Display-only unit switch — no need to reconfigure the device |
@@ -57,6 +61,7 @@ A live header line (model · probe count · base battery · connection · whethe
 | **Connection** | Transport mode selector, active transport, Bluetooth and Wi-Fi connectivity, battery-reporting freshness |
 | **Probe batteries** | All four probes with bar gauges — the page to check before a long cook |
 | **Preferences** | Temperature unit, notification device, active probe |
+| **Alerts** | Low-battery toggle + threshold slider, stall-detection toggle |
 | **Integration** | Version + update button, model support status, last BLE diagnostic, and buttons to run a diagnostic or request a snapshot |
 | **Links** | Integration, dashboard and the community dashboard the Probes page came from |
 
@@ -102,29 +107,41 @@ Open it, then **✏️ Edit → ⋮ → Raw configuration editor**, and paste th
 
 The three views appear as tabs. Nothing in the config hardcodes the dashboard URL, so a different name works without edits.
 
-### 3. Adapt the entity ids
+### 3. Point it at your entity ids
 
-The dashboard and the package reference the probe sensors as they were named on the source install:
+The Inkbird integration prefixes entity ids with the **area** the device sits in — `sensor.overig_inkbird_int_14_…` here, almost certainly something else on your install. Find yours under **Developer Tools → States**, filtering on `inkbird`, then run:
 
+```bash
+python3 scripts/configure.py --prefix sensor.kitchen_inkbird_int_14
 ```
-sensor.overig_inkbird_int_14_probe_1_food_1_temperature
-sensor.overig_inkbird_int_14_base_battery
-```
 
-The `overig_` prefix comes from the *area* the device was assigned to, so yours will almost certainly differ. Find your names under **Developer Tools → States** (filter on `inkbird`), then search-and-replace in both files:
+That rewrites all three files in one pass (~167 ids) and verifies the YAML and JSON dashboards still match. Add `--dry-run` to see what it would change first.
 
-| Placeholder in this repo | Replace with |
-|---|---|
-| `sensor.overig_inkbird_int_14_probe_N_food_1_temperature` | your probe *N* food temperature sensor |
-| `sensor.overig_inkbird_int_14_probe_N_food_2/3/4_temperature` | the other food channels (Probes page) |
-| `sensor.overig_inkbird_int_14_probe_N_ambient_temperature` | your probe *N* ambient sensor (Probes page) |
-| `sensor.overig_inkbird_int_14_probe_N_battery` | your probe *N* battery sensor |
-| `sensor.overig_inkbird_int_14_base_battery` | your base station battery sensor |
-| `update.inkbird_int_update` | your integration's update entity |
+<details>
+<summary>The other two flags, and what each prefix covers</summary>
 
-`sensor.inkbird_int_14_active_transport` and `binary_sensor.inkbird_int_14_ble_connected` (used by the connection pill) are **not** area-prefixed, so those usually work as-is.
+| Flag | Covers | Default in this repo |
+|---|---|---|
+| `--prefix` | The area-prefixed sensors: every probe channel, probe batteries, base station | `sensor.overig_inkbird_int_14` |
+| `--device` | Entities that are *not* area-prefixed: transport, BLE/Wi-Fi state, diagnostics buttons | `inkbird_int_14` |
+| `--update` | The integration's update entity | `update.inkbird_int_update` |
 
-### 4. Add the probe artwork (Probes page)
+`--device` usually needs no change. The script detects the current values by pattern rather than assuming, so it is safe to re-run and safe after hand edits.
+
+</details>
+
+### 4. Turn on the alerts
+
+`initial:` is deliberately not used anywhere in the package — it would reset your settings on every Home Assistant restart. The cost is that on a fresh install the alert toggles start **off** and the battery threshold sits at its minimum.
+
+Open the dashboard's **Settings → Alerts** section once and set:
+
+- **Low battery alerts** → on, **Battery threshold** → 15 % or so
+- **Stall alerts** → on
+
+The "probe reached target" notification needs no toggle; it is always on.
+
+### 5. Add the probe artwork (Probes page)
 
 The Probes page lays temperature readings over a picture of a probe. Home Assistant serves those from `/config/www/`, so download them once:
 
@@ -138,22 +155,25 @@ Odd-numbered probes use the black artwork, even-numbered the white. Everything e
 
 > The artwork is INT-12E-BW, drawn by the community contributor credited below. It is close enough to the INT-14 probes to read correctly, but it is not a picture of your exact hardware.
 
-### 5. Point notifications at your phone
+### 6. Point notifications at your phone
 
-Out of the box only a persistent notification is sent. To also ping a device, add a branch to the `choose:` block at the bottom of `packages/inkbird_bbq.yaml` and add the matching option to `input_select.bbq_notificatie_apparaat`. A worked example is in [`docs/HELPERS.md`](docs/HELPERS.md#notification-routing).
+Out of the box only a persistent notification is sent. Every alert in this package routes through one script, **`script.bbq_notify`** — add a branch to its `choose:` block and a matching option to `input_select.bbq_notify_target`, and all three alerts use it. You do this once, not once per automation. A worked example is in [`docs/HELPERS.md`](docs/HELPERS.md#notification-routing).
 
 ## 📁 Repo layout
 
 ```
 inkbird-dashboard/
 ├── packages/
-│   └── inkbird_bbq.yaml       # ← drop into <config>/packages/ — helpers, sensors, script, automation
+│   └── inkbird_bbq.yaml       # ← drop into <config>/packages/ — helpers, sensors, scripts, automations
 ├── dashboard/
 │   ├── bbq-dashboard.yaml     # ← paste into the raw configuration editor
 │   └── bbq-dashboard.json     # same config, exact storage-mode export (for diffing / the HA API)
+├── scripts/
+│   └── configure.py           # ← rewrite every Inkbird entity id in one command
 ├── docs/
 │   ├── HELPERS.md             # every entity explained, for UI-based setup
 │   └── images/                # screenshots
+├── CHANGELOG.md               # what changed, and what breaks when you update
 ├── TODO.md                    # ideas and planned improvements
 └── README.md
 ```

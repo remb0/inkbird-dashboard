@@ -41,11 +41,38 @@ Options `°C`, `°F`. Icon `mdi:thermometer`.
 
 Display-only. The probe cards check this and convert on the fly; nothing is written back to the device, and the stored targets stay metric.
 
-## `input_select.bbq_notificatie_apparaat` — "BBQ Notificatie apparaat"
+## `input_select.bbq_notify_target` — "BBQ notification target"
 
 Icon `mdi:bell-ring`. Options must match real `notify.*` services on your instance, **without** the `notify.` prefix — e.g. a service `notify.mobile_app_pixel_9` becomes the option `mobile_app_pixel_9`.
 
 The package ships with only `persistent_notification`. See [Notification routing](#notification-routing) below for adding your own.
+
+> Renamed from `input_select.bbq_notificatie_apparaat` in 1.0.0 — see [`CHANGELOG.md`](../CHANGELOG.md).
+
+## Alert controls
+
+| Entity | Type | What it does |
+|---|---|---|
+| `input_boolean.bbq_battery_alerts` | Toggle | Silences the low-battery warning without deleting the automation |
+| `input_number.bbq_battery_threshold` | Number, 5–50 % | The level the warning fires below. Referenced directly by the automation's `below:`, so changing the slider takes effect immediately — no reload |
+| `input_boolean.bbq_stall_alerts` | Toggle | Silences stall detection |
+
+All three sit on the Settings page under **Alerts**. They have no `initial:` value, so they survive restarts — which also means they start off on a fresh install. The README's install step covers turning them on.
+
+## `sensor.bbq_probe_1_rate` … `_4` — rate of change
+
+`derivative` platform sensors, in **°C per hour**, over the corresponding probe's `food_1` channel.
+
+| Setting | Value | Why |
+|---|---|---|
+| `time_window` | 10 minutes | Smooths probe jitter. Without it the ETA jumps around uselessly |
+| `max_sub_interval` | 2 minutes | Forces recalculation even when the source stops updating, so a disconnected or genuinely stalled probe decays toward 0 instead of freezing at its last value. Stall detection depends on this |
+| `round` | 1 | One decimal is plenty at this scale |
+
+Two things consume these:
+
+- **The ETA** on each probe card: `(target − current) ÷ rate × 60` minutes, shown only while `rate > 0.5 °C/h` and the probe is below target. A flat or falling probe would otherwise produce a nonsense or negative time, so it shows nothing instead of lying.
+- **Stall detection**, below.
 
 ## `sensor.bbq_probe_1_status` … `_4` — probe state machine
 
@@ -64,38 +91,77 @@ These drive the card border, the arc colour, the status pill, the alerts card an
 
 Fields: `label` (text) and `target` (number). Reads `input_select.inkbird_active_probe`, then writes `target` to that probe's `input_number` and `label` to its `input_text`. Mode `parallel`, max 10, so rapid taps do not queue up.
 
+## `script.bbq_notify`
+
+Fields: `title`, `message`, `tag`, and optional `actions`. See [Notification routing](#notification-routing).
+
+---
+
+## The automations
+
+| Automation | Fires when | Gated by |
+|---|---|---|
+| **BBQ probe reached target** | A status sensor goes to `ready` | — always on |
+| **BBQ probe battery low** | A probe battery drops below the threshold | `input_boolean.bbq_battery_alerts` |
+| **BBQ probe stalled** | A rate sensor sits between −1 and +1 °C/h for 45 minutes *and* the probe is still `heating` | `input_boolean.bbq_stall_alerts` |
+| **BBQ notification action** | You tap Snooze or Dismiss on a phone notification | — |
+
+### Why stall detection has that second condition
+
+A flat probe is not necessarily a stalling one. A probe lying on the counter is flat. A probe that already hit its target is flat. Only a probe that is *still climbing toward a target and has stopped* is interesting, so the automation additionally requires `sensor.bbq_probe_N_status` to be `heating`.
+
+That check is a template, because it keys off `trigger.id` and there is no native condition for "the entity matching the trigger that fired". The prefix check in **BBQ notification action** is a template for the same reason — no native condition matches a string prefix, and it also stops the automation reacting to notification actions from other integrations.
+
+### Snooze and dismiss
+
+The ready notification carries two action buttons:
+
+| Button | Action id | Effect |
+|---|---|---|
+| Snooze 10 min | `BBQ_SNOOZE_<probe>` | Clears the notification, waits 10 minutes, re-sends **only if the probe is still `ready`** |
+| Dismiss | `BBQ_DISMISS_<probe>` | Clears the notification |
+
+The probe number is encoded in the action id so one handler covers all four. Re-using the `tag` means a re-notification replaces the old one rather than stacking up.
+
 ---
 
 ## Notification routing
 
-The automation always creates a persistent notification, then runs a `choose` block to optionally forward it. Service names are written out **literally** rather than templated: Home Assistant validates a literal `action:` when the config loads, but a templated one only when the automation actually fires — so a typo in a template stays invisible until the moment your brisket is done.
+Every alert calls **`script.bbq_notify`** with a title, message, tag and optional action buttons. That script creates the persistent notification and then runs one `choose` block to forward it. **Add a phone here once and all three alerts use it** — this is the only place notify services are named.
 
-Replace `choose: []` in the package with one branch per device:
+Service names are written out **literally** rather than templated: Home Assistant validates a literal `action:` when the config loads, but a templated one only when the script actually runs — so a typo in a template stays invisible until the moment your brisket is done.
+
+Replace `choose: []` in the script with one branch per device:
 
 ```yaml
       - choose:
           - conditions:
               - condition: state
-                entity_id: input_select.bbq_notificatie_apparaat
+                entity_id: input_select.bbq_notify_target
                 state: mobile_app_pixel_9
             sequence:
               - action: notify.mobile_app_pixel_9
                 data:
-                  title: "{{ msg_title }}"
-                  message: "{{ msg_body }}"
+                  title: "{{ title }}"
+                  message: "{{ message }}"
+                  data:
+                    tag: "{{ tag }}"
+                    actions: "{{ actions | default([], true) }}"
           - conditions:
               - condition: state
-                entity_id: input_select.bbq_notificatie_apparaat
+                entity_id: input_select.bbq_notify_target
                 state: notify_pushover
             sequence:
               - action: notify.notify_pushover
                 data:
-                  title: "{{ msg_title }}"
-                  message: "{{ msg_body }}"
+                  title: "{{ title }}"
+                  message: "{{ message }}"
         default: []
 ```
 
-Then add `mobile_app_pixel_9` and `notify_pushover` to the options of `input_select.bbq_notificatie_apparaat`. The two lists must stay in sync — an option with no matching branch silently does nothing.
+Then add `mobile_app_pixel_9` and `notify_pushover` to the options of `input_select.bbq_notify_target`. The two lists must stay in sync — an option with no matching branch silently does nothing.
+
+The nested `data:` with `tag` and `actions` is companion-app specific; that is what produces the Snooze/Dismiss buttons. Services that are not the mobile app (Pushover, email, TV) just ignore it, or you can leave it off as in the second branch above.
 
 ---
 

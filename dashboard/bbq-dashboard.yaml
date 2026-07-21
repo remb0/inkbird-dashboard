@@ -12,9 +12,17 @@ button_card_templates:
       - border: 1px solid "#3a2f27"
       - border-top: |
           [[[
-            var s = states[variables.pstate].state;
-            var c = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';
-            return '3px solid ' + c;
+            var n = variables.num, pfx = variables.prefix, ch = variables.chan || 'food_1';
+            var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
+            var eBatt   = pfx + '_probe_' + n + '_battery';
+            var eTarget = 'input_number.inkbird_target_' + n;
+            var eName   = 'input_text.inkbird_name_' + n;
+            var eState  = 'sensor.bbq_probe_' + n + '_status';
+            var eRate   = 'sensor.bbq_probe_' + n + '_rate';
+            var _g = function(e){ var o = states[e]; return o ? o.state : undefined; };
+            var s = _g(eState) || 'idle';
+            var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';
+            return '3px solid ' + col;
           ]]]
       - background: linear-gradient(180deg,#211b16,#2b231d)
       - box-shadow: 0 18px 40px -18px rgba(0,0,0,.7)
@@ -38,25 +46,32 @@ button_card_templates:
     custom_fields:
       header: |
         [[[
-          var s = states[variables.pstate].state;
-          var name = states[variables.pname].state;
+          var n = variables.num, pfx = variables.prefix, ch = variables.chan || 'food_1';
+          var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
+          var eBatt   = pfx + '_probe_' + n + '_battery';
+          var eTarget = 'input_number.inkbird_target_' + n;
+          var eName   = 'input_text.inkbird_name_' + n;
+          var eState  = 'sensor.bbq_probe_' + n + '_status';
+          var eRate   = 'sensor.bbq_probe_' + n + '_rate';
+          var _g = function(e){ var o = states[e]; return o ? o.state : undefined; };
+          var s = _g(eState) || 'idle';
           var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';
+          var name = _g(eName);
           var label = s==='ready' ? 'Ready' : s==='close' ? 'Almost there' : s==='heating' ? 'Heating' : 'Not connected';
-          var bs = states[variables.pbatt];
-          var bv = bs ? parseInt(bs.state) : NaN;
+          var bv = parseInt(_g(eBatt));
           var bok = !isNaN(bv);
           var bcol = !bok ? '#77695c' : bv < 20 ? '#e8503a' : bv < 40 ? '#f2b441' : '#56c271';
           return `<div style="display:flex;align-items:center;gap:11px;font-family:system-ui">
             <div style="display:flex;flex-direction:column;align-items:center;gap:3px"
-                 title="probe ${variables.num} battery">
+                 title="probe ${n} battery">
               <div style="width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
                    font-family:ui-monospace,monospace;font-weight:700;background:#33291f;
-                   border:1px solid #4d3f33;color:#f5ede4">P${variables.num}</div>
+                   border:1px solid #4d3f33;color:#f5ede4">P${n}</div>
               <div style="font-family:ui-monospace,monospace;font-size:.62rem;font-weight:700;
                    line-height:1;color:${bcol}">${bok?bv+'%':'\u2014'}</div>
             </div>
             <div style="flex:1;font-weight:620;font-size:1rem;color:#f5ede4">${name}
-              <div style="font-size:.74rem;color:#a89a8c;font-weight:500">Probe ${variables.num}</div></div>
+              <div style="font-size:.74rem;color:#a89a8c;font-weight:500">Probe ${n}</div></div>
             <div style="font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
                  padding:5px 11px;border-radius:999px;color:${col};
                  background:${col}26;border:1px solid ${col}66">${label}</div>
@@ -64,48 +79,64 @@ button_card_templates:
         ]]]
       fig: |
         [[[
-          var s = states[variables.pstate].state;
-          var connected = s !== 'idle';
+          var n = variables.num, pfx = variables.prefix, ch = variables.chan || 'food_1';
+          var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
+          var eBatt   = pfx + '_probe_' + n + '_battery';
+          var eTarget = 'input_number.inkbird_target_' + n;
+          var eName   = 'input_text.inkbird_name_' + n;
+          var eState  = 'sensor.bbq_probe_' + n + '_status';
+          var eRate   = 'sensor.bbq_probe_' + n + '_rate';
+          var _g = function(e){ var o = states[e]; return o ? o.state : undefined; };
+          var s = _g(eState) || 'idle';
           var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';
+          var connected = s !== 'idle';
           var tip = connected ? col : '#77695c';
           var glow = connected ? `filter:drop-shadow(0 0 4px ${col})` : '';
           return `<svg viewBox="0 0 26 150" style="height:148px;width:auto;display:block;margin:auto">
             <defs>
-              <linearGradient id="st${variables.num}" x1="0" x2="1" y1="0" y2="0">
+              <linearGradient id="st${n}" x1="0" x2="1" y1="0" y2="0">
                 <stop offset="0" stop-color="#6c7075"/><stop offset=".28" stop-color="#eef1f3"/>
                 <stop offset=".5" stop-color="#c4c9ce"/><stop offset=".72" stop-color="#eef1f3"/>
                 <stop offset="1" stop-color="#5c6065"/></linearGradient>
-              <linearGradient id="gl${variables.num}" x1="0" x2="1" y1="0" y2="0">
+              <linearGradient id="gl${n}" x1="0" x2="1" y1="0" y2="0">
                 <stop offset="0" stop-color="#0c0c0e"/><stop offset=".3" stop-color="#3a3a40"/>
                 <stop offset=".5" stop-color="#141418"/><stop offset=".75" stop-color="#2a2a30"/>
                 <stop offset="1" stop-color="#050506"/></linearGradient>
-              <linearGradient id="rg${variables.num}" x1="0" x2="1" y1="0" y2="0">
+              <linearGradient id="rg${n}" x1="0" x2="1" y1="0" y2="0">
                 <stop offset="0" stop-color="#8a8e93"/><stop offset=".5" stop-color="#f2f4f6"/>
                 <stop offset="1" stop-color="#7a7e83"/></linearGradient>
             </defs>
-            <ellipse cx="13" cy="6" rx="7.5" ry="2.6" fill="url(#rg${variables.num})"/>
-            <path d="M5.5 6 L20.5 6 L17 52 L9 52 Z" fill="url(#gl${variables.num})" stroke="#000" stroke-width=".6"/>
+            <ellipse cx="13" cy="6" rx="7.5" ry="2.6" fill="url(#rg${n})"/>
+            <path d="M5.5 6 L20.5 6 L17 52 L9 52 Z" fill="url(#gl${n})" stroke="#000" stroke-width=".6"/>
             <text x="13" y="30" text-anchor="middle" font-family="ui-monospace,monospace"
-                  font-weight="700" font-size="10" fill="${connected?'#f0f0f2':'#8a8a8c'}">${variables.num}</text>
-            <rect x="8.5" y="52" width="9" height="4" rx="1" fill="url(#rg${variables.num})"/>
-            <rect x="10" y="56" width="6" height="82" fill="url(#st${variables.num})"/>
+                  font-weight="700" font-size="10" fill="${connected?'#f0f0f2':'#8a8a8c'}">${n}</text>
+            <rect x="8.5" y="52" width="9" height="4" rx="1" fill="url(#rg${n})"/>
+            <rect x="10" y="56" width="6" height="82" fill="url(#st${n})"/>
             <path d="M10 138 L16 138 L13 150 Z" fill="${tip}" style="${glow}"/>
           </svg>`;
         ]]]
       gauge: |
         [[[
-          var t = parseFloat(states[variables.probe].state);
-          var g = parseFloat(states[variables.target].state);
-          var s = states[variables.pstate].state;
-          var amb = 22, connected = !isNaN(t);
+          var n = variables.num, pfx = variables.prefix, ch = variables.chan || 'food_1';
+          var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
+          var eBatt   = pfx + '_probe_' + n + '_battery';
+          var eTarget = 'input_number.inkbird_target_' + n;
+          var eName   = 'input_text.inkbird_name_' + n;
+          var eState  = 'sensor.bbq_probe_' + n + '_status';
+          var eRate   = 'sensor.bbq_probe_' + n + '_rate';
+          var _g = function(e){ var o = states[e]; return o ? o.state : undefined; };
+          var s = _g(eState) || 'idle';
           var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';
+          var t = parseFloat(_g(eProbe));
+          var g = parseFloat(_g(eTarget));
+          var amb = 22, connected = !isNaN(t);
           var pct = connected ? Math.max(0, Math.min(1,(t-amb)/(g-amb))) : 0;
           var R=52, C=2*Math.PI*R, ARC=0.75;
           var dash=(C*ARC*pct).toFixed(1)+' '+C;
-          var uf = states['input_select.inkbird_unit'].state.indexOf('F') >= 0;
-          var us = uf ? '°F' : '°C';
+          var uf = (_g('input_select.inkbird_unit')||'').indexOf('F') >= 0;
+          var us = uf ? '\u00b0F' : '\u00b0C';
           var cv = function(c){ return uf ? Math.round(c*9/5+32) : Math.round(c*10)/10; };
-          var temp = connected ? cv(t) : '—';
+          var temp = connected ? cv(t) : '\u2014';
           return `<div style="position:relative;width:128px;height:128px;margin:auto">
             <svg width="128" height="128" viewBox="0 0 128 128" style="transform:rotate(135deg)">
               <circle cx="64" cy="64" r="${R}" fill="none" stroke="#33291f" stroke-width="9"
@@ -117,29 +148,50 @@ button_card_templates:
             <div style="position:absolute;inset:0;display:flex;flex-direction:column;
                  align-items:center;justify-content:center;font-family:ui-monospace,monospace">
               <div style="font-size:1.7rem;font-weight:650;color:#f5ede4;line-height:1">${temp}<span style="font-size:.9rem;color:#a89a8c">${us}</span></div>
-              <div style="font-size:.72rem;color:#77695c;margin-top:2px">${connected?'target '+cv(g)+'°':'no probe'}</div>
+              <div style="font-size:.72rem;color:#77695c;margin-top:2px">${connected?'target '+cv(g)+'\u00b0':'no probe'}</div>
             </div>
           </div>`;
         ]]]
       side: |
         [[[
-          var t = parseFloat(states[variables.probe].state);
-          var g = parseFloat(states[variables.target].state);
-          var s = states[variables.pstate].state;
+          var n = variables.num, pfx = variables.prefix, ch = variables.chan || 'food_1';
+          var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
+          var eBatt   = pfx + '_probe_' + n + '_battery';
+          var eTarget = 'input_number.inkbird_target_' + n;
+          var eName   = 'input_text.inkbird_name_' + n;
+          var eState  = 'sensor.bbq_probe_' + n + '_status';
+          var eRate   = 'sensor.bbq_probe_' + n + '_rate';
+          var _g = function(e){ var o = states[e]; return o ? o.state : undefined; };
+          var s = _g(eState) || 'idle';
+          var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';
+          var t = parseFloat(_g(eProbe));
+          var g = parseFloat(_g(eTarget));
           var connected = !isNaN(t);
-          var uf = states['input_select.inkbird_unit'].state.indexOf('F') >= 0;
+          var uf = (_g('input_select.inkbird_unit')||'').indexOf('F') >= 0;
           var us = uf ? '\u00b0F' : '\u00b0C';
           var cv = function(c){ return uf ? Math.round(c*9/5+32) : Math.round(c*10)/10; };
           var togo = uf ? Math.round((g-t)*9/5) : Math.round((g-t)*10)/10;
           var footer = !connected ? 'Insert a probe to begin'
             : (s==='ready' ? 'Reached target \u2014 resting'
             : Math.max(0, togo) + '\u00b0 to go');
-          return `<div style="display:flex;flex-direction:column;gap:12px;font-family:system-ui">
+          // ETA from the derivative sensor (\u00b0C/h). Only meaningful while actually
+          // climbing — a flat or falling probe would give a nonsense or negative time.
+          var rate = parseFloat(_g(eRate));
+          var eta = '';
+          if (connected && s !== 'ready' && !isNaN(rate) && rate > 0.5 && g > t) {
+            var mins = Math.round((g - t) / rate * 60);
+            if (mins > 0 && mins <= 1440) {
+              var hh = Math.floor(mins/60), mm = mins % 60;
+              eta = hh ? ('\u2248 ' + hh + ' h ' + mm + ' m') : ('\u2248 ' + mm + ' m');
+            }
+          }
+          return `<div style="display:flex;flex-direction:column;gap:9px;font-family:system-ui">
             <div style="display:flex;align-items:center;gap:10px">
               <span style="flex:1;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:#77695c">Target</span>
               <span style="font-family:ui-monospace,monospace;font-weight:600;font-size:1.05rem;color:#f5ede4">${cv(g)}${us}</span>
             </div>
             <div style="font-size:.78rem;color:#a89a8c">${footer}</div>
+            ${eta ? `<div style="font-family:ui-monospace,monospace;font-size:.74rem;color:${col}">${eta}</div>` : ''}
           </div>`;
         ]]]
       minus:
@@ -150,7 +202,7 @@ button_card_templates:
             action: call-service
             service: input_number.decrement
             target:
-              entity_id: '[[[ return variables.target ]]]'
+              entity_id: '[[[ return "input_number.inkbird_target_" + variables.num ]]]'
           styles:
             card:
             - height: 40px
@@ -167,7 +219,7 @@ button_card_templates:
             action: call-service
             service: input_number.increment
             target:
-              entity_id: '[[[ return variables.target ]]]'
+              entity_id: '[[[ return "input_number.inkbird_target_" + variables.num ]]]'
           styles:
             card:
             - height: 40px
@@ -205,7 +257,13 @@ button_card_templates:
         - justify-self: start
     custom_fields:
       t: |
-        [[[ return `<div style="font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:#ff6a2c">${variables.temp}<span style="font-size:.74rem;color:#a89a8c">°C</span></div>`; ]]]
+        [[[
+          var u = states['input_select.inkbird_unit'];
+          var uf = u ? u.state.indexOf('F') >= 0 : false;
+          var v = uf ? Math.round(variables.temp * 9/5 + 32) : variables.temp;
+          var us = uf ? '\u00b0F' : '\u00b0C';
+          return `<div style="font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:#ff6a2c">${v}<span style="font-size:.74rem;color:#a89a8c">${us}</span></div>`;
+        ]]]
       s: |
         [[[ return `<div style="font-size:.74rem;color:#a89a8c">${variables.note}</div>`; ]]]
     tap_action:
@@ -392,38 +450,27 @@ views:
         template: inkbird_probe
         variables:
           num: 1
-          probe: sensor.overig_inkbird_int_14_probe_1_food_1_temperature
-          target: input_number.inkbird_target_1
-          pname: input_text.inkbird_name_1
-          pstate: sensor.bbq_probe_1_status
-          pbatt: sensor.overig_inkbird_int_14_probe_1_battery
+          prefix: sensor.overig_inkbird_int_14
       - type: custom:button-card
         template: inkbird_probe
         variables:
           num: 2
-          probe: sensor.overig_inkbird_int_14_probe_2_food_1_temperature
-          target: input_number.inkbird_target_2
-          pname: input_text.inkbird_name_2
-          pstate: sensor.bbq_probe_2_status
-          pbatt: sensor.overig_inkbird_int_14_probe_2_battery
+          prefix: sensor.overig_inkbird_int_14
       - type: custom:button-card
         template: inkbird_probe
         variables:
           num: 3
-          probe: sensor.overig_inkbird_int_14_probe_3_food_1_temperature
-          target: input_number.inkbird_target_3
-          pname: input_text.inkbird_name_3
-          pstate: sensor.bbq_probe_3_status
-          pbatt: sensor.overig_inkbird_int_14_probe_3_battery
+          prefix: sensor.overig_inkbird_int_14
       - type: custom:button-card
         template: inkbird_probe
         variables:
           num: 4
-          probe: sensor.overig_inkbird_int_14_probe_4_food_1_temperature
-          target: input_number.inkbird_target_4
-          pname: input_text.inkbird_name_4
-          pstate: sensor.bbq_probe_4_status
-          pbatt: sensor.overig_inkbird_int_14_probe_4_battery
+          prefix: sensor.overig_inkbird_int_14
+      card_mod:
+        style: |
+          #root {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+          }
     - type: markdown
       content: |
         #### Recipe presets — first pick the **Active probe** above, then tap a recipe
@@ -480,6 +527,11 @@ views:
           temp: 52
           note: Just flaky
           color: '#e07a52'
+      card_mod:
+        style: |
+          #root {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+          }
   panel: true
 - title: Probes
   path: probes
@@ -1102,7 +1154,7 @@ views:
       - type: select-options
       features_position: bottom
     - type: tile
-      entity: input_select.bbq_notificatie_apparaat
+      entity: input_select.bbq_notify_target
       name: Notification device
       icon: mdi:bell-ring
       features:
@@ -1114,6 +1166,34 @@ views:
       icon: mdi:target
       features:
       - type: select-options
+      features_position: bottom
+  - type: grid
+    cards:
+    - type: heading
+      heading: Alerts
+      heading_style: title
+      icon: mdi:bell-alert-outline
+    - type: tile
+      entity: input_boolean.bbq_battery_alerts
+      name: Low battery alerts
+      icon: mdi:battery-alert
+      features:
+      - type: toggle
+      features_position: bottom
+    - type: tile
+      entity: input_number.bbq_battery_threshold
+      name: Battery threshold
+      icon: mdi:battery-alert-variant-outline
+      features:
+      - type: numeric-input
+        style: slider
+      features_position: bottom
+    - type: tile
+      entity: input_boolean.bbq_stall_alerts
+      name: Stall alerts
+      icon: mdi:trending-neutral
+      features:
+      - type: toggle
       features_position: bottom
   - type: grid
     cards:

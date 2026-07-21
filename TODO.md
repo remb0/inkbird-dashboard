@@ -9,31 +9,31 @@ Loosely ordered by "how much better does this make the dashboard per hour of wor
 - [x] ~~**The "Live · via Bluetooth" pill is hardcoded.**~~ Now driven by `sensor.inkbird_int_14_active_transport` + `binary_sensor.inkbird_int_14_ble_connected`: green *Live*, pulsing amber *Connecting* (transport is `ble_waiting`, or claims `ble` while the BLE binary sensor is `off`), red *Offline*.
 - [ ] **"BLE 5.4" in the base-station card is still static text.** The header pill now reports the real transport, but the base-station card below it does not. Point its "Connection" field at the same `active_transport` sensor, or drop the field.
 - [ ] **`ready` can flicker.** A probe hovering exactly on its target re-triggers the notification every time it crosses back and forth. Add `for: "00:00:30"` to the state triggers, or a small hysteresis in the template sensor.
-- [ ] **Recipe buttons always print `°C`.** The recipe card's temperature label ignores `input_select.inkbird_unit`, unlike the probe cards. Reuse the same conversion helper.
-- [ ] **The 6-column recipe row does not fold on mobile.** `type: grid, columns: 6` gets unreadable below ~900 px. Swap for a CSS `repeat(auto-fit, minmax(150px, 1fr))` grid via card-mod, or a `custom:layout-card`.
+- [x] ~~**Recipe buttons always print `°C`.**~~ They convert with the unit toggle now, like the probe cards.
+- [x] ~~**The 6-column recipe row does not fold on mobile.**~~ Both the recipe row and the probe grid use `repeat(auto-fit, minmax(…))` via card-mod, so they reflow instead of squeezing.
 
 ## 📊 Worth adding
 
-- [x] ~~**Probe battery levels.**~~ Each probe card now shows `sensor.overig_inkbird_int_14_probe_N_battery` as a bar + percentage, red under 20 %, amber under 40 %.
-- [ ] **Low probe battery warning.** The card shows the number, but nothing shouts. A probe dying at hour six of a brisket cook is exactly the thing you want pushed to your phone — add a "probe battery below 15 %" automation next to the existing one.
+- [x] ~~**Probe battery levels.**~~ A colour-coded percentage under each card's P1–P4 badge, plus bar gauges for all four on the Settings page.
+- [x] ~~**Low probe battery warning.**~~ Automation with a threshold slider and an on/off toggle, both on the Settings page.
 - [ ] **Temperature history on Cook Control.** The Probes page now has a one-hour `history-graph` per probe, but Cook Control has none. A single card there showing all four probes over 12 hours turns it from a status page into a cook log — the classic brisket stall becomes visible instead of worrying.
-- [ ] **ETA to target.** A `derivative` helper on each probe sensor gives °C/hour; `(target − current) / rate` gives a rough finish time. Show it as "≈ 1 h 40 m to go" in the probe card's side column, next to the existing "42° to go".
-- [ ] **Stall detection.** If a probe sits within ±1 °C for 45 minutes while still below target, notify "Probe 2 has stalled at 68 °C — time to wrap?".
+- [x] ~~**ETA to target.**~~ Four `derivative` sensors feed an "≈ 1 h 40 m" line on each probe card. Hidden when the probe is not actually climbing, rather than showing a nonsense number.
+- [x] ~~**Stall detection.**~~ Fires on ±1 °C/h for 45 minutes while the probe is still `heating`.
 - [x] ~~**Surface the ambient and extra food channels.**~~ The Probes page shows all five channels of all four probes.
 - [ ] **Act on the ambient reading, don't just show it.** Displaying pit temperature is not the same as alerting on it — a "grate above 150 °C" or "fire is dying" notification is where the value is.
 - [ ] **Verify the physical channel mapping.** Upstream has only confirmed `food_4` as the tip; `food_1`–`food_3` follow the community layout and are unverified. Cook Control targets `food_1`, which may not be the deepest point of the meat. Worth an ice-bath / boiling-water test to pin down, and worth feeding back upstream.
 - [ ] **Rest reminder.** After a probe hits `ready`, start a timer and notify again after the resting period. Carryover cooking is where good brisket goes to die.
-- [ ] **Actionable notifications.** The mobile app supports action buttons — "Snooze 10 min" and "Done, stop alerting" would stop the persistent notification piling up.
+- [x] ~~**Actionable notifications.**~~ Snooze 10 min / Dismiss buttons, with a handler automation. Snooze re-checks the probe is still `ready` before re-notifying.
 - [ ] **Doneness presets for steak.** Rare / medium-rare / medium / well-done as one recipe with four targets, rather than only "Medium Steak".
 
 ## 🧹 Structure & maintainability
 
-- [ ] **Entity ids are repeated ~20 times.** Every probe card, the automation and the template sensors each spell out `sensor.overig_inkbird_int_14_probe_N_food_1_temperature`. Anyone adopting this has to search-and-replace across two files. Consider a `sensor` → `input_text` indirection, or ship a small `setup.sh` that rewrites the prefix in one go.
+- [x] ~~**Entity ids are repeated ~20 times.**~~ Probe cards now take only `num` + `prefix` and derive the rest in JS; `scripts/configure.py` rewrites the remaining ~167 ids across all three files in one command. The Probes page still spells them out because native cards cannot derive ids — that is what the script is for.
 - [ ] **Turn the notification automation into a Blueprint.** Then adding a phone is a dropdown in the UI instead of hand-editing a `choose:` block, and the °C margin becomes an input. Blueprints import with a single click from a raw GitHub URL via `my.home-assistant.io/redirect/blueprint_import/` — no HACS needed — so this is the cheapest real "one-click install" win available. Cheap to do, high payoff.
 - [ ] **Ship the dashboard as a HACS-installable Lovelace *strategy*.** See [HACS compatibility](#hacs-compatibility) below — this is the only route that makes the repo genuinely installable from HACS, and it would fix the entity-id duplication above at the same time.
-- [ ] **Finish the language cleanup.** All three views are now English, but the *helper* names underneath are still Dutch — `input_select.bbq_notificatie_apparaat`, "BBQ Notificatie apparaat". Renaming the entity id is a breaking change (the package, the automation and the Settings page all reference it), so do it deliberately: rename in the package, update all three consumers, and note it in the changelog. Or go the other way and ship `nl`/`en` variants of the dashboard file.
+- [x] ~~**Finish the language cleanup.**~~ Views and dashboard-owned helpers are English; `input_select.bbq_notificatie_apparaat` became `input_select.bbq_notify_target`. Recorded as a breaking change in `CHANGELOG.md`. The integration's own entity ids stay as the integration names them.
 - [ ] **CI check.** A GitHub Action running `yamllint` plus a script asserting `bbq-dashboard.yaml` and `bbq-dashboard.json` parse to the same object would stop the two exports drifting apart.
-- [ ] **Version the dashboard.** A `CHANGELOG.md` and git tags, so people can tell whether their copy is current.
+- [x] ~~**Version the dashboard.**~~ `CHANGELOG.md`, a version badge and a `v1.0.0` tag.
 
 ## 📸 Presentation
 
