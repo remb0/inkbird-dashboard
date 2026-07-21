@@ -9,7 +9,12 @@ button_card_templates:
       card:
       - padding: 18px
       - border-radius: 18px
-      - border: 1px solid "#3a2f27"
+      - border: |
+          [[[
+            var _s = states['input_select.bbq_style'];
+            var glass = _s && _s.state === 'Transparent';
+            return glass ? '1px solid rgba(255,255,255,.10)' : '1px solid #3a2f27';
+          ]]]
       - border-top: |
           [[[
             var n = variables.num, ch = variables.chan || 'food_1';
@@ -27,8 +32,24 @@ button_card_templates:
             var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';
             return '3px solid ' + col;
           ]]]
-      - background: linear-gradient(180deg,#211b16,#2b231d)
-      - box-shadow: 0 18px 40px -18px rgba(0,0,0,.7)
+      - background: |
+          [[[
+            var _s = states['input_select.bbq_style'];
+            var glass = _s && _s.state === 'Transparent';
+            return glass ? 'rgba(33,27,22,.35)' : 'linear-gradient(180deg,#211b16,#2b231d)';
+          ]]]
+      - box-shadow: |
+          [[[
+            var _s = states['input_select.bbq_style'];
+            var glass = _s && _s.state === 'Transparent';
+            return glass ? 'none' : '0 18px 40px -18px rgba(0,0,0,.7)';
+          ]]]
+      - backdrop-filter: |
+          [[[
+            var _s = states['input_select.bbq_style'];
+            var glass = _s && _s.state === 'Transparent';
+            return glass ? 'blur(10px)' : 'none';
+          ]]]
       grid:
       - grid-template-areas: '"header header header header" "fig gauge side side" "fig gauge minus plus"'
       - grid-template-columns: 34px 128px 1fr 1fr
@@ -244,13 +265,37 @@ button_card_templates:
             - color: '#ff6a2c'
             - font-size: 1.3rem
   inkbird_recipe:
+    template: inkbird_recipe_style
+    tap_action:
+      action: call-service
+      service: script.inkbird_apply_recipe
+      data:
+        label: '[[[ return variables.rname ]]]'
+        target: '[[[ return variables.temp ]]]'
+  inkbird_recipe_style:
     show_icon: true
     styles:
       card:
       - padding: 14px
       - border-radius: 14px
-      - border: 1px solid "#3a2f27"
-      - background: '#211b16'
+      - border: |
+          [[[
+            var _s = states['input_select.bbq_style'];
+            var glass = _s && _s.state === 'Transparent';
+            return glass ? '1px solid rgba(255,255,255,.10)' : '1px solid #3a2f27';
+          ]]]
+      - background: |
+          [[[
+            var _s = states['input_select.bbq_style'];
+            var glass = _s && _s.state === 'Transparent';
+            return glass ? 'rgba(33,27,22,.35)' : '#211b16';
+          ]]]
+      - backdrop-filter: |
+          [[[
+            var _s = states['input_select.bbq_style'];
+            var glass = _s && _s.state === 'Transparent';
+            return glass ? 'blur(10px)' : 'none';
+          ]]]
       grid:
       - grid-template-areas: '"i" "n" "t" "s"'
       - grid-template-rows: auto auto auto auto
@@ -288,12 +333,6 @@ button_card_templates:
         ]]]
       s: |
         [[[ return `<div style="font-size:.74rem;color:#a89a8c">${variables.note}</div>`; ]]]
-    tap_action:
-      action: call-service
-      service: script.inkbird_apply_recipe
-      data:
-        label: '[[[ return variables.rname ]]]'
-        target: '[[[ return variables.temp ]]]'
 title: Cook Control
 views:
 - title: Cook Control
@@ -377,42 +416,72 @@ views:
                 <b style="color:#f5ede4">${b}</b></span>
             </div>`;
           ]]]
-    - type: markdown
-      content: |
-        {% set ns = namespace(rows=[]) %}
-        {% for i in range(1,5) %}
-          {% set s = states('sensor.bbq_probe_' ~ i ~ '_status') %}
-          {% set n = states('input_text.inkbird_name_' ~ i) %}
-          {% set g = states('input_number.inkbird_target_' ~ i) | int %}
-          {% if s == 'ready' %}
-            {% set ns.rows = ns.rows + ['🟢 **' ~ n ~ '** reached ' ~ g ~ '°C — ready'] %}
-          {% elif s == 'close' %}
-            {% set ns.rows = ns.rows + ['🟡 **' ~ n ~ '** almost there (target ' ~ g ~ '°C)'] %}
-          {% endif %}
-        {% endfor %}
-        ### Alerts
-        {% if ns.rows | length == 0 %}
-        _No alerts. Everything's on track._
-        {% else %}
-        {% for r in ns.rows %}- {{ r }}
-        {% endfor %}
-        {% endif %}
-      card_mod:
-        style: |
-          ha-card {
-            background: linear-gradient(180deg,#211b16,#2b231d);
-            border:1px solid #3a2f27; border-radius:18px; color:#f5ede4;
-          }
+    - type: conditional
+      conditions:
+      - condition: state
+        entity: sensor.bbq_alert_count
+        state_not: '0'
+      card:
+        type: markdown
+        content: |
+          {% set ns = namespace(rows=[]) %}
+          {% for i in range(1,5) %}
+            {% set s = states('sensor.bbq_probe_' ~ i ~ '_status') %}
+            {% set n = states('input_text.inkbird_name_' ~ i) %}
+            {% set g = states('input_number.inkbird_target_' ~ i) | int %}
+            {% if s == 'ready' %}
+              {% set ns.rows = ns.rows + ['🟢 **' ~ n ~ '** reached ' ~ g ~ '°C — ready'] %}
+            {% elif s == 'close' %}
+              {% set ns.rows = ns.rows + ['🟡 **' ~ n ~ '** almost there (target ' ~ g ~ '°C)'] %}
+            {% endif %}
+          {% endfor %}
+          ### Alerts
+          {% for r in ns.rows %}- {{ r }}
+          {% endfor %}
+        card_mod:
+          style: |
+            ha-card {
+            {% if is_state('input_select.bbq_style','Transparent') %}
+              background: rgba(33,27,22,.35);
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255,255,255,.10);
+            {% else %}
+              background: linear-gradient(180deg,#211b16,#2b231d);
+              border: 1px solid #3a2f27;
+            {% endif %}
+              border-radius: 18px; color: #f5ede4;
+            }
     - type: custom:button-card
       tap_action:
         action: none
       styles:
         card:
-        - background: linear-gradient(180deg,#211b16,#2b231d)
-        - border: 1px solid "#3a2f27"
+        - background: |
+            [[[
+              var _s = states['input_select.bbq_style'];
+              var glass = _s && _s.state === 'Transparent';
+              return glass ? 'rgba(33,27,22,.35)' : 'linear-gradient(180deg,#211b16,#2b231d)';
+            ]]]
+        - border: |
+            [[[
+              var _s = states['input_select.bbq_style'];
+              var glass = _s && _s.state === 'Transparent';
+              return glass ? '1px solid rgba(255,255,255,.10)' : '1px solid #3a2f27';
+            ]]]
         - border-radius: 18px
         - padding: 20px 24px
-        - box-shadow: 0 18px 40px -18px rgba(0,0,0,.7)
+        - box-shadow: |
+            [[[
+              var _s = states['input_select.bbq_style'];
+              var glass = _s && _s.state === 'Transparent';
+              return glass ? 'none' : '0 18px 40px -18px rgba(0,0,0,.7)';
+            ]]]
+        - backdrop-filter: |
+            [[[
+              var _s = states['input_select.bbq_style'];
+              var glass = _s && _s.state === 'Transparent';
+              return glass ? 'blur(10px)' : 'none';
+            ]]]
         grid:
         - grid-template-areas: '"dev meta batt"'
         - grid-template-columns: auto 1fr auto
@@ -555,7 +624,7 @@ views:
           color: '#e07a52'
         icon: mdi:fish
       - type: custom:button-card
-        template: inkbird_recipe
+        template: inkbird_recipe_style
         name: Custom
         icon: mdi:tune-variant
         variables:
@@ -1291,6 +1360,13 @@ views:
       heading_style: title
       icon: mdi:tune
     - type: tile
+      entity: input_select.bbq_style
+      name: Card style
+      icon: mdi:palette-outline
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
       entity: input_select.inkbird_unit
       name: Temperature unit
       icon: mdi:thermometer
@@ -1318,6 +1394,15 @@ views:
       features:
       - type: toggle
       features_position: bottom
+    - type: conditional
+      conditions:
+      - condition: state
+        entity: input_boolean.bbq_show_help
+        state: 'on'
+      card:
+        type: markdown
+        content: |
+          **Card style** switches the Cook Control cards between the solid dark look and a transparent one that lets a dashboard background image show through. It changes nothing else — the Probes and Settings pages follow your Home Assistant theme either way.
   - type: grid
     cards:
     - type: heading
@@ -1384,9 +1469,6 @@ views:
       entity: input_text.bbq_tts_engine
       name: TTS engine
       icon: mdi:text-to-speech
-    - type: markdown
-      content: |
-        Paste entity ids, e.g. `media_player.kitchen` and `tts.home_assistant_cloud`. Leave either empty to disable speech.
     - type: conditional
       conditions:
       - condition: state
@@ -1451,13 +1533,6 @@ views:
       entity: input_text.inkbird_sensor_prefix
       name: Sensor prefix
       icon: mdi:identifier
-    - type: markdown
-      content: |
-        The area-prefixed base of your Inkbird entities, **without** a trailing underscore — e.g. `sensor.overig_inkbird_int_14`. Find it under **Developer Tools → States**, filtering on `inkbird`.
-
-        Changing this re-points the four probe cards, the status sensors and every automation immediately.
-
-        It does **not** reach the rate sensors or the Probes page — Home Assistant resolves those entity ids when the config loads, not when they render. Run `scripts/configure.py` once for those.
     - type: conditional
       conditions:
       - condition: state

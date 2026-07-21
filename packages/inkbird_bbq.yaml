@@ -180,6 +180,16 @@ input_select:
     icon: mdi:thermometer
     options: ["°C", "°F"]
 
+  # Card styling. "Transparent" drops the card backgrounds and shadows for a
+  # glass look over a dashboard background image; "Default" is the dark
+  # charcoal/ember look. Read by the cards at render time — no reload.
+  bbq_style:
+    name: BBQ dashboard style
+    icon: mdi:palette-outline
+    options:
+      - Default
+      - Transparent
+
   # Options MUST match notify.* services on your instance, minus the `notify.`
   # prefix. Keep them in sync with the `choose` block in script.bbq_notify.
   bbq_notify_target:
@@ -253,6 +263,18 @@ sensor:
 # ----------------------------------------------------------------------------
 template:
   - sensor:
+      # How many probes are worth shouting about. The Alerts card on Cook
+      # Control is wrapped in a conditional on this, so it disappears entirely
+      # when there is nothing to say rather than showing "no alerts".
+      - name: BBQ Alert Count
+        unique_id: bbq_alert_count
+        state: >
+          {{ ['1', '2', '3', '4']
+             | map('regex_replace', '^(.*)$', 'sensor.bbq_probe_\\1_status')
+             | map('states')
+             | select('in', ['close', 'ready'])
+             | list | count }}
+
       - name: BBQ Probe 1 Status
         unique_id: bbq_probe_1_status
         state: >

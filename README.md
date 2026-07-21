@@ -45,7 +45,7 @@
 | 😐 **Stall detection** | Tells you when a probe has been flat for 45 minutes while still climbing — the moment you decide whether to wrap |
 | 🪫 **Low battery alerts** | Warns before a probe quits at hour six, with a threshold you set and a toggle to silence it |
 | 🎛️ **Base station card** | Battery level and an SVG rendering of the INT-14 base |
-| 🚨 **Alerts card** | Rolls every probe that is `close` or `ready` into one summary at the top |
+| 🚨 **Alerts card** | Rolls every probe that is `close` or `ready` into one summary at the top, and hides itself when there is nothing to say |
 | 🇺🇸 **°C / °F toggle** | Display-only unit switch — no need to reconfigure the device |
 | 🔬 **Probes page** | All five channels of every probe — tip, three food points and ambient — laid over probe artwork, plus per-channel tiles and a one-hour history graph |
 | ⚙️ **Settings page** | Live device summary over nine sections — device, connection, batteries, preferences, alerts, announcements, integration health, links and setup |
@@ -74,7 +74,7 @@ In the order they appear:
 | **Base station** | Model, charging state, base temperature, probes detected |
 | **Connection** | Transport mode selector, active transport, Bluetooth and Wi-Fi connectivity, battery-reporting freshness |
 | **Batteries** | Base station and all four probes in one `battery-state-card`, colour-graded by level |
-| **Preferences** | Temperature unit, notification device, active probe, **Show help** |
+| **Preferences** | Temperature unit, **card style** (solid or transparent), notification device, active probe, **Show help** |
 | **Alerts** | Low-battery toggle + threshold slider, stall-detection toggle, snooze duration |
 | **Spoken announcements** | TTS on/off, speaker and engine |
 | **Integration** | Version + update button, model support status, last BLE diagnostic, and buttons to run a diagnostic or request a snapshot |

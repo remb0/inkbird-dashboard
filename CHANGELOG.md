@@ -12,14 +12,37 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ### Fixed
 
+- **The Custom recipe button threw a service error.** It reused the
+  `inkbird_recipe` button-card template, and button-card *deep-merges* a
+  template into the card. Overriding `tap_action.service` therefore left the
+  preset's `tap_action.data` (`label`, `target`) in place, so
+  `input_boolean.toggle` was called with keys it does not accept. The template
+  is now split: `inkbird_recipe_style` carries the look with no action, and
+  `inkbird_recipe` adds the preset action on top. Custom inherits only the
+  style, so there is nothing left to merge.
+- **The help text under Spoken announcements and Setup was always visible.**
+  Those sections each had a permanent markdown card as well as the one behind
+  the Show help toggle, so turning help off left the duplicate on screen. The
+  permanent ones are gone; only the toggled text remains.
+
 - **The HACS install button returned "Repository not found."** The My Home
   Assistant link used `category=dashboard`, matching what the HACS UI calls
   this repository type. HACS's actual category enum is `appdaemon`,
   `integration`, `plugin`, `python_script`, `template`, `theme` — "Dashboard"
   is only the display label, and the URL parameter is still `plugin`.
 
+### Added
+
+- **Card style picker.** `input_select.bbq_style` on the Settings page
+  switches the Cook Control cards between the solid dark look and a
+  transparent, blurred one for dashboards with a background image. Read at
+  render time, so it applies without a reload.
+
 ### Changed
 
+- **The Alerts card hides itself when there is nothing to report**, instead of
+  taking up space to say "No alerts". Driven by a new `sensor.bbq_alert_count`
+  template sensor and a conditional card — a markdown card cannot hide itself.
 - The install section leads with HACS and treats the manual paste as the
   fallback, rather than presenting them as equal options. The two steps HACS
   cannot do — the YAML package and the probe artwork — are now labelled

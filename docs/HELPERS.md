@@ -79,7 +79,9 @@ Everything that reads the helper falls back to the repo default if it is empty o
 | `input_boolean.bbq_stall_alerts` | Toggle | Silences stall detection |
 | `input_number.bbq_snooze_minutes` | Number, 5–60 min | How long Snooze waits before re-notifying. Also sets the button's label, so the phone shows "Snooze 20 min" |
 | `input_number.bbq_rest_minutes` | Number, 0–120 min | Rest reminder after a probe hits its target. **0 switches it off** — the automation has a `numeric_state above: 0` condition, so it never even starts a delay |
-| `input_boolean.bbq_show_help` | Toggle | Reveals the explanatory paragraph under Alerts, Spoken announcements and Setup |
+| `input_boolean.bbq_show_help` | Toggle | Reveals the explanatory paragraph under Alerts, Spoken announcements and Setup. With it off those sections show controls only |
+| `input_select.bbq_style` | Default / Transparent | Card look on Cook Control. Transparent drops the backgrounds and shadows and adds a blur, for dashboards with a background image. The cards read it at render time, so it applies with no reload |
+| `sensor.bbq_alert_count` | Sensor | How many probes are `close` or `ready`. The Alerts card is wrapped in a conditional on this, so it disappears entirely when there is nothing to report — a markdown card cannot hide itself |
 
 ## Spoken announcements
 
@@ -138,6 +140,12 @@ Fields: `label` (text) and `target` (number). Reads `input_select.inkbird_active
 The form deliberately reuses the *existing* helpers for probe, notify target and announcements rather than duplicating them per recipe — those are instance-wide settings, and a per-recipe copy would quietly diverge from what the alerts actually read.
 
 `script.inkbird_apply_custom_recipe` reads the name and target, hands them to `script.inkbird_apply_recipe` — the same path the presets use — and closes the form.
+
+### Why there are two button-card templates
+
+`inkbird_recipe_style` holds the look; `inkbird_recipe` adds the preset's `tap_action` on top of it.
+
+That split is not cosmetic. button-card **deep-merges** a template into the card that uses it, so a card cannot fully replace an inherited `tap_action` — overriding `service` leaves the template's `data` in place. The Custom button did exactly that and ended up calling `input_boolean.toggle` with `label` and `target` keys, which errors. Anything that wants the recipe look but a different action should use `inkbird_recipe_style`.
 
 ## `script.bbq_notify`
 

@@ -38,16 +38,19 @@ const TEMPLATE = {
             "border-radius": "18px"
           },
           {
-            "border": "1px solid \"#3a2f27\""
+            "border": "[[[\n  var _s = states['input_select.bbq_style'];\n  var glass = _s && _s.state === 'Transparent';\n  return glass ? '1px solid rgba(255,255,255,.10)' : '1px solid #3a2f27';\n]]]\n"
           },
           {
             "border-top": "[[[\n  var n = variables.num, ch = variables.chan || 'food_1';\n  var _p = states['input_text.inkbird_sensor_prefix'];\n  _p = _p ? _p.state : '';\n  var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;\n  var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';\n  var eBatt   = pfx + '_probe_' + n + '_battery';\n  var eTarget = 'input_number.inkbird_target_' + n;\n  var eName   = 'input_text.inkbird_name_' + n;\n  var eState  = 'sensor.bbq_probe_' + n + '_status';\n  var eRate   = 'sensor.bbq_probe_' + n + '_rate';\n  var _g = function(e){ var o = states[e]; return o ? o.state : undefined; };\n  var s = _g(eState) || 'idle';\n  var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';\n  return '3px solid ' + col;\n]]]\n"
           },
           {
-            "background": "linear-gradient(180deg,#211b16,#2b231d)"
+            "background": "[[[\n  var _s = states['input_select.bbq_style'];\n  var glass = _s && _s.state === 'Transparent';\n  return glass ? 'rgba(33,27,22,.35)' : 'linear-gradient(180deg,#211b16,#2b231d)';\n]]]\n"
           },
           {
-            "box-shadow": "0 18px 40px -18px rgba(0,0,0,.7)"
+            "box-shadow": "[[[\n  var _s = states['input_select.bbq_style'];\n  var glass = _s && _s.state === 'Transparent';\n  return glass ? 'none' : '0 18px 40px -18px rgba(0,0,0,.7)';\n]]]\n"
+          },
+          {
+            "backdrop-filter": "[[[\n  var _s = states['input_select.bbq_style'];\n  var glass = _s && _s.state === 'Transparent';\n  return glass ? 'blur(10px)' : 'none';\n]]]\n"
           }
         ],
         "grid": [
@@ -173,6 +176,17 @@ const TEMPLATE = {
       }
     },
     "inkbird_recipe": {
+      "template": "inkbird_recipe_style",
+      "tap_action": {
+        "action": "call-service",
+        "service": "script.inkbird_apply_recipe",
+        "data": {
+          "label": "[[[ return variables.rname ]]]",
+          "target": "[[[ return variables.temp ]]]"
+        }
+      }
+    },
+    "inkbird_recipe_style": {
       "show_icon": true,
       "styles": {
         "card": [
@@ -183,10 +197,13 @@ const TEMPLATE = {
             "border-radius": "14px"
           },
           {
-            "border": "1px solid \"#3a2f27\""
+            "border": "[[[\n  var _s = states['input_select.bbq_style'];\n  var glass = _s && _s.state === 'Transparent';\n  return glass ? '1px solid rgba(255,255,255,.10)' : '1px solid #3a2f27';\n]]]\n"
           },
           {
-            "background": "#211b16"
+            "background": "[[[\n  var _s = states['input_select.bbq_style'];\n  var glass = _s && _s.state === 'Transparent';\n  return glass ? 'rgba(33,27,22,.35)' : '#211b16';\n]]]\n"
+          },
+          {
+            "backdrop-filter": "[[[\n  var _s = states['input_select.bbq_style'];\n  var glass = _s && _s.state === 'Transparent';\n  return glass ? 'blur(10px)' : 'none';\n]]]\n"
           }
         ],
         "grid": [
@@ -241,14 +258,6 @@ const TEMPLATE = {
       "custom_fields": {
         "t": "[[[\n  var u = states['input_select.inkbird_unit'];\n  var uf = u ? u.state.indexOf('F') >= 0 : false;\n  var us = uf ? '\\u00b0F' : '\\u00b0C';\n  var c = variables.temp;\n  if (variables.rname === 'Custom') {\n    var o = states['input_number.bbq_custom_target'];\n    c = o ? parseFloat(o.state) : NaN;\n    if (isNaN(c) || c <= 0) {\n      return `<div style=\"font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:#77695c\">\\u2014</div>`;\n    }\n  }\n  var v = uf ? Math.round(c * 9/5 + 32) : Math.round(c);\n  return `<div style=\"font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:#ff6a2c\">${v}<span style=\"font-size:.74rem;color:#a89a8c\">${us}</span></div>`;\n]]]\n",
         "s": "[[[ return `<div style=\"font-size:.74rem;color:#a89a8c\">${variables.note}</div>`; ]]]\n"
-      },
-      "tap_action": {
-        "action": "call-service",
-        "service": "script.inkbird_apply_recipe",
-        "data": {
-          "label": "[[[ return variables.rname ]]]",
-          "target": "[[[ return variables.temp ]]]"
-        }
       }
     }
   },
@@ -320,10 +329,20 @@ const TEMPLATE = {
               }
             },
             {
-              "type": "markdown",
-              "content": "{% set ns = namespace(rows=[]) %}\n{% for i in range(1,5) %}\n  {% set s = states('sensor.bbq_probe_' ~ i ~ '_status') %}\n  {% set n = states('input_text.inkbird_name_' ~ i) %}\n  {% set g = states('input_number.inkbird_target_' ~ i) | int %}\n  {% if s == 'ready' %}\n    {% set ns.rows = ns.rows + ['\ud83d\udfe2 **' ~ n ~ '** reached ' ~ g ~ '\u00b0C \u2014 ready'] %}\n  {% elif s == 'close' %}\n    {% set ns.rows = ns.rows + ['\ud83d\udfe1 **' ~ n ~ '** almost there (target ' ~ g ~ '\u00b0C)'] %}\n  {% endif %}\n{% endfor %}\n### Alerts\n{% if ns.rows | length == 0 %}\n_No alerts. Everything's on track._\n{% else %}\n{% for r in ns.rows %}- {{ r }}\n{% endfor %}\n{% endif %}\n",
-              "card_mod": {
-                "style": "ha-card {\n  background: linear-gradient(180deg,#211b16,#2b231d);\n  border:1px solid #3a2f27; border-radius:18px; color:#f5ede4;\n}\n"
+              "type": "conditional",
+              "conditions": [
+                {
+                  "condition": "state",
+                  "entity": "sensor.bbq_alert_count",
+                  "state_not": "0"
+                }
+              ],
+              "card": {
+                "type": "markdown",
+                "content": "{% set ns = namespace(rows=[]) %}\n{% for i in range(1,5) %}\n  {% set s = states('sensor.bbq_probe_' ~ i ~ '_status') %}\n  {% set n = states('input_text.inkbird_name_' ~ i) %}\n  {% set g = states('input_number.inkbird_target_' ~ i) | int %}\n  {% if s == 'ready' %}\n    {% set ns.rows = ns.rows + ['\ud83d\udfe2 **' ~ n ~ '** reached ' ~ g ~ '\u00b0C \u2014 ready'] %}\n  {% elif s == 'close' %}\n    {% set ns.rows = ns.rows + ['\ud83d\udfe1 **' ~ n ~ '** almost there (target ' ~ g ~ '\u00b0C)'] %}\n  {% endif %}\n{% endfor %}\n### Alerts\n{% for r in ns.rows %}- {{ r }}\n{% endfor %}\n",
+                "card_mod": {
+                  "style": "ha-card {\n{% if is_state('input_select.bbq_style','Transparent') %}\n  background: rgba(33,27,22,.35);\n  backdrop-filter: blur(10px);\n  border: 1px solid rgba(255,255,255,.10);\n{% else %}\n  background: linear-gradient(180deg,#211b16,#2b231d);\n  border: 1px solid #3a2f27;\n{% endif %}\n  border-radius: 18px; color: #f5ede4;\n}\n"
+                }
               }
             },
             {
@@ -334,10 +353,10 @@ const TEMPLATE = {
               "styles": {
                 "card": [
                   {
-                    "background": "linear-gradient(180deg,#211b16,#2b231d)"
+                    "background": "[[[\n  var _s = states['input_select.bbq_style'];\n  var glass = _s && _s.state === 'Transparent';\n  return glass ? 'rgba(33,27,22,.35)' : 'linear-gradient(180deg,#211b16,#2b231d)';\n]]]\n"
                   },
                   {
-                    "border": "1px solid \"#3a2f27\""
+                    "border": "[[[\n  var _s = states['input_select.bbq_style'];\n  var glass = _s && _s.state === 'Transparent';\n  return glass ? '1px solid rgba(255,255,255,.10)' : '1px solid #3a2f27';\n]]]\n"
                   },
                   {
                     "border-radius": "18px"
@@ -346,7 +365,10 @@ const TEMPLATE = {
                     "padding": "20px 24px"
                   },
                   {
-                    "box-shadow": "0 18px 40px -18px rgba(0,0,0,.7)"
+                    "box-shadow": "[[[\n  var _s = states['input_select.bbq_style'];\n  var glass = _s && _s.state === 'Transparent';\n  return glass ? 'none' : '0 18px 40px -18px rgba(0,0,0,.7)';\n]]]\n"
+                  },
+                  {
+                    "backdrop-filter": "[[[\n  var _s = states['input_select.bbq_style'];\n  var glass = _s && _s.state === 'Transparent';\n  return glass ? 'blur(10px)' : 'none';\n]]]\n"
                   }
                 ],
                 "grid": [
@@ -504,7 +526,7 @@ const TEMPLATE = {
                 },
                 {
                   "type": "custom:button-card",
-                  "template": "inkbird_recipe",
+                  "template": "inkbird_recipe_style",
                   "name": "Custom",
                   "icon": "mdi:tune-variant",
                   "variables": {
@@ -1634,6 +1656,18 @@ const TEMPLATE = {
             },
             {
               "type": "tile",
+              "entity": "input_select.bbq_style",
+              "name": "Card style",
+              "icon": "mdi:palette-outline",
+              "features": [
+                {
+                  "type": "select-options"
+                }
+              ],
+              "features_position": "bottom"
+            },
+            {
+              "type": "tile",
               "entity": "input_select.inkbird_unit",
               "name": "Temperature unit",
               "icon": "mdi:thermometer",
@@ -1679,6 +1713,20 @@ const TEMPLATE = {
                 }
               ],
               "features_position": "bottom"
+            },
+            {
+              "type": "conditional",
+              "conditions": [
+                {
+                  "condition": "state",
+                  "entity": "input_boolean.bbq_show_help",
+                  "state": "on"
+                }
+              ],
+              "card": {
+                "type": "markdown",
+                "content": "**Card style** switches the Cook Control cards between the solid dark look and a transparent one that lets a dashboard background image show through. It changes nothing else \u2014 the Probes and Settings pages follow your Home Assistant theme either way.\n"
+              }
             }
           ]
         },
@@ -1791,10 +1839,6 @@ const TEMPLATE = {
               "icon": "mdi:text-to-speech"
             },
             {
-              "type": "markdown",
-              "content": "Paste entity ids, e.g. `media_player.kitchen` and `tts.home_assistant_cloud`. Leave either empty to disable speech.\n"
-            },
-            {
               "type": "conditional",
               "conditions": [
                 {
@@ -1886,10 +1930,6 @@ const TEMPLATE = {
               "entity": "input_text.inkbird_sensor_prefix",
               "name": "Sensor prefix",
               "icon": "mdi:identifier"
-            },
-            {
-              "type": "markdown",
-              "content": "The area-prefixed base of your Inkbird entities, **without** a trailing underscore \u2014 e.g. `sensor.__INKBIRD_AREA_PREFIX__`. Find it under **Developer Tools \u2192 States**, filtering on `inkbird`.\n\nChanging this re-points the four probe cards, the status sensors and every automation immediately.\n\nIt does **not** reach the rate sensors or the Probes page \u2014 Home Assistant resolves those entity ids when the config loads, not when they render. Run `scripts/configure.py` once for those.\n"
             },
             {
               "type": "conditional",
