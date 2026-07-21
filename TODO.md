@@ -16,10 +16,12 @@ Loosely ordered by "how much better does this make the dashboard per hour of wor
 
 - [x] ~~**Probe battery levels.**~~ Each probe card now shows `sensor.overig_inkbird_int_14_probe_N_battery` as a bar + percentage, red under 20 %, amber under 40 %.
 - [ ] **Low probe battery warning.** The card shows the number, but nothing shouts. A probe dying at hour six of a brisket cook is exactly the thing you want pushed to your phone — add a "probe battery below 15 %" automation next to the existing one.
-- [ ] **Temperature history graph.** An ApexCharts card under the probe grid showing all four probes over the last 12 hours turns this from a status page into a cook log. The classic brisket stall becomes visible instead of worrying.
+- [ ] **Temperature history on Cook Control.** The Probes page now has a one-hour `history-graph` per probe, but Cook Control has none. A single card there showing all four probes over 12 hours turns it from a status page into a cook log — the classic brisket stall becomes visible instead of worrying.
 - [ ] **ETA to target.** A `derivative` helper on each probe sensor gives °C/hour; `(target − current) / rate` gives a rough finish time. Show it as "≈ 1 h 40 m to go" in the probe card's side column, next to the existing "42° to go".
 - [ ] **Stall detection.** If a probe sits within ±1 °C for 45 minutes while still below target, notify "Probe 2 has stalled at 68 °C — time to wrap?".
-- [ ] **Ambient / grate temperature.** Each probe also reports `_ambient_temperature`. A pit-temperature card with a high/low band ("grate above 150 °C") is arguably more useful than a fourth food probe.
+- [x] ~~**Surface the ambient and extra food channels.**~~ The Probes page shows all five channels of all four probes.
+- [ ] **Act on the ambient reading, don't just show it.** Displaying pit temperature is not the same as alerting on it — a "grate above 150 °C" or "fire is dying" notification is where the value is.
+- [ ] **Verify the physical channel mapping.** Upstream has only confirmed `food_4` as the tip; `food_1`–`food_3` follow the community layout and are unverified. Cook Control targets `food_1`, which may not be the deepest point of the meat. Worth an ice-bath / boiling-water test to pin down, and worth feeding back upstream.
 - [ ] **Rest reminder.** After a probe hits `ready`, start a timer and notify again after the resting period. Carryover cooking is where good brisket goes to die.
 - [ ] **Actionable notifications.** The mobile app supports action buttons — "Snooze 10 min" and "Done, stop alerting" would stop the persistent notification piling up.
 - [ ] **Doneness presets for steak.** Rare / medium-rare / medium / well-done as one recipe with four targets, rather than only "Medium Steak".
@@ -69,5 +71,4 @@ So there are three honest paths, in increasing order of effort:
 
 - [ ] Cook session logging: an `input_boolean` + start timestamp per cook, so you can look back at "the 9 October brisket".
 - [ ] TTS announcement to a speaker when a probe is ready.
-- [ ] Use all four `food_N` channels per physical probe instead of only `food_1`.
 - [ ] Meat-specific safe-temperature warnings (poultry below 74 °C, etc.).

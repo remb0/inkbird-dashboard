@@ -126,4 +126,26 @@ The last two are not area-prefixed, so they normally need no editing.
 
 An unrecognised transport value is shown verbatim rather than swallowed, so a future integration release adding a new link type degrades to "Live · <whatever it said>". Hover the pill to see the raw sensor value.
 
-The INT-14 exposes several channels per probe (`food_1` … `food_4`, `ambient`). This dashboard uses `food_1` for all four cards — swap in `ambient` on a probe you park in the pit for grate temperature.
+### Channels, and which page uses which
+
+Each INT-14 probe reports **five** channels — confirm yours with `sensor.inkbird_int_14_probe_layout`, which on the source install reads `Probe 1: food_1, food_2, food_3, food_4, ambient; …` for all four probes.
+
+**Cook Control** deliberately uses only `food_1` per probe. One number per probe is the point of that page; the target, the status colour and the notification all key off it.
+
+**Probes** shows all five, using the layout and channel order from the [INT-12E-BW community dashboard](https://github.com/zampix1/ha-inkbird-int14/blob/main/docs/int12e_dashboard.md):
+
+| Position on the probe | Integration channel | Label | Colour |
+|---|---|---|---|
+| Tip | `food_4` | Tip | `#2478c8` |
+| Near tip | `food_1` | Food 1 | `#7669bf` |
+| Middle | `food_3` | Food 3 | `#bd9411` |
+| Near handle | `food_2` | Food 2 | `#49aeba` |
+| Handle / ambient | `ambient` | Ambient | `#9344a1` |
+
+> Upstream confirms `food_4` as the tip channel on both physical probes tested. **`food_1`–`food_3` follow the community layout and are not a verified physical mapping** — treat the middle positions as approximate until the integration confirms them.
+
+That caveat matters for Cook Control too: it targets `food_1`, which is *near* the tip rather than at it. For thin cuts the difference is small; for a thick brisket, `food_4` may be the more honest "is it done" channel. Swapping is a one-line change to each probe card's `probe` variable.
+
+### Probe artwork
+
+The Probes page overlays readings on `/local/int12e-probe-black.png` and `-white.png`, which live in `/config/www/`. See the README's install step for the download commands. Without them the readings still work — you get a broken-image box instead of the probe drawing.

@@ -31,7 +31,18 @@
 | 🎛️ **Base station card** | Battery level and an SVG rendering of the INT-14 base |
 | 🚨 **Alerts card** | Rolls every probe that is `close` or `ready` into one summary at the top |
 | 🇺🇸 **°C / °F toggle** | Display-only unit switch — no need to reconfigure the device |
+| 🔬 **Probes page** | All five channels of every probe — tip, three food points and ambient — laid over probe artwork, plus per-channel tiles and a one-hour history graph |
 | ⚙️ **Settings subview** | Integration version + update button, unit and notification pickers, handy links |
+
+### Pages
+
+| Page | Path | What it's for |
+|---|---|---|
+| **Cook Control** | `/dashboard-bbq/cook` | The cooking view — four probe gauges, alerts, recipe presets |
+| **Probes** | `/dashboard-bbq/probes` | The diagnostic view — every channel of every probe, with history |
+| **Settings** | `/dashboard-bbq/settings` | Subview, reached from the ⚙️ button |
+
+Cook Control answers "is it done yet?" at a glance. Probes answers "what is actually going on inside this piece of meat?" — a brisket with the tip in the flat and the ambient sensor in the pit tells you far more than one number.
 
 ## 📋 Requirements
 
@@ -85,13 +96,29 @@ The `overig_` prefix comes from the *area* the device was assigned to, so yours 
 | Placeholder in this repo | Replace with |
 |---|---|
 | `sensor.overig_inkbird_int_14_probe_N_food_1_temperature` | your probe *N* food temperature sensor |
+| `sensor.overig_inkbird_int_14_probe_N_food_2/3/4_temperature` | the other food channels (Probes page) |
+| `sensor.overig_inkbird_int_14_probe_N_ambient_temperature` | your probe *N* ambient sensor (Probes page) |
 | `sensor.overig_inkbird_int_14_probe_N_battery` | your probe *N* battery sensor |
 | `sensor.overig_inkbird_int_14_base_battery` | your base station battery sensor |
 | `update.inkbird_int_update` | your integration's update entity |
 
 `sensor.inkbird_int_14_active_transport` and `binary_sensor.inkbird_int_14_ble_connected` (used by the connection pill) are **not** area-prefixed, so those usually work as-is.
 
-### 4. Point notifications at your phone
+### 4. Add the probe artwork (Probes page)
+
+The Probes page lays temperature readings over a picture of a probe. Home Assistant serves those from `/config/www/`, so download them once:
+
+```bash
+cd /config/www
+curl -LO https://raw.githubusercontent.com/zampix1/ha-inkbird-int14/main/docs/images/community/int12e-probe-black.png
+curl -LO https://raw.githubusercontent.com/zampix1/ha-inkbird-int14/main/docs/images/community/int12e-probe-white.png
+```
+
+Odd-numbered probes use the black artwork, even-numbered the white. Everything else on the page — tiles, history graphs, the temperature values themselves — works without the images; you will just get a broken-image box where the probe should be.
+
+> The artwork is INT-12E-BW, drawn by the community contributor credited below. It is close enough to the INT-14 probes to read correctly, but it is not a picture of your exact hardware.
+
+### 5. Point notifications at your phone
 
 Out of the box only a persistent notification is sent. To also ping a device, add a branch to the `choose:` block at the bottom of `packages/inkbird_bbq.yaml` and add the matching option to `input_select.bbq_notificatie_apparaat`. A worked example is in [`docs/HELPERS.md`](docs/HELPERS.md#notification-routing).
 
@@ -138,6 +165,7 @@ This dashboard stands on other people's work:
 - **[zampix1/ha-inkbird-int14](https://github.com/zampix1/ha-inkbird-int14)** — the `inkbird_int14` custom integration that talks to the thermometer over BLE. Without it there are no probe sensors and this dashboard has nothing to show. All device communication, probe mapping and the update entity come from there.
 - **[custom-cards/button-card](https://github.com/custom-cards/button-card)** by RomRider — every probe card, the header, the base-station card and the recipe buttons are `custom:button-card` templates. The gauges and device illustrations are inline SVG rendered through its `custom_fields`.
 - **[thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)** — restyles the stock markdown and grid cards to match the dark charcoal/ember theme.
+- **[@Nexus1212](https://github.com/Nexus1212)** — the **Probes** page is a direct adaptation of their INT-12E-BW community dashboard, shared in [Discussion #3](https://github.com/zampix1/ha-inkbird-int14/discussions/3#discussioncomment-17664834) and documented at [`docs/int12e_dashboard.md`](https://github.com/zampix1/ha-inkbird-int14/blob/main/docs/int12e_dashboard.md). The channel order, the label colours, the percentage positions of each reading and the probe artwork are all theirs; this repo only extends the single-probe card to all four INT-14 probes. It uses stock Home Assistant cards — no custom frontend card needed.
 - **[Material Design Icons](https://pictogrammers.com/library/mdi/)** — the `mdi:` icons.
 - **Inkbird** — the [INT-14S-BW](https://inkbird.com) hardware and its display, which the base-station SVG is drawn after.
 - The settings-page layout (version tile + link card built from Jinja variables) reuses the pattern from the author's Zendure configuration dashboard.
