@@ -1,0 +1,247 @@
+# ============================================================================
+#  Inkbird BBQ Dashboard — Home Assistant package
+# ----------------------------------------------------------------------------
+#  Everything the dashboard needs, in one file: helpers, template sensors,
+#  the recipe script and the "probe reached target" automation.
+#
+#  Install:
+#    1. Copy this file to  <config>/packages/inkbird_bbq.yaml
+#    2. Make sure configuration.yaml contains:
+#
+#         homeassistant:
+#           packages: !include_dir_named packages
+#
+#    3. Developer Tools -> YAML -> check configuration, then restart HA.
+#
+#  Adjust before first use:
+#    - PROBE SENSORS: replace every
+#      `sensor.overig_inkbird_int_14_probe_N_food_1_temperature`
+#      with your own entity ids (see README, "Adapt the entity ids").
+#    - NOTIFICATIONS: fill the `choose` block at the bottom with your own
+#      notify.* services and mirror those names in the options of
+#      `input_select.bbq_notificatie_apparaat`.
+# ============================================================================
+
+# `initial:` is deliberately omitted everywhere — without it Home Assistant
+# restores the last value after a restart instead of resetting it mid-cook.
+# On a brand new install the targets start at their minimum; tap a recipe
+# preset on the dashboard to set them.
+
+input_number:
+  inkbird_target_1:
+    name: Probe 1 target
+    icon: mdi:thermometer-alert
+    min: 0
+    max: 300
+    step: 1
+    unit_of_measurement: "°C"
+    mode: slider
+  inkbird_target_2:
+    name: Probe 2 target
+    icon: mdi:thermometer-alert
+    min: 0
+    max: 300
+    step: 1
+    unit_of_measurement: "°C"
+    mode: slider
+  inkbird_target_3:
+    name: Probe 3 target
+    icon: mdi:thermometer-alert
+    min: 0
+    max: 300
+    step: 1
+    unit_of_measurement: "°C"
+    mode: slider
+  inkbird_target_4:
+    name: Probe 4 target
+    icon: mdi:thermometer-alert
+    min: 0
+    max: 300
+    step: 1
+    unit_of_measurement: "°C"
+    mode: slider
+
+input_text:
+  inkbird_name_1:
+    name: Probe 1 name
+    max: 100
+  inkbird_name_2:
+    name: Probe 2 name
+    max: 100
+  inkbird_name_3:
+    name: Probe 3 name
+    max: 100
+  inkbird_name_4:
+    name: Probe 4 name
+    max: 100
+
+input_select:
+  inkbird_active_probe:
+    name: Active probe
+    icon: mdi:target
+    options: ["1", "2", "3", "4"]
+
+  inkbird_unit:
+    name: Temperature unit
+    icon: mdi:thermometer
+    options: ["°C", "°F"]
+
+  # The options MUST match notify.* services on your instance, minus the
+  # `notify.` prefix. Keep them in sync with the `choose` block further down.
+  bbq_notificatie_apparaat:
+    name: BBQ Notificatie apparaat
+    icon: mdi:bell-ring
+    options:
+      - persistent_notification
+      # - mobile_app_your_phone
+      # - notify_pushover
+
+# ----------------------------------------------------------------------------
+#  Per-probe status: idle / heating / close / ready
+#  Drives the probe card colours, the alerts card and the notification.
+#  "close" kicks in within 5 °C of the target.
+# ----------------------------------------------------------------------------
+template:
+  - sensor:
+      - name: BBQ Probe 1 Status
+        unique_id: bbq_probe_1_status
+        state: >
+          {% set t = states('sensor.overig_inkbird_int_14_probe_1_food_1_temperature') | float(none) %}
+          {% set g = states('input_number.inkbird_target_1') | float(none) %}
+          {% if t is none or g is none %} idle
+          {% elif t >= g %} ready
+          {% elif t >= g - 5 %} close
+          {% else %} heating
+          {% endif %}
+
+      - name: BBQ Probe 2 Status
+        unique_id: bbq_probe_2_status
+        state: >
+          {% set t = states('sensor.overig_inkbird_int_14_probe_2_food_1_temperature') | float(none) %}
+          {% set g = states('input_number.inkbird_target_2') | float(none) %}
+          {% if t is none or g is none %} idle
+          {% elif t >= g %} ready
+          {% elif t >= g - 5 %} close
+          {% else %} heating
+          {% endif %}
+
+      - name: BBQ Probe 3 Status
+        unique_id: bbq_probe_3_status
+        state: >
+          {% set t = states('sensor.overig_inkbird_int_14_probe_3_food_1_temperature') | float(none) %}
+          {% set g = states('input_number.inkbird_target_3') | float(none) %}
+          {% if t is none or g is none %} idle
+          {% elif t >= g %} ready
+          {% elif t >= g - 5 %} close
+          {% else %} heating
+          {% endif %}
+
+      - name: BBQ Probe 4 Status
+        unique_id: bbq_probe_4_status
+        state: >
+          {% set t = states('sensor.overig_inkbird_int_14_probe_4_food_1_temperature') | float(none) %}
+          {% set g = states('input_number.inkbird_target_4') | float(none) %}
+          {% if t is none or g is none %} idle
+          {% elif t >= g %} ready
+          {% elif t >= g - 5 %} close
+          {% else %} heating
+          {% endif %}
+
+# ----------------------------------------------------------------------------
+#  Recipe presets — writes name + target onto whichever probe is "active".
+# ----------------------------------------------------------------------------
+script:
+  inkbird_apply_recipe:
+    alias: Inkbird — apply recipe to active probe
+    icon: mdi:silverware-fork-knife
+    mode: parallel
+    max: 10
+    fields:
+      label:
+        name: Label
+        description: Display name written to the probe (e.g. "Beef Brisket").
+        required: true
+        selector:
+          text:
+      target:
+        name: Target
+        description: Target temperature in °C.
+        required: true
+        selector:
+          number:
+            min: 0
+            max: 300
+            unit_of_measurement: "°C"
+    sequence:
+      - variables:
+          probe: "{{ states('input_select.inkbird_active_probe') }}"
+      - action: input_number.set_value
+        target:
+          entity_id: "input_number.inkbird_target_{{ probe }}"
+        data:
+          value: "{{ target | float }}"
+      - action: input_text.set_value
+        target:
+          entity_id: "input_text.inkbird_name_{{ probe }}"
+        data:
+          value: "{{ label }}"
+
+# ----------------------------------------------------------------------------
+#  Notification when a probe hits its target.
+# ----------------------------------------------------------------------------
+automation:
+  - id: inkbird_bbq_probe_reached_target
+    alias: BBQ probe reached target
+    description: >
+      Sends a persistent notification (and optionally one extra notify target)
+      when a BBQ probe reaches its target temperature.
+    triggers:
+      - trigger: state
+        entity_id: sensor.bbq_probe_1_status
+        to: ready
+        id: "1"
+      - trigger: state
+        entity_id: sensor.bbq_probe_2_status
+        to: ready
+        id: "2"
+      - trigger: state
+        entity_id: sensor.bbq_probe_3_status
+        to: ready
+        id: "3"
+      - trigger: state
+        entity_id: sensor.bbq_probe_4_status
+        to: ready
+        id: "4"
+    actions:
+      - variables:
+          idx: "{{ trigger.id }}"
+          pname: "{{ states('input_text.inkbird_name_' ~ trigger.id) }}"
+          ptemp: "{{ states('sensor.overig_inkbird_int_14_probe_' ~ trigger.id ~ '_food_1_temperature') }}"
+          ptarget: "{{ states('input_number.inkbird_target_' ~ trigger.id) }}"
+          msg_title: "🔥 {{ pname }} is ready"
+          msg_body: "Probe {{ idx }} reached its target of {{ ptarget }}°C (now {{ ptemp }}°C)."
+      - action: persistent_notification.create
+        data:
+          title: "{{ msg_title }}"
+          message: "{{ msg_body }}"
+          notification_id: "inkbird_ready_{{ idx }}"
+
+      # Replace the empty list below with one branch per notify service you
+      # want to support. Service names are written out literally on purpose —
+      # Home Assistant validates a literal `action:` when the config loads,
+      # a templated one only when the automation actually runs.
+      #
+      #   - choose:
+      #       - conditions:
+      #           - condition: state
+      #             entity_id: input_select.bbq_notificatie_apparaat
+      #             state: mobile_app_your_phone
+      #         sequence:
+      #           - action: notify.mobile_app_your_phone
+      #             data:
+      #               title: "{{ msg_title }}"
+      #               message: "{{ msg_body }}"
+      #     default: []
+      - choose: []
+        default: []
+    mode: parallel
