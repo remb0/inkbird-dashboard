@@ -28,7 +28,8 @@
 | 🔋 **Per-probe battery** | A bare colour-coded percentage under each card's P1–P4 badge — red below 20 %, amber below 40 % |
 | 📶 **Real connection status** | The header pill reads the actual transport — *Live · Bluetooth*, a pulsing *Connecting*, or red *Offline* — instead of assuming everything is fine |
 | 🥩 **Recipe presets** | One tap writes name + target onto the selected probe: Brisket 93 °C, Chicken 74 °C, Medium Steak 57 °C, Pork Ribs 90 °C, Salmon 52 °C |
-| 🔔 **Ready notification** | Persistent notification plus an optional phone/watch/TV target, with **Snooze 10 min** and **Dismiss** buttons on the push |
+| 🔔 **Ready notification** | Persistent notification plus an optional phone/watch/TV target, with **Snooze** and **Dismiss** buttons on the push |
+| 🔊 **Spoken announcements** | Optional TTS to any speaker — "Your Beef Brisket is ready" — with its own wording, not the emoji version |
 | ⏳ **ETA to target** | "≈ 1 h 40 m" on each probe card, from a rate-of-change sensor rather than a guess |
 | 😐 **Stall detection** | Tells you when a probe has been flat for 45 minutes while still climbing — the moment you decide whether to wrap |
 | 🪫 **Low battery alerts** | Warns before a probe quits at hour six, with a threshold you set and a toggle to silence it |
@@ -61,7 +62,9 @@ A live header line (model · probe count · base battery · connection · whethe
 | **Connection** | Transport mode selector, active transport, Bluetooth and Wi-Fi connectivity, battery-reporting freshness |
 | **Probe batteries** | All four probes with bar gauges — the page to check before a long cook |
 | **Preferences** | Temperature unit, notification device, active probe |
-| **Alerts** | Low-battery toggle + threshold slider, stall-detection toggle |
+| **Alerts** | Low-battery toggle + threshold slider, stall-detection toggle, snooze duration |
+| **Spoken announcements** | TTS on/off, speaker and engine |
+| **Setup** | Sensor prefix — retarget the dashboard at a different Inkbird without editing files |
 | **Integration** | Version + update button, model support status, last BLE diagnostic, and buttons to run a diagnostic or request a snapshot |
 | **Links** | Integration, dashboard and the community dashboard the Probes page came from |
 
@@ -109,13 +112,24 @@ The three views appear as tabs. Nothing in the config hardcodes the dashboard UR
 
 ### 3. Point it at your entity ids
 
-The Inkbird integration prefixes entity ids with the **area** the device sits in — `sensor.overig_inkbird_int_14_…` here, almost certainly something else on your install. Find yours under **Developer Tools → States**, filtering on `inkbird`, then run:
+The Inkbird integration prefixes entity ids with the **area** the device sits in — `sensor.overig_inkbird_int_14_…` here, almost certainly something else on your install. Find yours under **Developer Tools → States**, filtering on `inkbird`.
+
+**Most of it you can set from the dashboard.** Settings → **Setup** → *Sensor prefix*. Type `sensor.kitchen_inkbird_int_14` and the four probe cards, the four status sensors and every automation re-point immediately — no file editing, no restart.
+
+**Two things that helper cannot reach**, because Home Assistant resolves those entity ids when the config *loads* rather than when they render:
+
+| | Why |
+|---|---|
+| The four `derivative` rate sensors | `source:` must be a literal entity id |
+| The whole Probes page | native `picture-elements` / `tile` / `history-graph` cards take a literal `entity:` |
+
+So run the script once as well:
 
 ```bash
 python3 scripts/configure.py --prefix sensor.kitchen_inkbird_int_14
 ```
 
-That rewrites all three files in one pass (~167 ids) and verifies the YAML and JSON dashboards still match. Add `--dry-run` to see what it would change first.
+That rewrites all three files in one pass (~167 ids) and verifies the YAML and JSON dashboards still match. Add `--dry-run` to see what it would change first. Doing both is belt and braces — the script covers everything, the helper then lets you retarget the live dashboard without touching files again.
 
 <details>
 <summary>The other two flags, and what each prefix covers</summary>
@@ -134,26 +148,24 @@ That rewrites all three files in one pass (~167 ids) and verifies the YAML and J
 
 `initial:` is deliberately not used anywhere in the package — it would reset your settings on every Home Assistant restart. The cost is that on a fresh install the alert toggles start **off** and the battery threshold sits at its minimum.
 
-Open the dashboard's **Settings → Alerts** section once and set:
+Open the dashboard's **Settings** page once and set:
 
-- **Low battery alerts** → on, **Battery threshold** → 15 % or so
-- **Stall alerts** → on
+- **Alerts** → *Low battery alerts* on, *Battery threshold* ~15 %, *Stall alerts* on, *Snooze duration* to taste
+- **Spoken announcements** → paste a speaker and a TTS engine, then flip *Announce out loud* on
 
 The "probe reached target" notification needs no toggle; it is always on.
 
 ### 5. Add the probe artwork (Probes page)
 
-The Probes page lays temperature readings over a picture of a probe. Home Assistant serves those from `/config/www/`, so download them once:
+The Probes page lays temperature readings over a picture of a probe. Home Assistant serves those from `/config/www/`, and both files ship in this repo:
 
 ```bash
-cd /config/www
-curl -LO https://raw.githubusercontent.com/zampix1/ha-inkbird-int14/main/docs/images/community/int12e-probe-black.png
-curl -LO https://raw.githubusercontent.com/zampix1/ha-inkbird-int14/main/docs/images/community/int12e-probe-white.png
+cp www/*.png /config/www/
 ```
 
 Odd-numbered probes use the black artwork, even-numbered the white. Everything else on the page — tiles, history graphs, the temperature values themselves — works without the images; you will just get a broken-image box where the probe should be.
 
-> The artwork is INT-12E-BW, drawn by the community contributor credited below. It is close enough to the INT-14 probes to read correctly, but it is not a picture of your exact hardware.
+> The artwork is INT-12E-BW, drawn by the community contributor credited below and redistributed here under upstream's MIT licence. It is close enough to the INT-14 probes to read correctly, but it is not a picture of your exact hardware. See [`www/README.md`](www/README.md).
 
 ### 6. Point notifications at your phone
 
@@ -170,6 +182,8 @@ inkbird-dashboard/
 │   └── bbq-dashboard.json     # same config, exact storage-mode export (for diffing / the HA API)
 ├── scripts/
 │   └── configure.py           # ← rewrite every Inkbird entity id in one command
+├── www/
+│   └── int12e-probe-*.png     # ← copy to <config>/www/ for the Probes page
 ├── docs/
 │   ├── HELPERS.md             # every entity explained, for UI-based setup
 │   └── images/                # screenshots

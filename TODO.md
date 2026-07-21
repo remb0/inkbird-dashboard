@@ -23,7 +23,7 @@ Loosely ordered by "how much better does this make the dashboard per hour of wor
 - [ ] **Act on the ambient reading, don't just show it.** Displaying pit temperature is not the same as alerting on it — a "grate above 150 °C" or "fire is dying" notification is where the value is.
 - [ ] **Verify the physical channel mapping.** Upstream has only confirmed `food_4` as the tip; `food_1`–`food_3` follow the community layout and are unverified. Cook Control targets `food_1`, which may not be the deepest point of the meat. Worth an ice-bath / boiling-water test to pin down, and worth feeding back upstream.
 - [ ] **Rest reminder.** After a probe hits `ready`, start a timer and notify again after the resting period. Carryover cooking is where good brisket goes to die.
-- [x] ~~**Actionable notifications.**~~ Snooze 10 min / Dismiss buttons, with a handler automation. Snooze re-checks the probe is still `ready` before re-notifying.
+- [x] ~~**Actionable notifications.**~~ Snooze / Dismiss buttons, with a handler automation. The snooze duration is a Settings slider and is echoed in the button label; snooze re-checks the probe is still `ready` before re-notifying.
 - [ ] **Doneness presets for steak.** Rare / medium-rare / medium / well-done as one recipe with four targets, rather than only "Medium Steak".
 
 ## 🧹 Structure & maintainability
@@ -37,7 +37,7 @@ Loosely ordered by "how much better does this make the dashboard per hour of wor
 
 ## 📸 Presentation
 
-- [ ] **Add the screenshots** `docs/images/cook-control.png` and `settings.png` (see `docs/images/README.md`) — the README links to them already.
+- [ ] **Add the screenshots** `docs/images/cook-control.png`, `probes.png` and `settings.png` (see `docs/images/README.md`) — the README links to them already. This is now the most visible gap: the README opens with a broken image.
 - [ ] **A short GIF** of tapping a recipe preset and watching the gauge and status pill change would sell the dashboard in three seconds.
 - [ ] **Light theme variant.** Every colour is hardcoded for the dark charcoal/ember look. A light palette (or reading the HA theme variables) would help people who do not run dark mode.
 - [ ] **Post it to the community.** The Home Assistant forum "Share your Projects" section and r/homeassistant are where dashboards like this find users — and it repays the integration author with visibility.
@@ -70,5 +70,5 @@ So there are three honest paths, in increasing order of effort:
 ## 🤔 Maybe
 
 - [ ] Cook session logging: an `input_boolean` + start timestamp per cook, so you can look back at "the 9 October brisket".
-- [ ] TTS announcement to a speaker when a probe is ready.
+- [x] ~~TTS announcement to a speaker when a probe is ready.~~ Every alert speaks, not just the ready one, with its own speech-friendly wording.
 - [ ] Meat-specific safe-temperature warnings (poultry below 74 °C, etc.).

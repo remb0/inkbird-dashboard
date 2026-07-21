@@ -12,7 +12,10 @@ button_card_templates:
       - border: 1px solid "#3a2f27"
       - border-top: |
           [[[
-            var n = variables.num, pfx = variables.prefix, ch = variables.chan || 'food_1';
+            var n = variables.num, ch = variables.chan || 'food_1';
+            var _p = states['input_text.inkbird_sensor_prefix'];
+            _p = _p ? _p.state : '';
+            var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;
             var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
             var eBatt   = pfx + '_probe_' + n + '_battery';
             var eTarget = 'input_number.inkbird_target_' + n;
@@ -46,7 +49,10 @@ button_card_templates:
     custom_fields:
       header: |
         [[[
-          var n = variables.num, pfx = variables.prefix, ch = variables.chan || 'food_1';
+          var n = variables.num, ch = variables.chan || 'food_1';
+          var _p = states['input_text.inkbird_sensor_prefix'];
+          _p = _p ? _p.state : '';
+          var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;
           var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
           var eBatt   = pfx + '_probe_' + n + '_battery';
           var eTarget = 'input_number.inkbird_target_' + n;
@@ -79,7 +85,10 @@ button_card_templates:
         ]]]
       fig: |
         [[[
-          var n = variables.num, pfx = variables.prefix, ch = variables.chan || 'food_1';
+          var n = variables.num, ch = variables.chan || 'food_1';
+          var _p = states['input_text.inkbird_sensor_prefix'];
+          _p = _p ? _p.state : '';
+          var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;
           var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
           var eBatt   = pfx + '_probe_' + n + '_battery';
           var eTarget = 'input_number.inkbird_target_' + n;
@@ -117,7 +126,10 @@ button_card_templates:
         ]]]
       gauge: |
         [[[
-          var n = variables.num, pfx = variables.prefix, ch = variables.chan || 'food_1';
+          var n = variables.num, ch = variables.chan || 'food_1';
+          var _p = states['input_text.inkbird_sensor_prefix'];
+          _p = _p ? _p.state : '';
+          var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;
           var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
           var eBatt   = pfx + '_probe_' + n + '_battery';
           var eTarget = 'input_number.inkbird_target_' + n;
@@ -154,7 +166,10 @@ button_card_templates:
         ]]]
       side: |
         [[[
-          var n = variables.num, pfx = variables.prefix, ch = variables.chan || 'food_1';
+          var n = variables.num, ch = variables.chan || 'food_1';
+          var _p = states['input_text.inkbird_sensor_prefix'];
+          _p = _p ? _p.state : '';
+          var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;
           var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
           var eBatt   = pfx + '_probe_' + n + '_battery';
           var eTarget = 'input_number.inkbird_target_' + n;
@@ -1195,6 +1210,38 @@ views:
       features:
       - type: toggle
       features_position: bottom
+    - type: tile
+      entity: input_number.bbq_snooze_minutes
+      name: Snooze duration
+      icon: mdi:alarm-snooze
+      features:
+      - type: numeric-input
+        style: slider
+      features_position: bottom
+  - type: grid
+    cards:
+    - type: heading
+      heading: Spoken announcements
+      heading_style: title
+      icon: mdi:bullhorn
+    - type: tile
+      entity: input_boolean.bbq_tts_alerts
+      name: Announce out loud
+      icon: mdi:bullhorn
+      features:
+      - type: toggle
+      features_position: bottom
+    - type: tile
+      entity: input_text.bbq_tts_speaker
+      name: Speaker
+      icon: mdi:speaker
+    - type: tile
+      entity: input_text.bbq_tts_engine
+      name: TTS engine
+      icon: mdi:text-to-speech
+    - type: markdown
+      content: |
+        Paste entity ids, e.g. `media_player.kitchen` and `tts.home_assistant_cloud`. Leave either empty to disable speech.
   - type: grid
     cards:
     - type: heading
@@ -1240,3 +1287,20 @@ views:
         - 🧩 Integration: **{{ integration_name }}** (`{{ integration_domain }}`) — [GitHub]({{ gh_integration }})
         - 📊 Dashboard: [GitHub]({{ gh_dashboard }})
         - 🔬 Probes page adapted from the [INT-12E-BW community dashboard]({{ gh_integration }}/blob/main/docs/int12e_dashboard.md)
+  - type: grid
+    cards:
+    - type: heading
+      heading: Setup
+      heading_style: title
+      icon: mdi:wrench-outline
+    - type: tile
+      entity: input_text.inkbird_sensor_prefix
+      name: Sensor prefix
+      icon: mdi:identifier
+    - type: markdown
+      content: |
+        The area-prefixed base of your Inkbird entities, **without** a trailing underscore — e.g. `sensor.kitchen_inkbird_int_14`. Find it under **Developer Tools → States**, filtering on `inkbird`.
+
+        Changing this re-points the four probe cards, the status sensors and every automation immediately.
+
+        It does **not** reach the rate sensors or the Probes page — Home Assistant resolves those entity ids when the config loads, not when they render. Run `scripts/configure.py` once for those.

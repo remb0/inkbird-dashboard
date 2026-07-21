@@ -10,7 +10,35 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ## [Unreleased]
 
-Nothing yet. See [`TODO.md`](TODO.md) for what is being considered.
+### Added
+
+- **Runtime sensor prefix.** `input_text.inkbird_sensor_prefix`, on the Settings
+  page under **Setup**, re-points the four probe cards, the four status sensors
+  and every automation without editing a file or restarting.
+  The `derivative` sensors and the Probes page still need
+  `scripts/configure.py` — Home Assistant resolves a `source:` and a native
+  card's `entity:` when the config loads, not when they render.
+- **Configurable snooze.** `input_number.bbq_snooze_minutes` (5–60) sets how
+  long Snooze waits, and is echoed in the button label, so the phone shows
+  "Snooze 20 min" rather than a fixed 10.
+- **Spoken announcements.** Optional TTS to any speaker, via
+  `input_boolean.bbq_tts_alerts` plus `input_text.bbq_tts_speaker` and
+  `input_text.bbq_tts_engine`. Every alert supplies its own `tts_message` —
+  "Your Beef Brisket is ready. It has reached 93 degrees." — because emoji and
+  `°C` do not read well out loud. Skipped when the toggle is off or either
+  field is empty, and `continue_on_error` means a dead speaker cannot swallow
+  the notification that already went out.
+- **The probe artwork now ships in the repo** under [`www/`](www/), so
+  installing is `cp www/*.png /config/www/` instead of two `curl` commands.
+  Redistributed under upstream's MIT licence with attribution in
+  [`www/README.md`](www/README.md).
+
+### Changed
+
+- Settings gains **Spoken announcements** and **Setup** sections; snooze
+  duration joins **Alerts**.
+- Probe cards read the prefix helper and fall back to their `prefix` variable,
+  so a missing helper degrades to the previous hardcoded behaviour.
 
 ## [1.0.0] — 2026-07-21
 
