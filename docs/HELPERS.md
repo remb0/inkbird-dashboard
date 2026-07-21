@@ -49,6 +49,27 @@ The package ships with only `persistent_notification`. See [Notification routing
 
 > Renamed from `input_select.bbq_notificatie_apparaat` in 1.0.0 — see [`CHANGELOG.md`](../CHANGELOG.md).
 
+## `input_text.inkbird_sensor_prefix` — the runtime prefix
+
+The area-prefixed base of your Inkbird entities, **without** a trailing underscore — e.g. `sensor.kitchen_inkbird_int_14`. Set it on the Settings page under **Setup**.
+
+**What follows it, live:**
+
+- the four probe cards on Cook Control (button-card builds the ids in JS at render time)
+- `sensor.bbq_probe_1_status` … `_4` (the templates build the ids at render time)
+- every automation in the package
+
+**What cannot follow it**, because Home Assistant resolves these when the config *loads* rather than when they render:
+
+| | Why |
+|---|---|
+| The four `derivative` rate sensors | `source:` must be a literal entity id |
+| The Probes page | native `picture-elements` / `tile` / `history-graph` cards take a literal `entity:` |
+
+For those, run `scripts/configure.py`. That is not a limitation of this dashboard — it is where HA draws the line between config-time and render-time resolution.
+
+Everything that reads the helper falls back to the repo default if it is empty or `unknown`, so a missing helper degrades to the old hardcoded behaviour rather than breaking.
+
 ## Alert controls
 
 | Entity | Type | What it does |
@@ -56,8 +77,23 @@ The package ships with only `persistent_notification`. See [Notification routing
 | `input_boolean.bbq_battery_alerts` | Toggle | Silences the low-battery warning without deleting the automation |
 | `input_number.bbq_battery_threshold` | Number, 5–50 % | The level the warning fires below. Referenced directly by the automation's `below:`, so changing the slider takes effect immediately — no reload |
 | `input_boolean.bbq_stall_alerts` | Toggle | Silences stall detection |
+| `input_number.bbq_snooze_minutes` | Number, 5–60 min | How long Snooze waits before re-notifying. Also sets the button's label, so the phone shows "Snooze 20 min" |
+| `input_number.bbq_rest_minutes` | Number, 0–120 min | Rest reminder after a probe hits its target. **0 switches it off** — the automation has a `numeric_state above: 0` condition, so it never even starts a delay |
+| `input_boolean.bbq_show_help` | Toggle | Reveals the explanatory paragraph under Alerts, Spoken announcements and Setup |
 
-All three sit on the Settings page under **Alerts**. They have no `initial:` value, so they survive restarts — which also means they start off on a fresh install. The README's install step covers turning them on.
+## Spoken announcements
+
+| Entity | What it does |
+|---|---|
+| `input_boolean.bbq_tts_alerts` | Master on/off for speech |
+| `input_text.bbq_tts_speaker` | Target `media_player.*` entity id, e.g. `media_player.kitchen` |
+| `input_text.bbq_tts_engine` | TTS entity id, e.g. `tts.home_assistant_cloud` |
+
+Every alert passes a separate `tts_message` to `script.bbq_notify` — "Your Beef Brisket is ready. It has reached 93 degrees." rather than the on-screen "🔥 … 93°C", because emoji and `°C` do not read well out loud. If `tts_message` is omitted the spoken text falls back to `message`.
+
+Speech is skipped entirely when the toggle is off **or** either text field is empty, and the `tts.speak` call carries `continue_on_error: true` — an unplugged speaker can never swallow the notification that already went out.
+
+All of these have no `initial:` value, so they survive restarts — which also means they start off on a fresh install. The README's install step covers turning them on.
 
 ## `sensor.bbq_probe_1_rate` … `_4` — rate of change
 
@@ -91,9 +127,21 @@ These drive the card border, the arc colour, the status pill, the alerts card an
 
 Fields: `label` (text) and `target` (number). Reads `input_select.inkbird_active_probe`, then writes `target` to that probe's `input_number` and `label` to its `input_text`. Mode `parallel`, max 10, so rapid taps do not queue up.
 
+## Custom recipe
+
+| Entity | What it does |
+|---|---|
+| `input_boolean.bbq_custom_open` | Whether the form is showing. The Custom button toggles it; Apply and Cancel turn it off |
+| `input_text.bbq_custom_name` | Name written to the probe. Falls back to "Custom" if left empty |
+| `input_number.bbq_custom_target` | Target in °C |
+
+The form deliberately reuses the *existing* helpers for probe, notify target and announcements rather than duplicating them per recipe — those are instance-wide settings, and a per-recipe copy would quietly diverge from what the alerts actually read.
+
+`script.inkbird_apply_custom_recipe` reads the name and target, hands them to `script.inkbird_apply_recipe` — the same path the presets use — and closes the form.
+
 ## `script.bbq_notify`
 
-Fields: `title`, `message`, `tag`, and optional `actions`. See [Notification routing](#notification-routing).
+Fields: `title`, `message`, `tag`, and optional `actions` and `tts_message`. See [Notification routing](#notification-routing).
 
 ---
 
@@ -120,7 +168,7 @@ The ready notification carries two action buttons:
 
 | Button | Action id | Effect |
 |---|---|---|
-| Snooze 10 min | `BBQ_SNOOZE_<probe>` | Clears the notification, waits 10 minutes, re-sends **only if the probe is still `ready`** |
+| Snooze *N* min | `BBQ_SNOOZE_<probe>` | Clears the notification, waits `input_number.bbq_snooze_minutes`, re-sends **only if the probe is still `ready`** |
 | Dismiss | `BBQ_DISMISS_<probe>` | Clears the notification |
 
 The probe number is encoded in the action id so one handler covers all four. Re-using the `tag` means a re-notification replaces the old one rather than stacking up.

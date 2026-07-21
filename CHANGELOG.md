@@ -12,6 +12,81 @@ id changed, or a step is required on your side after updating** — not an API.
 
 Nothing yet. See [`TODO.md`](TODO.md) for what is being considered.
 
+## [1.1.0] — 2026-07-21
+
+Installable from HACS, and a lot more to cook with.
+
+### Added
+
+- **Installable from HACS**, as a Lovelace **dashboard strategy**. HACS has no
+  repository type for a Lovelace config, but it does carry JavaScript, and a
+  strategy is JavaScript that generates a dashboard at render time. The whole
+  dashboard config becomes four lines, and the strategy **discovers your
+  Inkbird entity ids from the entity registry** — no `configure.py` run, no
+  prefix to set. `dist/inkbird-bbq-strategy.js` is generated from
+  `dashboard/bbq-dashboard.json` by `scripts/build_strategy.py`, so it cannot
+  drift from the YAML.
+- **Per-recipe icons** — 🐄 brisket, 🍗 chicken, 🥩 steak, 🐖 ribs, 🐟 salmon.
+- **Custom recipe** button and form: name, target, probe, rest reminder,
+  notification target and announcements, applied through the same script the
+  presets use.
+- **Rest reminder** (`input_number.bbq_rest_minutes`, 0 = off) — a second
+  alert once the meat has rested, because carryover cooking means "ready" is
+  not "serve now".
+- **Show help** toggle on the Settings page, revealing an explanation under
+  Alerts, Spoken announcements and Setup.
+- **CI** (`.github/workflows/validate.yml`) asserting the two dashboard files
+  stay identical, `dist/` is not stale, the strategy resolves entity ids
+  against a simulated install, `configure.py` round-trips, and no markdown
+  link is broken.
+
+- **Runtime sensor prefix.** `input_text.inkbird_sensor_prefix`, on the Settings
+  page under **Setup**, re-points the four probe cards, the four status sensors
+  and every automation without editing a file or restarting.
+  The `derivative` sensors and the Probes page still need
+  `scripts/configure.py` — Home Assistant resolves a `source:` and a native
+  card's `entity:` when the config loads, not when they render.
+- **Configurable snooze.** `input_number.bbq_snooze_minutes` (5–60) sets how
+  long Snooze waits, and is echoed in the button label, so the phone shows
+  "Snooze 20 min" rather than a fixed 10.
+- **Spoken announcements.** Optional TTS to any speaker, via
+  `input_boolean.bbq_tts_alerts` plus `input_text.bbq_tts_speaker` and
+  `input_text.bbq_tts_engine`. Every alert supplies its own `tts_message` —
+  "Your Beef Brisket is ready. It has reached 93 degrees." — because emoji and
+  `°C` do not read well out loud. Skipped when the toggle is off or either
+  field is empty, and `continue_on_error` means a dead speaker cannot swallow
+  the notification that already went out.
+- **The probe artwork now ships in the repo** under [`www/`](www/), so
+  installing is `cp www/*.png /config/www/` instead of two `curl` commands.
+  Redistributed under upstream's MIT licence with attribution in
+  [`www/README.md`](www/README.md).
+
+### Fixed
+
+- **`configure.py` silently skipped two kinds of entity id.** It anchored on
+  `sensor.<prefix>` followed by an underscore, which missed the area-prefixed
+  `button.<prefix>_capture_ble_diagnostics` and the bare `prefix:` variable on
+  each of the four probe cards — six ids per file, left pointing at the
+  original install. It now matches the object id under every domain the
+  integration uses. Anyone who ran the old version should re-run it.
+- **Three false "unknown entity referenced" repairs.** The fallback prefix was
+  written as one literal, `'sensor.overig_inkbird_int_14'`. Spook scans
+  automation and template config for entity-id-shaped strings and reports any
+  that do not resolve — and a bare prefix is not an entity, so it flagged all
+  three automations that carry the fallback. Splitting it as
+  `'sensor.' ~ 'overig_inkbird_int_14'` keeps Repairs clean without changing
+  behaviour. `scripts/configure.py` now rewrites both halves, so a renamed
+  prefix does not leave a stale fallback behind.
+
+### Changed
+
+- Settings gains **Spoken announcements**, **Setup** and **Batteries**
+  sections; snooze duration joins **Alerts**.
+- The Settings battery section is now one `battery-state-card` covering the
+  base station and all four probes, replacing five separate tiles.
+- Probe cards read the prefix helper and fall back to their `prefix` variable,
+  so a missing helper degrades to the previous hardcoded behaviour.
+
 ## [1.0.0] — 2026-07-21
 
 First release intended for anyone other than its author. The repo went from a
@@ -94,6 +169,7 @@ raw export of one person's dashboard to something installable.
 - Initial export of the working dashboard: Cook Control view, a Settings
   subview, two automations and a prose description of the helpers.
 
-[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/remb0/inkbird-dashboard/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/remb0/inkbird-dashboard/releases/tag/v1.0.0
 [0.1.0]: https://github.com/remb0/inkbird-dashboard/releases/tag/v0.1.0

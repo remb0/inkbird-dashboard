@@ -3,7 +3,6 @@
 Thumbs.db
 *.swp
 
-# Probe artwork belongs in <config>/www on your Home Assistant, not in this
-# repo — it is the community contributor's work and we link to it rather than
-# redistribute it. See the README install step.
-int12e-probe-*.png
+# The probe artwork lives in www/ (vendored under upstream's MIT licence).
+# This only stops a stray copy at the repo root being committed by accident.
+/int12e-probe-*.png

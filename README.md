@@ -1,22 +1,31 @@
 <h1 align="center">🔥 Inkbird BBQ Dashboard</h1>
 
 <p align="center">
-  A Home Assistant dashboard for the <b>Inkbird INT-14S-BW</b> wireless BBQ thermometer —<br>
-  four live probe gauges, recipe presets and a "your meat is ready" notification.
+  A Home Assistant dashboard for the <b>Inkbird INT-14S-BW</b> wireless BBQ thermometer.<br>
+  Live probe gauges with an ETA, recipe presets, stall detection, and a push you can snooze.
+</p>
+
+<p align="center">
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=remb0&repository=inkbird-dashboard&category=dashboard"><img alt="Open this repository inside your Home Assistant Community Store." src="https://my.home-assistant.io/badges/hacs_repository.svg"></a>
 </p>
 
 <p align="center">
   <img alt="Home Assistant" src="https://img.shields.io/badge/Home%20Assistant-2024.10%2B-41BDF5?logo=homeassistant&logoColor=white">
-  <img alt="HACS" src="https://img.shields.io/badge/HACS-button--card%20%2B%20card--mod-41BDF5?logo=homeassistantcommunitystore&logoColor=white">
+  <img alt="HACS" src="https://img.shields.io/badge/HACS-custom%20repository-41BDF5?logo=homeassistantcommunitystore&logoColor=white">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-orange">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-orange">
 </p>
 
-![Cook Control view](docs/images/cook-control.png)
+<p align="center">
+  <sub>The button opens HACS on your own instance with this repository pre-filled.<br>
+  If it lands on the wrong screen, add <code>remb0/inkbird-dashboard</code> by hand under<br>
+  <b>HACS → ⋮ → Custom repositories</b> with category <b>Dashboard</b>.</sub>
+</p>
 
-> 📸 _Screenshots live in [`docs/images/`](docs/images/). If you are reading this
-> straight after cloning, drop your own `cook-control.png` and `settings.png` in
-> there — see [`docs/images/README.md`](docs/images/README.md)._
+<!-- Screenshots go here once captured. Drop the files in docs/images/ and
+     restore the image line below — see docs/images/README.md for what to shoot.
+![Cook Control view](docs/images/cook-control.png)
+-->
 
 ---
 
@@ -27,8 +36,11 @@
 | 🌡️ **Four probe cards** | Live temperature on a 270° arc gauge, colour-coded by state — grey `idle` · amber `heating` · orange `close` · green `ready` |
 | 🔋 **Per-probe battery** | A bare colour-coded percentage under each card's P1–P4 badge — red below 20 %, amber below 40 % |
 | 📶 **Real connection status** | The header pill reads the actual transport — *Live · Bluetooth*, a pulsing *Connecting*, or red *Offline* — instead of assuming everything is fine |
-| 🥩 **Recipe presets** | One tap writes name + target onto the selected probe: Brisket 93 °C, Chicken 74 °C, Medium Steak 57 °C, Pork Ribs 90 °C, Salmon 52 °C |
-| 🔔 **Ready notification** | Persistent notification plus an optional phone/watch/TV target, with **Snooze 10 min** and **Dismiss** buttons on the push |
+| 🥩 **Recipe presets** | One tap writes name + target onto the selected probe — 🐄 Brisket 93 °C, 🍗 Chicken 74 °C, 🥩 Medium Steak 57 °C, 🐖 Pork Ribs 90 °C, 🐟 Salmon 52 °C |
+| 🧪 **Custom recipe** | A sixth button opens a form: name, target, probe, rest reminder, where to notify and whether to announce it |
+| 🥗 **Rest reminder** | Optional second alert once the meat has rested — carryover cooking means "ready" is not "serve now" |
+| 🔔 **Ready notification** | Persistent notification plus an optional phone/watch/TV target, with **Snooze** and **Dismiss** buttons on the push |
+| 🔊 **Spoken announcements** | Optional TTS to any speaker — "Your Beef Brisket is ready" — with its own wording, not the emoji version |
 | ⏳ **ETA to target** | "≈ 1 h 40 m" on each probe card, from a rate-of-change sensor rather than a guess |
 | 😐 **Stall detection** | Tells you when a probe has been flat for 45 minutes while still climbing — the moment you decide whether to wrap |
 | 🪫 **Low battery alerts** | Warns before a probe quits at hour six, with a threshold you set and a toggle to silence it |
@@ -36,7 +48,7 @@
 | 🚨 **Alerts card** | Rolls every probe that is `close` or `ready` into one summary at the top |
 | 🇺🇸 **°C / °F toggle** | Display-only unit switch — no need to reconfigure the device |
 | 🔬 **Probes page** | All five channels of every probe — tip, three food points and ambient — laid over probe artwork, plus per-channel tiles and a one-hour history graph |
-| ⚙️ **Settings page** | Live device summary plus six sections: base station, connection, probe batteries, preferences, integration health and links |
+| ⚙️ **Settings page** | Live device summary over nine sections — device, connection, batteries, preferences, alerts, announcements, integration health, links and setup |
 
 ### Pages
 
@@ -55,17 +67,23 @@ Cook Control answers "is it done yet?" at a glance. Probes answers "what is actu
 
 A live header line (model · probe count · base battery · connection · whether an integration update is waiting), then:
 
+In the order they appear:
+
 | Section | Shows |
 |---|---|
-| **Base station** | Model, base battery with a bar gauge, charging state, base temperature, probes detected |
+| **Base station** | Model, charging state, base temperature, probes detected |
 | **Connection** | Transport mode selector, active transport, Bluetooth and Wi-Fi connectivity, battery-reporting freshness |
-| **Probe batteries** | All four probes with bar gauges — the page to check before a long cook |
-| **Preferences** | Temperature unit, notification device, active probe |
-| **Alerts** | Low-battery toggle + threshold slider, stall-detection toggle |
+| **Batteries** | Base station and all four probes in one `battery-state-card`, colour-graded by level |
+| **Preferences** | Temperature unit, notification device, active probe, **Show help** |
+| **Alerts** | Low-battery toggle + threshold slider, stall-detection toggle, snooze duration |
+| **Spoken announcements** | TTS on/off, speaker and engine |
 | **Integration** | Version + update button, model support status, last BLE diagnostic, and buttons to run a diagnostic or request a snapshot |
 | **Links** | Integration, dashboard and the community dashboard the Probes page came from |
+| **Setup** | Sensor prefix — retarget the dashboard at a different Inkbird without editing files |
 
-It is a native `sections` view built from stock tile and heading cards — no `card-mod`, so it survives Home Assistant upgrades better than the Cook Control page does.
+Turning **Show help** on reveals a paragraph under Alerts, Spoken announcements and Setup explaining what each one actually does — handy the first time, out of the way afterwards.
+
+It is a native `sections` view built from stock cards — no `card-mod`, so it survives Home Assistant upgrades better than the Cook Control page does.
 
 </details>
 
@@ -77,6 +95,7 @@ It is a native `sections` view built from stock tile and heading cards — no `c
 | **Inkbird INT** custom integration (`inkbird_int14`) | [zampix1/ha-inkbird-int14](https://github.com/zampix1/ha-inkbird-int14) — install via HACS as a custom repository |
 | **button-card** | [custom-cards/button-card](https://github.com/custom-cards/button-card) — HACS → Frontend |
 | **card-mod** | [thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod) — HACS → Frontend |
+| **battery-state-card** | [maxwroc/battery-state-card](https://github.com/maxwroc/battery-state-card) — HACS → Frontend. Only the Settings page's Batteries section uses it |
 | A Bluetooth adapter or ESPHome BT proxy in range of the base station | — |
 
 ## 🚀 Install
@@ -90,7 +109,7 @@ homeassistant:
   packages: !include_dir_named packages
 ```
 
-Check the config under **Developer Tools → YAML** and restart Home Assistant. That one file creates every helper, the four status sensors, the recipe script and the notification automation.
+Check the config under **Developer Tools → YAML** and restart Home Assistant. That one file creates every helper, the four status sensors, the four rate sensors, both scripts and all five automations.
 
 <details>
 <summary>Prefer clicking things? Create the helpers through the UI instead</summary>
@@ -101,29 +120,77 @@ Everything in the package can equally be built under **Settings → Devices & Se
 
 ### 2. Add the dashboard
 
-**Settings → Dashboards → + Add dashboard → New dashboard from scratch.** Name it so the URL becomes `/dashboard-bbq`.
+Two routes. **A** is one click and self-configuring; **B** is the copy-paste original.
 
-Open it, then **✏️ Edit → ⋮ → Raw configuration editor**, and paste the contents of [`dashboard/bbq-dashboard.yaml`](dashboard/bbq-dashboard.yaml).
+<details open>
+<summary><b>A — install from HACS as a dashboard strategy (recommended)</b></summary>
 
-The three views appear as tabs. Nothing in the config hardcodes the dashboard URL, so a different name works without edits.
+1. **HACS → ⋮ → Custom repositories** → add `https://github.com/remb0/inkbird-dashboard` with category **Dashboard**.
+2. Install **Inkbird BBQ Dashboard**, then reload the browser.
+3. **Settings → Dashboards → + Add dashboard → New dashboard from scratch**, open it, then **✏️ Edit → ⋮ → Raw configuration editor** and paste exactly this:
+
+```yaml
+strategy:
+  type: custom:inkbird-bbq
+views: []
+```
+
+That's the whole config. The strategy builds all three views at render time and **finds your Inkbird entity ids itself** by looking for the probe sensors in the entity registry — so step 3 below is not needed at all.
+
+If discovery guesses wrong, override it:
+
+```yaml
+strategy:
+  type: custom:inkbird-bbq
+  prefix: sensor.kitchen_inkbird_int_14
+views: []
+```
+
+Updating is then a HACS update rather than re-pasting YAML.
+
+</details>
+
+<details>
+<summary><b>B — paste the YAML</b></summary>
+
+**Settings → Dashboards → + Add dashboard → New dashboard from scratch.** Open it, then **✏️ Edit → ⋮ → Raw configuration editor**, and paste the contents of [`dashboard/bbq-dashboard.yaml`](dashboard/bbq-dashboard.yaml).
+
+Nothing in the config hardcodes the dashboard URL, so any name works. You will need step 3 to point it at your entity ids.
+
+</details>
+
+The three views appear as tabs either way.
 
 ### 3. Point it at your entity ids
 
-The Inkbird integration prefixes entity ids with the **area** the device sits in — `sensor.overig_inkbird_int_14_…` here, almost certainly something else on your install. Find yours under **Developer Tools → States**, filtering on `inkbird`, then run:
+> Skip this entirely if you used the HACS strategy — it discovers them.
+
+The Inkbird integration prefixes entity ids with the **area** the device sits in — `sensor.overig_inkbird_int_14_…` here, almost certainly something else on your install. Find yours under **Developer Tools → States**, filtering on `inkbird`.
+
+**Most of it you can set from the dashboard.** Settings → **Setup** → *Sensor prefix*. Type `sensor.kitchen_inkbird_int_14` and the four probe cards, the four status sensors and every automation re-point immediately — no file editing, no restart.
+
+**Two things that helper cannot reach**, because Home Assistant resolves those entity ids when the config *loads* rather than when they render:
+
+| | Why |
+|---|---|
+| The four `derivative` rate sensors | `source:` must be a literal entity id |
+| The whole Probes page | native `picture-elements` / `tile` / `history-graph` cards take a literal `entity:` |
+
+So run the script once as well:
 
 ```bash
 python3 scripts/configure.py --prefix sensor.kitchen_inkbird_int_14
 ```
 
-That rewrites all three files in one pass (~167 ids) and verifies the YAML and JSON dashboards still match. Add `--dry-run` to see what it would change first.
+That rewrites all three files in one pass (~175 ids) and verifies the YAML and JSON dashboards still match. Add `--dry-run` to see what it would change first.
 
 <details>
 <summary>The other two flags, and what each prefix covers</summary>
 
 | Flag | Covers | Default in this repo |
 |---|---|---|
-| `--prefix` | The area-prefixed sensors: every probe channel, probe batteries, base station | `sensor.overig_inkbird_int_14` |
-| `--device` | Entities that are *not* area-prefixed: transport, BLE/Wi-Fi state, diagnostics buttons | `inkbird_int_14` |
+| `--prefix` | The area-prefixed entities: every probe channel, probe batteries, base station, and the BLE diagnostic button | `sensor.overig_inkbird_int_14` |
+| `--device` | Entities that are *not* area-prefixed: transport, BLE/Wi-Fi state | `inkbird_int_14` |
 | `--update` | The integration's update entity | `update.inkbird_int_update` |
 
 `--device` usually needs no change. The script detects the current values by pattern rather than assuming, so it is safe to re-run and safe after hand edits.
@@ -132,28 +199,27 @@ That rewrites all three files in one pass (~167 ids) and verifies the YAML and J
 
 ### 4. Turn on the alerts
 
-`initial:` is deliberately not used anywhere in the package — it would reset your settings on every Home Assistant restart. The cost is that on a fresh install the alert toggles start **off** and the battery threshold sits at its minimum.
+`initial:` is deliberately not used anywhere in the package — it would reset your settings on every Home Assistant restart. The cost is that on a fresh install the alert toggles start **off** and the numbers start at their minimum.
 
-Open the dashboard's **Settings → Alerts** section once and set:
+Open the dashboard's **Settings** page once and set:
 
-- **Low battery alerts** → on, **Battery threshold** → 15 % or so
-- **Stall alerts** → on
+- **Alerts** → *Low battery alerts* on, *Battery threshold* ~15 %, *Stall alerts* on, *Snooze duration* to taste
+- **Spoken announcements** → paste a speaker and a TTS engine, then flip *Announce out loud* on
+- **Preferences** → *Show help* on if you want the explanations inline
 
-The "probe reached target" notification needs no toggle; it is always on.
+The "probe reached target" notification needs no toggle; it is always on. The **rest reminder** sits in the custom recipe form and is off at 0 minutes.
 
 ### 5. Add the probe artwork (Probes page)
 
-The Probes page lays temperature readings over a picture of a probe. Home Assistant serves those from `/config/www/`, so download them once:
+The Probes page lays temperature readings over a picture of a probe. Home Assistant serves those from `/config/www/`, and both files ship in this repo:
 
 ```bash
-cd /config/www
-curl -LO https://raw.githubusercontent.com/zampix1/ha-inkbird-int14/main/docs/images/community/int12e-probe-black.png
-curl -LO https://raw.githubusercontent.com/zampix1/ha-inkbird-int14/main/docs/images/community/int12e-probe-white.png
+cp www/*.png /config/www/
 ```
 
 Odd-numbered probes use the black artwork, even-numbered the white. Everything else on the page — tiles, history graphs, the temperature values themselves — works without the images; you will just get a broken-image box where the probe should be.
 
-> The artwork is INT-12E-BW, drawn by the community contributor credited below. It is close enough to the INT-14 probes to read correctly, but it is not a picture of your exact hardware.
+> The artwork is INT-12E-BW, drawn by the community contributor credited below and redistributed here under upstream's MIT licence. It is close enough to the INT-14 probes to read correctly, but it is not a picture of your exact hardware. See [`www/README.md`](www/README.md).
 
 ### 6. Point notifications at your phone
 
@@ -168,11 +234,18 @@ inkbird-dashboard/
 ├── dashboard/
 │   ├── bbq-dashboard.yaml     # ← paste into the raw configuration editor
 │   └── bbq-dashboard.json     # same config, exact storage-mode export (for diffing / the HA API)
+├── dist/
+│   └── inkbird-bbq-strategy.js  # ← generated; what HACS installs
 ├── scripts/
-│   └── configure.py           # ← rewrite every Inkbird entity id in one command
+│   ├── configure.py           # ← rewrite every Inkbird entity id in one command
+│   ├── build_strategy.py      # regenerates dist/ from the dashboard JSON
+│   └── test_strategy.mjs      # runs the strategy against a fake install
+├── www/
+│   └── int12e-probe-*.png     # ← copy to <config>/www/ for the Probes page
 ├── docs/
 │   ├── HELPERS.md             # every entity explained, for UI-based setup
 │   └── images/                # screenshots
+├── hacs.json                  # makes the repo installable as a HACS Dashboard
 ├── CHANGELOG.md               # what changed, and what breaks when you update
 ├── TODO.md                    # ideas and planned improvements
 └── README.md
@@ -182,20 +255,25 @@ inkbird-dashboard/
 
 ## 🍖 Customising the recipes
 
-Recipes are plain cards in the dashboard file. Copy a block, change the four variables:
+**For a one-off, just use the Custom button** on Cook Control — name, target, probe, rest reminder and notification, no file editing.
+
+To add a *permanent* preset, copy a block in the dashboard file:
 
 ```yaml
 - type: custom:button-card
   template: inkbird_recipe
   name: Lamb Shoulder
+  icon: mdi:sheep            # any mdi icon
   variables:
-    rname: Lamb Shoulder   # written to the probe's name
-    temp: 88               # target in °C
-    note: Pull temp        # small caption
-    color: '#b0442a'       # icon colour
+    rname: Lamb Shoulder     # written to the probe's name
+    temp: 88                 # target in °C
+    note: Pull temp          # small caption
+    color: '#b0442a'         # icon colour
 ```
 
-Tapping a preset applies it to whichever probe is chosen in the **Active probe** selector, so pick that first.
+Tapping a preset applies it to whichever probe is chosen in the **Active probe** selector, so pick that first. Targets are always written in °C; the °F toggle converts for display only.
+
+Editing the dashboard by hand and installing through HACS are not exclusive — but the strategy serves the *generated* config, so a permanent preset means editing `dashboard/bbq-dashboard.yaml` and re-running `python3 scripts/build_strategy.py`.
 
 ## 🙏 Credits & sources
 
@@ -206,17 +284,27 @@ This dashboard stands on other people's work:
 - **[custom-cards/button-card](https://github.com/custom-cards/button-card)** by RomRider — every probe card, the header, the base-station card and the recipe buttons are `custom:button-card` templates. The gauges and device illustrations are inline SVG rendered through its `custom_fields`.
 - **[thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)** — restyles the stock markdown and grid cards to match the dark charcoal/ember theme.
 - **[@Nexus1212](https://github.com/Nexus1212)** — the **Probes** page is a direct adaptation of their INT-12E-BW community dashboard, shared in [Discussion #3](https://github.com/zampix1/ha-inkbird-int14/discussions/3#discussioncomment-17664834) and documented at [`docs/int12e_dashboard.md`](https://github.com/zampix1/ha-inkbird-int14/blob/main/docs/int12e_dashboard.md). The channel order, the label colours, the percentage positions of each reading and the probe artwork are all theirs; this repo only extends the single-probe card to all four INT-14 probes. It uses stock Home Assistant cards — no custom frontend card needed.
+- **[maxwroc/battery-state-card](https://github.com/maxwroc/battery-state-card)** — the Batteries section on the Settings page.
 - **[Material Design Icons](https://pictogrammers.com/library/mdi/)** — the `mdi:` icons.
 - **Inkbird** — the [INT-14S-BW](https://inkbird.com) hardware and its display, which the base-station SVG is drawn after.
 - The settings-page layout (version tile + link card built from Jinja variables) reuses the pattern from the author's Zendure configuration dashboard.
 
 Not affiliated with or endorsed by Inkbird. "Inkbird" and "INT-14S-BW" are trademarks of their respective owner; this is an unofficial community dashboard.
 
-## 📦 Is this installable from HACS?
+## 📦 Installing from HACS
 
-Not today, and not without a rewrite — HACS has no repository type for a Lovelace dashboard config. Its "Dashboard" category installs **JavaScript** cards into `www/community/`, not view layouts. The two custom cards this dashboard *depends on* (button-card, card-mod) come from HACS; the dashboard itself is copy-paste.
+**Yes — as a dashboard strategy.** HACS has no repository type for a Lovelace *config*, so shipping the YAML through it was never possible. What it does carry is JavaScript, and a **strategy** is JavaScript that generates a dashboard at render time. That is the route this repo takes.
 
-The route to a real one-click install is to ship this as a **dashboard strategy** — a JS module that generates the views at render time, installs through HACS like any other frontend resource, and could discover your Inkbird entities automatically instead of making you search-and-replace entity ids. See [`TODO.md`](TODO.md#hacs-compatibility) for the trade-offs.
+[`dist/inkbird-bbq-strategy.js`](dist/inkbird-bbq-strategy.js) is **generated**, not hand-written — [`scripts/build_strategy.py`](scripts/build_strategy.py) builds it from `dashboard/bbq-dashboard.json`, so the YAML, the JSON and the strategy cannot drift apart. Re-run it after any dashboard change:
+
+```bash
+python3 scripts/build_strategy.py
+node scripts/test_strategy.mjs     # asserts entity discovery still works
+```
+
+CI fails the build if `dist/` is stale.
+
+It still needs button-card and card-mod installed — those do the rendering. Removing that dependency means writing real custom card elements, which is a much larger job and is still on the roadmap.
 
 ## 🗺️ Roadmap
 
