@@ -33,6 +33,17 @@ id changed, or a step is required on your side after updating** — not an API.
   Redistributed under upstream's MIT licence with attribution in
   [`www/README.md`](www/README.md).
 
+### Fixed
+
+- **Three false "unknown entity referenced" repairs.** The fallback prefix was
+  written as one literal, `'sensor.overig_inkbird_int_14'`. Spook scans
+  automation and template config for entity-id-shaped strings and reports any
+  that do not resolve — and a bare prefix is not an entity, so it flagged all
+  three automations that carry the fallback. Splitting it as
+  `'sensor.' ~ 'overig_inkbird_int_14'` keeps Repairs clean without changing
+  behaviour. `scripts/configure.py` now rewrites both halves, so a renamed
+  prefix does not leave a stale fallback behind.
+
 ### Changed
 
 - Settings gains **Spoken announcements** and **Setup** sections; snooze

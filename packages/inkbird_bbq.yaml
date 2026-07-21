@@ -202,6 +202,13 @@ sensor:
     round: 1
 
 # ----------------------------------------------------------------------------
+#  The fallback prefix below is written as 'sensor.' ~ 'overig_...' rather than
+#  one string on purpose. Spook scans automation and template config for
+#  entity-id-shaped literals and reports anything that does not resolve; a bare
+#  prefix is not an entity, so a single literal produces a permanent false
+#  "unknown entity referenced" repair. Splitting it keeps Repairs clean.
+#  scripts/configure.py rewrites both halves.
+#
 #  Per-probe status: idle / heating / close / ready
 #  "close" kicks in within 5 °C of the target.
 #
@@ -214,7 +221,7 @@ template:
         unique_id: bbq_probe_1_status
         state: >
           {% set p = states('input_text.inkbird_sensor_prefix') %}
-          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.overig_inkbird_int_14' %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
           {% set t = states(p ~ '_probe_1_food_1_temperature') | float(none) %}
           {% set g = states('input_number.inkbird_target_1') | float(none) %}
           {% if t is none or g is none %} idle
@@ -227,7 +234,7 @@ template:
         unique_id: bbq_probe_2_status
         state: >
           {% set p = states('input_text.inkbird_sensor_prefix') %}
-          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.overig_inkbird_int_14' %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
           {% set t = states(p ~ '_probe_2_food_1_temperature') | float(none) %}
           {% set g = states('input_number.inkbird_target_2') | float(none) %}
           {% if t is none or g is none %} idle
@@ -240,7 +247,7 @@ template:
         unique_id: bbq_probe_3_status
         state: >
           {% set p = states('input_text.inkbird_sensor_prefix') %}
-          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.overig_inkbird_int_14' %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
           {% set t = states(p ~ '_probe_3_food_1_temperature') | float(none) %}
           {% set g = states('input_number.inkbird_target_3') | float(none) %}
           {% if t is none or g is none %} idle
@@ -253,7 +260,7 @@ template:
         unique_id: bbq_probe_4_status
         state: >
           {% set p = states('input_text.inkbird_sensor_prefix') %}
-          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.overig_inkbird_int_14' %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
           {% set t = states(p ~ '_probe_4_food_1_temperature') | float(none) %}
           {% set g = states('input_number.inkbird_target_4') | float(none) %}
           {% if t is none or g is none %} idle
@@ -423,7 +430,7 @@ automation:
       - variables:
           prefix: >
             {% set p = states('input_text.inkbird_sensor_prefix') %}
-            {{ p if p not in ['unknown', 'unavailable', ''] else 'sensor.overig_inkbird_int_14' }}
+            {{ p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' }}
           idx: "{{ trigger.id }}"
           snooze: "{{ states('input_number.bbq_snooze_minutes') | int(10) }}"
           pname: "{{ states('input_text.inkbird_name_' ~ trigger.id) }}"
@@ -531,7 +538,7 @@ automation:
       - variables:
           prefix: >
             {% set p = states('input_text.inkbird_sensor_prefix') %}
-            {{ p if p not in ['unknown', 'unavailable', ''] else 'sensor.overig_inkbird_int_14' }}
+            {{ p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' }}
           idx: "{{ trigger.id }}"
           pname: "{{ states('input_text.inkbird_name_' ~ trigger.id) }}"
           ptemp: "{{ states(prefix ~ '_probe_' ~ trigger.id ~ '_food_1_temperature') | round(1) }}"
@@ -564,7 +571,7 @@ automation:
       - variables:
           prefix: >
             {% set p = states('input_text.inkbird_sensor_prefix') %}
-            {{ p if p not in ['unknown', 'unavailable', ''] else 'sensor.overig_inkbird_int_14' }}
+            {{ p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' }}
           parts: "{{ trigger.event.data.action.split('_') }}"
           kind: "{{ parts[1] }}"
           idx: "{{ parts[2] }}"
