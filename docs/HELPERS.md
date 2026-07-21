@@ -112,6 +112,8 @@ A flat probe is not necessarily a stalling one. A probe lying on the counter is 
 
 That check is a template, because it keys off `trigger.id` and there is no native condition for "the entity matching the trigger that fired". The prefix check in **BBQ notification action** is a template for the same reason — no native condition matches a string prefix, and it also stops the automation reacting to notification actions from other integrations.
 
+> Home Assistant's own best-practice checker flags both as "use a native `state` condition instead". That advice is right in general — native conditions are validated when the config loads, templates only when they run. It does not apply here: expressing these natively means a four-branch `choose` keyed on `condition: trigger`, four times the config for identical behaviour. Both templates render a plain boolean and cannot silently half-work, which is the failure mode the rule exists to prevent.
+
 ### Snooze and dismiss
 
 The ready notification carries two action buttons:
