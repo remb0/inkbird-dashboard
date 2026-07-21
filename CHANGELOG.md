@@ -10,7 +10,20 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ## [Unreleased]
 
-Nothing yet. See [`TODO.md`](TODO.md) for what is being considered.
+### Fixed
+
+- **The HACS install button returned "Repository not found."** The My Home
+  Assistant link used `category=dashboard`, matching what the HACS UI calls
+  this repository type. HACS's actual category enum is `appdaemon`,
+  `integration`, `plugin`, `python_script`, `template`, `theme` — "Dashboard"
+  is only the display label, and the URL parameter is still `plugin`.
+
+### Changed
+
+- The install section leads with HACS and treats the manual paste as the
+  fallback, rather than presenting them as equal options. The two steps HACS
+  cannot do — the YAML package and the probe artwork — are now labelled
+  "needed either way" instead of being buried in a route.
 
 ## [1.1.0] — 2026-07-21
 

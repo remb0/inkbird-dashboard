@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=remb0&repository=inkbird-dashboard&category=dashboard"><img alt="Open this repository inside your Home Assistant Community Store." src="https://my.home-assistant.io/badges/hacs_repository.svg"></a>
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=remb0&repository=inkbird-dashboard&category=plugin"><img alt="Open this repository inside your Home Assistant Community Store." src="https://my.home-assistant.io/badges/hacs_repository.svg"></a>
 </p>
 
 <p align="center">
@@ -17,9 +17,9 @@
 </p>
 
 <p align="center">
-  <sub>The button opens HACS on your own instance with this repository pre-filled.<br>
-  If it lands on the wrong screen, add <code>remb0/inkbird-dashboard</code> by hand under<br>
-  <b>HACS → ⋮ → Custom repositories</b> with category <b>Dashboard</b>.</sub>
+  <sub>Opens HACS on your own instance with this repository pre-filled.<br>
+  Manual equivalent: <b>HACS → ⋮ → Custom repositories</b> →
+  <code>remb0/inkbird-dashboard</code>, type <b>Dashboard</b>.</sub>
 </p>
 
 <!-- Screenshots go here once captured. Drop the files in docs/images/ and
@@ -93,41 +93,36 @@ It is a native `sections` view built from stock cards — no `card-mod`, so it s
 |---|---|
 | Inkbird **INT-14S-BW** (or a sibling INT-14 model) | [inkbird.com](https://inkbird.com) |
 | **Inkbird INT** custom integration (`inkbird_int14`) | [zampix1/ha-inkbird-int14](https://github.com/zampix1/ha-inkbird-int14) — install via HACS as a custom repository |
-| **button-card** | [custom-cards/button-card](https://github.com/custom-cards/button-card) — HACS → Frontend |
-| **card-mod** | [thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod) — HACS → Frontend |
-| **battery-state-card** | [maxwroc/battery-state-card](https://github.com/maxwroc/battery-state-card) — HACS → Frontend. Only the Settings page's Batteries section uses it |
+| Three frontend cards | button-card, card-mod, battery-state-card — all from HACS. [Step 1](#1-frontend-cards--needed-either-way) has the links |
 | A Bluetooth adapter or ESPHome BT proxy in range of the base station | — |
 
 ## 🚀 Install
 
-### 1. Add the backend (helpers, script, automation)
+> **Use HACS.** It installs the dashboard, keeps it updated, and **discovers your Inkbird entity ids by itself** — nothing to search-and-replace. The manual route does the same job by hand and is kept for people who would rather see exactly what they are pasting.
 
-Copy [`packages/inkbird_bbq.yaml`](packages/inkbird_bbq.yaml) to `<config>/packages/inkbird_bbq.yaml`, then make sure your `configuration.yaml` has:
+### 1. Frontend cards — needed either way
 
-```yaml
-homeassistant:
-  packages: !include_dir_named packages
-```
+Install all three from **HACS → Frontend**:
 
-Check the config under **Developer Tools → YAML** and restart Home Assistant. That one file creates every helper, the four status sensors, the four rate sensors, both scripts and all five automations.
+| Card | Used by |
+|---|---|
+| [button-card](https://github.com/custom-cards/button-card) | Probe gauges, header, recipe buttons |
+| [card-mod](https://github.com/thomasloven/lovelace-card-mod) | The dark theme and the responsive grids |
+| [battery-state-card](https://github.com/maxwroc/battery-state-card) | The Batteries section on Settings |
 
-<details>
-<summary>Prefer clicking things? Create the helpers through the UI instead</summary>
+### 2. The dashboard
 
-Everything in the package can equally be built under **Settings → Devices & Services → Helpers**. [`docs/HELPERS.md`](docs/HELPERS.md) lists each entity with the exact fields to fill in.
+<table><tr><td>
 
-</details>
+**⭐ Recommended — install this repo from HACS**
 
-### 2. Add the dashboard
+[![Open this repository inside your Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=remb0&repository=inkbird-dashboard&category=plugin)
 
-Two routes. **A** is one click and self-configuring; **B** is the copy-paste original.
+Or by hand: **HACS → ⋮ → Custom repositories** → `remb0/inkbird-dashboard`, type **Dashboard**.
 
-<details open>
-<summary><b>A — install from HACS as a dashboard strategy (recommended)</b></summary>
+Install it, then **reload your browser**.
 
-1. **HACS → ⋮ → Custom repositories** → add `https://github.com/remb0/inkbird-dashboard` with category **Dashboard**.
-2. Install **Inkbird BBQ Dashboard**, then reload the browser.
-3. **Settings → Dashboards → + Add dashboard → New dashboard from scratch**, open it, then **✏️ Edit → ⋮ → Raw configuration editor** and paste exactly this:
+Now **Settings → Dashboards → + Add dashboard → New dashboard from scratch**. Open it, then **✏️ Edit → ⋮ → Raw configuration editor**, and paste exactly this:
 
 ```yaml
 strategy:
@@ -135,9 +130,9 @@ strategy:
 views: []
 ```
 
-That's the whole config. The strategy builds all three views at render time and **finds your Inkbird entity ids itself** by looking for the probe sensors in the entity registry — so step 3 below is not needed at all.
+That is the entire dashboard config. The strategy builds all three views at render time and finds your entity ids in the entity registry, so **you can skip step 3 completely**.
 
-If discovery guesses wrong, override it:
+If discovery guesses wrong — more than one Inkbird, or an unusual naming scheme — pin it:
 
 ```yaml
 strategy:
@@ -146,46 +141,37 @@ strategy:
 views: []
 ```
 
-Updating is then a HACS update rather than re-pasting YAML.
+Updates then arrive through HACS instead of a re-paste.
 
-</details>
+</td></tr></table>
 
 <details>
-<summary><b>B — paste the YAML</b></summary>
+<summary><b>Manual alternative — paste the YAML</b></summary>
 
 **Settings → Dashboards → + Add dashboard → New dashboard from scratch.** Open it, then **✏️ Edit → ⋮ → Raw configuration editor**, and paste the contents of [`dashboard/bbq-dashboard.yaml`](dashboard/bbq-dashboard.yaml).
 
-Nothing in the config hardcodes the dashboard URL, so any name works. You will need step 3 to point it at your entity ids.
+Nothing in the config hardcodes the dashboard URL, so any name works. You **do** need step 3 to point it at your entity ids, and updates mean pasting again.
 
 </details>
 
 The three views appear as tabs either way.
 
-### 3. Point it at your entity ids
+### 3. Point it at your entity ids — manual route only
 
-> Skip this entirely if you used the HACS strategy — it discovers them.
+> Skip this if you installed from HACS. The strategy already did it.
 
-The Inkbird integration prefixes entity ids with the **area** the device sits in — `sensor.overig_inkbird_int_14_…` here, almost certainly something else on your install. Find yours under **Developer Tools → States**, filtering on `inkbird`.
-
-**Most of it you can set from the dashboard.** Settings → **Setup** → *Sensor prefix*. Type `sensor.kitchen_inkbird_int_14` and the four probe cards, the four status sensors and every automation re-point immediately — no file editing, no restart.
-
-**Two things that helper cannot reach**, because Home Assistant resolves those entity ids when the config *loads* rather than when they render:
-
-| | Why |
-|---|---|
-| The four `derivative` rate sensors | `source:` must be a literal entity id |
-| The whole Probes page | native `picture-elements` / `tile` / `history-graph` cards take a literal `entity:` |
-
-So run the script once as well:
+The Inkbird integration prefixes entity ids with the **area** the device sits in — `sensor.overig_inkbird_int_14_…` here, almost certainly something else on your install. Find yours under **Developer Tools → States**, filtering on `inkbird`, then:
 
 ```bash
 python3 scripts/configure.py --prefix sensor.kitchen_inkbird_int_14
 ```
 
-That rewrites all three files in one pass (~175 ids) and verifies the YAML and JSON dashboards still match. Add `--dry-run` to see what it would change first.
+That rewrites all three files in one pass (~175 ids) and verifies the YAML and JSON dashboards still match. Add `--dry-run` to preview.
+
+There is also a **Sensor prefix** field on the Settings page. It re-points the probe cards, the status sensors and every automation live, with no restart — but it cannot reach the `derivative` rate sensors or the Probes page, because Home Assistant resolves a `source:` and a native card's `entity:` when the config *loads*, not when they render. The script covers those.
 
 <details>
-<summary>The other two flags, and what each prefix covers</summary>
+<summary>The other two flags</summary>
 
 | Flag | Covers | Default in this repo |
 |---|---|---|
@@ -193,21 +179,29 @@ That rewrites all three files in one pass (~175 ids) and verifies the YAML and J
 | `--device` | Entities that are *not* area-prefixed: transport, BLE/Wi-Fi state | `inkbird_int_14` |
 | `--update` | The integration's update entity | `update.inkbird_int_update` |
 
-`--device` usually needs no change. The script detects the current values by pattern rather than assuming, so it is safe to re-run and safe after hand edits.
+The script detects the current values by pattern rather than assuming, so it is safe to re-run and safe after hand edits.
 
 </details>
 
-### 4. Turn on the alerts
+### 4. The backend package — needed either way
 
-`initial:` is deliberately not used anywhere in the package — it would reset your settings on every Home Assistant restart. The cost is that on a fresh install the alert toggles start **off** and the numbers start at their minimum.
+**HACS cannot deliver a YAML package**, so this step is a file copy on both routes. Without it the dashboard renders but nothing works — no targets, no status, no alerts.
 
-Open the dashboard's **Settings** page once and set:
+Copy [`packages/inkbird_bbq.yaml`](packages/inkbird_bbq.yaml) to `<config>/packages/inkbird_bbq.yaml`, then make sure your `configuration.yaml` has:
 
-- **Alerts** → *Low battery alerts* on, *Battery threshold* ~15 %, *Stall alerts* on, *Snooze duration* to taste
-- **Spoken announcements** → paste a speaker and a TTS engine, then flip *Announce out loud* on
-- **Preferences** → *Show help* on if you want the explanations inline
+```yaml
+homeassistant:
+  packages: !include_dir_named packages
+```
 
-The "probe reached target" notification needs no toggle; it is always on. The **rest reminder** sits in the custom recipe form and is off at 0 minutes.
+Check under **Developer Tools → YAML**, then restart Home Assistant. That one file creates every helper, the four status sensors, the four rate sensors, both scripts and all five automations.
+
+<details>
+<summary>Prefer clicking things? Build the helpers through the UI instead</summary>
+
+Everything in the package can equally be built under **Settings → Devices & Services → Helpers**. [`docs/HELPERS.md`](docs/HELPERS.md) lists each entity with the exact fields to fill in.
+
+</details>
 
 ### 5. Add the probe artwork (Probes page)
 
@@ -291,20 +285,22 @@ This dashboard stands on other people's work:
 
 Not affiliated with or endorsed by Inkbird. "Inkbird" and "INT-14S-BW" are trademarks of their respective owner; this is an unofficial community dashboard.
 
-## 📦 Installing from HACS
+## 📦 How the HACS install works
 
-**Yes — as a dashboard strategy.** HACS has no repository type for a Lovelace *config*, so shipping the YAML through it was never possible. What it does carry is JavaScript, and a **strategy** is JavaScript that generates a dashboard at render time. That is the route this repo takes.
+HACS has no repository type for a Lovelace *config*, so shipping the YAML through it was never possible. What it does carry is JavaScript — and a **dashboard strategy** is JavaScript that generates a dashboard at render time. That is the trick this repo uses.
 
-[`dist/inkbird-bbq-strategy.js`](dist/inkbird-bbq-strategy.js) is **generated**, not hand-written — [`scripts/build_strategy.py`](scripts/build_strategy.py) builds it from `dashboard/bbq-dashboard.json`, so the YAML, the JSON and the strategy cannot drift apart. Re-run it after any dashboard change:
+[`dist/inkbird-bbq-strategy.js`](dist/inkbird-bbq-strategy.js) is **generated, not hand-written**. [`scripts/build_strategy.py`](scripts/build_strategy.py) builds it from `dashboard/bbq-dashboard.json`, replacing the install-specific entity ids with tokens that the strategy resolves against your entity registry. One source of truth, so the YAML and the strategy cannot disagree.
 
 ```bash
 python3 scripts/build_strategy.py
-node scripts/test_strategy.mjs     # asserts entity discovery still works
+node scripts/test_strategy.mjs     # loads it, feeds it a fake HA, checks every id resolved
 ```
 
-CI fails the build if `dist/` is stale.
+CI fails if `dist/` is stale or the strategy stops resolving ids.
 
-It still needs button-card and card-mod installed — those do the rendering. Removing that dependency means writing real custom card elements, which is a much larger job and is still on the roadmap.
+> **Note on the install link:** HACS's category enum is `appdaemon`, `integration`, `plugin`, `python_script`, `template`, `theme`. The UI calls this type **Dashboard**, but the URL parameter is still `plugin` — `category=dashboard` returns *"Repository not found"*.
+
+It still needs button-card, card-mod and battery-state-card — the strategy generates a config that uses them, it does not render anything itself. Dropping that dependency means writing real custom card elements, which is on the roadmap.
 
 ## 🗺️ Roadmap
 
