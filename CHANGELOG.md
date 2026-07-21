@@ -10,6 +10,12 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ## [Unreleased]
 
+Nothing yet. See [`TODO.md`](TODO.md) for what is being considered.
+
+## [1.1.0] — 2026-07-21
+
+Installable from HACS, and a lot more to cook with.
+
 ### Added
 
 - **Installable from HACS**, as a Lovelace **dashboard strategy**. HACS has no
@@ -163,6 +169,7 @@ raw export of one person's dashboard to something installable.
 - Initial export of the working dashboard: Cook Control view, a Settings
   subview, two automations and a prose description of the helpers.
 
-[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/remb0/inkbird-dashboard/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/remb0/inkbird-dashboard/releases/tag/v1.0.0
 [0.1.0]: https://github.com/remb0/inkbird-dashboard/releases/tag/v0.1.0
