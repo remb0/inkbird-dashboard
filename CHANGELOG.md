@@ -1,0 +1,99 @@
+# Changelog
+
+All notable changes to this project are documented here.
+
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
+this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+Because this is a dashboard rather than a library, "breaking" means **an entity
+id changed, or a step is required on your side after updating** — not an API.
+
+## [Unreleased]
+
+Nothing yet. See [`TODO.md`](TODO.md) for what is being considered.
+
+## [1.0.0] — 2026-07-21
+
+First release intended for anyone other than its author. The repo went from a
+raw export of one person's dashboard to something installable.
+
+### Added
+
+- **Probes page** — every channel of every probe (tip, three food points,
+  ambient) laid over probe artwork, per-channel tiles and a one-hour history
+  graph. Adapted from [@Nexus1212](https://github.com/Nexus1212)'s INT-12E-BW
+  community dashboard.
+- **Settings page** — a live device header over six sections: base station,
+  connection, probe batteries, preferences, alerts, integration health, links.
+  Built from stock cards, no `card-mod`.
+- **ETA to target** on each probe card, from new `sensor.bbq_probe_N_rate`
+  derivative sensors (°C/h, 10-minute smoothing).
+- **Stall detection** — notifies when a probe's rate of change sits between
+  -1 and +1 °C/h for 45 minutes while still below target. The moment you decide
+  whether to wrap. Toggle: `input_boolean.bbq_stall_alerts`.
+- **Low probe battery alerts** with an adjustable threshold, both on the
+  Settings page. Toggle: `input_boolean.bbq_battery_alerts`,
+  threshold: `input_number.bbq_battery_threshold`.
+- **Actionable notifications** — Snooze 10 min / Dismiss buttons on the
+  "probe is ready" push, handled by a new automation.
+- **`script.bbq_notify`** — one notification router shared by all three alerts.
+  Add a phone once and every alert uses it.
+- **Per-probe battery** shown under each card's P1–P4 badge.
+- **`packages/inkbird_bbq.yaml`** — the whole backend in one drop-in file:
+  helpers, template sensors, rate sensors, scripts, automations. Previously the
+  helpers were documented in prose only and the recipe script was not in the
+  repo at all.
+- **`scripts/configure.py`** — rewrites every Inkbird entity id across all three
+  files in one command, instead of a hand search-and-replace.
+- **`CHANGELOG.md`**, **`LICENSE`** (MIT), **`.gitignore`**.
+
+### Changed
+
+- The header connection pill reads
+  `sensor.inkbird_int_14_active_transport` and
+  `binary_sensor.inkbird_int_14_ble_connected` instead of always claiming
+  "Live · via Bluetooth". Shows amber *Connecting* when those two disagree.
+- Recipe preset buttons honour the °C/°F toggle. They previously always
+  printed °C while the probe cards converted correctly.
+- The recipe row and the probe grid fold on narrow screens
+  (`repeat(auto-fit, minmax(…))`) instead of staying at a fixed 6 and 2 columns.
+- Probe cards take only `num` and `prefix`; every other entity id is derived.
+  Entity lookups are guarded, so a wrong id renders as "no probe" instead of
+  throwing.
+- Settings is a normal view, always visible in the dashboard menu.
+- All three views are English. Dashboard-owned helper names followed —
+  see Breaking below.
+- Repo restructured into `dashboard/`, `packages/`, `docs/`, `scripts/`.
+  The YAML and JSON dashboards are generated from one source and verified equal.
+
+### Removed
+
+- **Theme selector** (`input_select.bbq_thema` and its automation). The
+  dashboard no longer switches the frontend theme.
+- The in-card **Settings** navigation button on Cook Control, replaced by the
+  view tab. With it went the last hardcoded `/dashboard-bbq/` path, so the
+  dashboard now works under any URL without edits.
+- The author's personal notify targets, which had no business in a public repo.
+
+### Fixed
+
+- The `°C`/`°F` toggle no longer leaves recipe temperatures unconverted.
+
+### Breaking
+
+- `input_select.bbq_notificatie_apparaat` → **`input_select.bbq_notify_target`**.
+  If you ran an earlier copy: create the new helper (or let the package do it),
+  copy your options across, update anything referencing the old id, then delete
+  it. The Settings page and every automation in the package use the new id.
+- The notification `choose` block moved out of the automation and into
+  `script.bbq_notify`. If you had filled in your own notify services, move them
+  to the script — you now only need them in one place.
+
+## [0.1.0] — 2026-07-20
+
+- Initial export of the working dashboard: Cook Control view, a Settings
+  subview, two automations and a prose description of the helpers.
+
+[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/remb0/inkbird-dashboard/releases/tag/v1.0.0
+[0.1.0]: https://github.com/remb0/inkbird-dashboard/releases/tag/v0.1.0

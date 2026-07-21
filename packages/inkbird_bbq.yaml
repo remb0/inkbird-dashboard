@@ -1,0 +1,497 @@
+# ============================================================================
+#  Inkbird BBQ Dashboard — Home Assistant package
+# ----------------------------------------------------------------------------
+#  Everything the dashboard needs, in one file: helpers, template sensors,
+#  rate sensors, the notification router, and the alert automations.
+#
+#  Install:
+#    1. Copy this file to  <config>/packages/inkbird_bbq.yaml
+#    2. Make sure configuration.yaml contains:
+#
+#         homeassistant:
+#           packages: !include_dir_named packages
+#
+#    3. Developer Tools -> YAML -> check configuration, then restart HA.
+#
+#  Adjust before first use:
+#    - PROBE SENSORS: every `sensor.overig_inkbird_int_14_...` id below has to
+#      match your install. Don't do it by hand — run:
+#
+#         python3 scripts/configure.py --prefix sensor.your_inkbird_prefix
+#
+#      from the repo root and it rewrites this file and both dashboard files.
+#    - NOTIFICATIONS: fill the `choose` block in `script.bbq_notify` with your
+#      own notify.* services and mirror those names in the options of
+#      `input_select.bbq_notify_target`.
+#
+#  First run: the alert toggles start OFF and the battery threshold starts at
+#  its minimum, because `initial:` is deliberately not used anywhere (it would
+#  reset your settings on every restart). Open the dashboard's Settings page
+#  once and set them.
+# ============================================================================
+
+input_number:
+  inkbird_target_1:
+    name: Probe 1 target
+    icon: mdi:thermometer-alert
+    min: 0
+    max: 300
+    step: 1
+    unit_of_measurement: "°C"
+    mode: slider
+  inkbird_target_2:
+    name: Probe 2 target
+    icon: mdi:thermometer-alert
+    min: 0
+    max: 300
+    step: 1
+    unit_of_measurement: "°C"
+    mode: slider
+  inkbird_target_3:
+    name: Probe 3 target
+    icon: mdi:thermometer-alert
+    min: 0
+    max: 300
+    step: 1
+    unit_of_measurement: "°C"
+    mode: slider
+  inkbird_target_4:
+    name: Probe 4 target
+    icon: mdi:thermometer-alert
+    min: 0
+    max: 300
+    step: 1
+    unit_of_measurement: "°C"
+    mode: slider
+
+  bbq_battery_threshold:
+    name: BBQ battery alert threshold
+    icon: mdi:battery-alert-variant-outline
+    min: 5
+    max: 50
+    step: 1
+    unit_of_measurement: "%"
+    mode: slider
+
+input_text:
+  inkbird_name_1:
+    name: Probe 1 name
+    max: 100
+  inkbird_name_2:
+    name: Probe 2 name
+    max: 100
+  inkbird_name_3:
+    name: Probe 3 name
+    max: 100
+  inkbird_name_4:
+    name: Probe 4 name
+    max: 100
+
+input_boolean:
+  bbq_battery_alerts:
+    name: BBQ battery alerts
+    icon: mdi:battery-alert
+  bbq_stall_alerts:
+    name: BBQ stall alerts
+    icon: mdi:trending-neutral
+
+input_select:
+  inkbird_active_probe:
+    name: Active probe
+    icon: mdi:target
+    options: ["1", "2", "3", "4"]
+
+  inkbird_unit:
+    name: Temperature unit
+    icon: mdi:thermometer
+    options: ["°C", "°F"]
+
+  # Options MUST match notify.* services on your instance, minus the `notify.`
+  # prefix. Keep them in sync with the `choose` block in script.bbq_notify.
+  bbq_notify_target:
+    name: BBQ notification target
+    icon: mdi:bell-ring
+    options:
+      - persistent_notification
+      # - mobile_app_your_phone
+      # - notify_pushover
+
+# ----------------------------------------------------------------------------
+#  Rate of change, in °C per hour. Drives the ETA on the probe cards and the
+#  stall detection below.
+#
+#  `time_window` smooths out probe jitter; without it the ETA jumps around.
+#  `max_sub_interval` forces a recalculation even when the source sensor goes
+#  quiet, so a disconnected or genuinely stalled probe decays towards 0 instead
+#  of freezing at its last value — the stall automation depends on that.
+# ----------------------------------------------------------------------------
+sensor:
+  - platform: derivative
+    name: BBQ Probe 1 Rate
+    unique_id: bbq_probe_1_rate
+    source: sensor.overig_inkbird_int_14_probe_1_food_1_temperature
+    unit_time: h
+    time_window: "00:10:00"
+    max_sub_interval: "00:02:00"
+    round: 1
+  - platform: derivative
+    name: BBQ Probe 2 Rate
+    unique_id: bbq_probe_2_rate
+    source: sensor.overig_inkbird_int_14_probe_2_food_1_temperature
+    unit_time: h
+    time_window: "00:10:00"
+    max_sub_interval: "00:02:00"
+    round: 1
+  - platform: derivative
+    name: BBQ Probe 3 Rate
+    unique_id: bbq_probe_3_rate
+    source: sensor.overig_inkbird_int_14_probe_3_food_1_temperature
+    unit_time: h
+    time_window: "00:10:00"
+    max_sub_interval: "00:02:00"
+    round: 1
+  - platform: derivative
+    name: BBQ Probe 4 Rate
+    unique_id: bbq_probe_4_rate
+    source: sensor.overig_inkbird_int_14_probe_4_food_1_temperature
+    unit_time: h
+    time_window: "00:10:00"
+    max_sub_interval: "00:02:00"
+    round: 1
+
+# ----------------------------------------------------------------------------
+#  Per-probe status: idle / heating / close / ready
+#  "close" kicks in within 5 °C of the target.
+# ----------------------------------------------------------------------------
+template:
+  - sensor:
+      - name: BBQ Probe 1 Status
+        unique_id: bbq_probe_1_status
+        state: >
+          {% set t = states('sensor.overig_inkbird_int_14_probe_1_food_1_temperature') | float(none) %}
+          {% set g = states('input_number.inkbird_target_1') | float(none) %}
+          {% if t is none or g is none %} idle
+          {% elif t >= g %} ready
+          {% elif t >= g - 5 %} close
+          {% else %} heating
+          {% endif %}
+
+      - name: BBQ Probe 2 Status
+        unique_id: bbq_probe_2_status
+        state: >
+          {% set t = states('sensor.overig_inkbird_int_14_probe_2_food_1_temperature') | float(none) %}
+          {% set g = states('input_number.inkbird_target_2') | float(none) %}
+          {% if t is none or g is none %} idle
+          {% elif t >= g %} ready
+          {% elif t >= g - 5 %} close
+          {% else %} heating
+          {% endif %}
+
+      - name: BBQ Probe 3 Status
+        unique_id: bbq_probe_3_status
+        state: >
+          {% set t = states('sensor.overig_inkbird_int_14_probe_3_food_1_temperature') | float(none) %}
+          {% set g = states('input_number.inkbird_target_3') | float(none) %}
+          {% if t is none or g is none %} idle
+          {% elif t >= g %} ready
+          {% elif t >= g - 5 %} close
+          {% else %} heating
+          {% endif %}
+
+      - name: BBQ Probe 4 Status
+        unique_id: bbq_probe_4_status
+        state: >
+          {% set t = states('sensor.overig_inkbird_int_14_probe_4_food_1_temperature') | float(none) %}
+          {% set g = states('input_number.inkbird_target_4') | float(none) %}
+          {% if t is none or g is none %} idle
+          {% elif t >= g %} ready
+          {% elif t >= g - 5 %} close
+          {% else %} heating
+          {% endif %}
+
+script:
+  # --------------------------------------------------------------------------
+  #  Recipe presets — writes name + target onto whichever probe is "active".
+  # --------------------------------------------------------------------------
+  inkbird_apply_recipe:
+    alias: Inkbird — apply recipe to active probe
+    icon: mdi:silverware-fork-knife
+    mode: parallel
+    max: 10
+    fields:
+      label:
+        name: Label
+        description: Display name written to the probe (e.g. "Beef Brisket").
+        required: true
+        selector:
+          text:
+      target:
+        name: Target
+        description: Target temperature in °C.
+        required: true
+        selector:
+          number:
+            min: 0
+            max: 300
+            unit_of_measurement: "°C"
+    sequence:
+      - variables:
+          probe: "{{ states('input_select.inkbird_active_probe') }}"
+      - action: input_number.set_value
+        target:
+          entity_id: "input_number.inkbird_target_{{ probe }}"
+        data:
+          value: "{{ target | float }}"
+      - action: input_text.set_value
+        target:
+          entity_id: "input_text.inkbird_name_{{ probe }}"
+        data:
+          value: "{{ label }}"
+
+  # --------------------------------------------------------------------------
+  #  One notification router for every alert in this package.
+  #
+  #  Every automation below calls this instead of carrying its own copy of the
+  #  `choose` block — add a phone once here and all three alerts use it.
+  #
+  #  Service names are written out literally on purpose: Home Assistant
+  #  validates a literal `action:` when the config loads, a templated one only
+  #  when it runs — and "my brisket is done" is a bad moment to discover a typo.
+  # --------------------------------------------------------------------------
+  bbq_notify:
+    alias: BBQ — send a notification
+    icon: mdi:bell-ring-outline
+    mode: parallel
+    max: 25
+    fields:
+      title:
+        name: Title
+        required: true
+        selector:
+          text:
+      message:
+        name: Message
+        required: true
+        selector:
+          text:
+      tag:
+        name: Tag
+        description: >
+          Notification id. Re-using a tag replaces the previous notification
+          instead of stacking another one up.
+        required: true
+        selector:
+          text:
+      actions:
+        name: Actions
+        description: Optional mobile_app action buttons.
+        required: false
+        selector:
+          object:
+    sequence:
+      - action: persistent_notification.create
+        data:
+          title: "{{ title }}"
+          message: "{{ message }}"
+          notification_id: "{{ tag }}"
+
+      # Replace [] with one branch per notify service, e.g.:
+      #
+      #   - conditions:
+      #       - condition: state
+      #         entity_id: input_select.bbq_notify_target
+      #         state: mobile_app_your_phone
+      #     sequence:
+      #       - action: notify.mobile_app_your_phone
+      #         data:
+      #           title: "{{ title }}"
+      #           message: "{{ message }}"
+      #           data:
+      #             tag: "{{ tag }}"
+      #             actions: "{{ actions | default([], true) }}"
+      - choose: []
+        default: []
+
+automation:
+  # --------------------------------------------------------------------------
+  #  Probe reached its target.
+  # --------------------------------------------------------------------------
+  - id: inkbird_bbq_probe_reached_target
+    alias: BBQ probe reached target
+    description: Notifies when a BBQ probe reaches its target temperature.
+    triggers:
+      - trigger: state
+        entity_id: sensor.bbq_probe_1_status
+        to: ready
+        id: "1"
+      - trigger: state
+        entity_id: sensor.bbq_probe_2_status
+        to: ready
+        id: "2"
+      - trigger: state
+        entity_id: sensor.bbq_probe_3_status
+        to: ready
+        id: "3"
+      - trigger: state
+        entity_id: sensor.bbq_probe_4_status
+        to: ready
+        id: "4"
+    actions:
+      - variables:
+          idx: "{{ trigger.id }}"
+          pname: "{{ states('input_text.inkbird_name_' ~ trigger.id) }}"
+          ptemp: "{{ states('sensor.overig_inkbird_int_14_probe_' ~ trigger.id ~ '_food_1_temperature') | round(1) }}"
+          ptarget: "{{ states('input_number.inkbird_target_' ~ trigger.id) | round(0) }}"
+      - action: script.bbq_notify
+        data:
+          title: "🔥 {{ pname }} is ready"
+          message: "Probe {{ idx }} reached its target of {{ ptarget }}°C (now {{ ptemp }}°C)."
+          tag: "inkbird_ready_{{ idx }}"
+          actions:
+            - action: "BBQ_SNOOZE_{{ idx }}"
+              title: Snooze 10 min
+            - action: "BBQ_DISMISS_{{ idx }}"
+              title: Dismiss
+    mode: parallel
+
+  # --------------------------------------------------------------------------
+  #  Probe battery running out mid-cook.
+  # --------------------------------------------------------------------------
+  - id: inkbird_bbq_probe_battery_low
+    alias: BBQ probe battery low
+    description: >
+      Warns when a probe battery drops below the threshold set on the
+      dashboard's Settings page. Toggled by input_boolean.bbq_battery_alerts.
+    triggers:
+      - trigger: numeric_state
+        entity_id: sensor.overig_inkbird_int_14_probe_1_battery
+        below: input_number.bbq_battery_threshold
+        id: "1"
+      - trigger: numeric_state
+        entity_id: sensor.overig_inkbird_int_14_probe_2_battery
+        below: input_number.bbq_battery_threshold
+        id: "2"
+      - trigger: numeric_state
+        entity_id: sensor.overig_inkbird_int_14_probe_3_battery
+        below: input_number.bbq_battery_threshold
+        id: "3"
+      - trigger: numeric_state
+        entity_id: sensor.overig_inkbird_int_14_probe_4_battery
+        below: input_number.bbq_battery_threshold
+        id: "4"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.bbq_battery_alerts
+        state: "on"
+    actions:
+      - variables:
+          idx: "{{ trigger.id }}"
+          pname: "{{ states('input_text.inkbird_name_' ~ trigger.id) }}"
+          pct: "{{ states('sensor.overig_inkbird_int_14_probe_' ~ trigger.id ~ '_battery') }}"
+      - action: script.bbq_notify
+        data:
+          title: "🪫 Probe {{ idx }} battery low"
+          message: "{{ pname }} is at {{ pct }}%. Swap or charge the probe before it quits mid-cook."
+          tag: "inkbird_battery_{{ idx }}"
+    mode: parallel
+
+  # --------------------------------------------------------------------------
+  #  The stall. Classic on brisket and pork butt: evaporative cooling holds the
+  #  meat at a plateau for hours. Worth knowing about — it's the moment you
+  #  decide whether to wrap.
+  # --------------------------------------------------------------------------
+  - id: inkbird_bbq_probe_stalled
+    alias: BBQ probe stalled
+    description: >
+      Fires when a probe's rate of change sits between -1 and +1 °C/h for 45
+      minutes while still below target. Toggled by input_boolean.bbq_stall_alerts.
+    triggers:
+      - trigger: numeric_state
+        entity_id: sensor.bbq_probe_1_rate
+        above: -1
+        below: 1
+        for: "00:45:00"
+        id: "1"
+      - trigger: numeric_state
+        entity_id: sensor.bbq_probe_2_rate
+        above: -1
+        below: 1
+        for: "00:45:00"
+        id: "2"
+      - trigger: numeric_state
+        entity_id: sensor.bbq_probe_3_rate
+        above: -1
+        below: 1
+        for: "00:45:00"
+        id: "3"
+      - trigger: numeric_state
+        entity_id: sensor.bbq_probe_4_rate
+        above: -1
+        below: 1
+        for: "00:45:00"
+        id: "4"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.bbq_stall_alerts
+        state: "on"
+      # Only interesting while still climbing towards the target — a probe
+      # sitting on the counter is also flat, and so is one that is already done.
+      - condition: template
+        value_template: "{{ is_state('sensor.bbq_probe_' ~ trigger.id ~ '_status', 'heating') }}"
+    actions:
+      - variables:
+          idx: "{{ trigger.id }}"
+          pname: "{{ states('input_text.inkbird_name_' ~ trigger.id) }}"
+          ptemp: "{{ states('sensor.overig_inkbird_int_14_probe_' ~ trigger.id ~ '_food_1_temperature') | round(1) }}"
+          ptarget: "{{ states('input_number.inkbird_target_' ~ trigger.id) | round(0) }}"
+      - action: script.bbq_notify
+        data:
+          title: "😐 {{ pname }} has stalled"
+          message: "Probe {{ idx }} has been flat at {{ ptemp }}°C for 45 minutes (target {{ ptarget }}°C). Time to wrap?"
+          tag: "inkbird_stall_{{ idx }}"
+    mode: parallel
+
+  # --------------------------------------------------------------------------
+  #  Handles the buttons on the phone notification.
+  # --------------------------------------------------------------------------
+  - id: inkbird_bbq_notification_action
+    alias: BBQ notification action
+    description: Handles the Snooze / Dismiss buttons on a BBQ notification.
+    triggers:
+      - trigger: event
+        event_type: mobile_app_notification_action
+    conditions:
+      # No native condition matches a string prefix, so this one is a template
+      # on purpose. It also guards against actions from other integrations.
+      - condition: template
+        value_template: >
+          {{ trigger.event.data.action is string
+             and trigger.event.data.action.startswith('BBQ_') }}
+    actions:
+      - variables:
+          parts: "{{ trigger.event.data.action.split('_') }}"
+          kind: "{{ parts[1] }}"
+          idx: "{{ parts[2] }}"
+      - action: persistent_notification.dismiss
+        data:
+          notification_id: "inkbird_ready_{{ idx }}"
+      - choose:
+          - conditions: "{{ kind == 'SNOOZE' }}"
+            sequence:
+              - delay: "00:10:00"
+              # Nothing to say if it was taken off the grill in the meantime.
+              - condition: template
+                value_template: "{{ is_state('sensor.bbq_probe_' ~ idx ~ '_status', 'ready') }}"
+              - action: script.bbq_notify
+                data:
+                  title: "🔥 {{ states('input_text.inkbird_name_' ~ idx) }} is still ready"
+                  message: "Snoozed 10 minutes ago. Probe {{ idx }} is at {{ states('sensor.overig_inkbird_int_14_probe_' ~ idx ~ '_food_1_temperature') | round(1) }}°C."
+                  tag: "inkbird_ready_{{ idx }}"
+                  actions:
+                    - action: "BBQ_SNOOZE_{{ idx }}"
+                      title: Snooze 10 min
+                    - action: "BBQ_DISMISS_{{ idx }}"
+                      title: Dismiss
+        default: []
+    mode: parallel
+    max: 20
