@@ -66,6 +66,13 @@ jobs:
           diff -q /tmp/before.yaml dashboard/bbq-dashboard.yaml \
             || { echo "configure.py is not reversible"; exit 1; }
 
+      - name: Screenshot block matches the files on disk
+        run: |
+          cp README.md /tmp/readme-before.md
+          python3 scripts/add_screenshots.py >/dev/null
+          diff -q /tmp/readme-before.md README.md \
+            || { echo "README screenshot block is stale — run: python3 scripts/add_screenshots.py"; exit 1; }
+
       - name: No broken links or images in markdown
         run: |
           python3 - <<'PY'

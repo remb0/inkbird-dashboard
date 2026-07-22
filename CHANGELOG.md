@@ -33,6 +33,10 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ### Added
 
+- **`scripts/add_screenshots.py`.** Drop PNGs in `docs/images/` and run it; the
+  README's screenshot block is rewritten to show exactly the files that exist,
+  skipping the ones that do not. CI fails if the block and the directory
+  disagree, so the README can never go back to rendering a broken image.
 - **Card style picker.** `input_select.bbq_style` on the Settings page
   switches the Cook Control cards between the solid dark look and a
   transparent, blurred one for dashboards with a background image. Read at

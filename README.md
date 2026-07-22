@@ -22,10 +22,11 @@
   <code>remb0/inkbird-dashboard</code>, type <b>Dashboard</b>.</sub>
 </p>
 
-<!-- Screenshots go here once captured. Drop the files in docs/images/ and
-     restore the image line below — see docs/images/README.md for what to shoot.
-![Cook Control view](docs/images/cook-control.png)
--->
+<!-- SCREENSHOTS:START -->
+<!-- No screenshots yet. Drop cook-control.png / probes.png / settings.png
+     in docs/images/ and run: python3 scripts/add_screenshots.py
+     See docs/images/README.md for what to capture. -->
+<!-- SCREENSHOTS:END -->
 
 ---
 
@@ -233,7 +234,8 @@ inkbird-dashboard/
 ├── scripts/
 │   ├── configure.py           # ← rewrite every Inkbird entity id in one command
 │   ├── build_strategy.py      # regenerates dist/ from the dashboard JSON
-│   └── test_strategy.mjs      # runs the strategy against a fake install
+│   ├── test_strategy.mjs      # runs the strategy against a fake install
+│   └── add_screenshots.py     # wires docs/images/*.png into the README
 ├── www/
 │   └── int12e-probe-*.png     # ← copy to <config>/www/ for the Probes page
 ├── docs/
