@@ -23,9 +23,22 @@
 </p>
 
 <!-- SCREENSHOTS:START -->
-<!-- No screenshots yet. Drop cook-control.png / probes.png / settings.png
-     in docs/images/ and run: python3 scripts/add_screenshots.py
-     See docs/images/README.md for what to capture. -->
+<p align="center">
+  <img alt="Cook Control — live probe gauges, alerts and recipe presets" src="docs/images/cook-control.png">
+</p>
+
+<details>
+<summary align="center">More screenshots</summary>
+
+<p align="center">
+  <img alt="Probes — every channel of every probe, over the probe artwork" src="docs/images/probes.png">
+</p>
+
+<p align="center">
+  <img alt="Settings — device health, alerts, announcements and setup" src="docs/images/settings.png">
+</p>
+
+</details>
 <!-- SCREENSHOTS:END -->
 
 ---

@@ -33,6 +33,9 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ### Added
 
+- **Screenshots**, at last — Cook Control, Probes and Settings, in
+  `docs/images/`. Downscaled from the ~3200 px retina captures to 1800 px
+  (2.6 MB → 1.7 MB), which is still well above what GitHub renders.
 - **`scripts/add_screenshots.py`.** Drop PNGs in `docs/images/` and run it; the
   README's screenshot block is rewritten to show exactly the files that exist,
   skipping the ones that do not. CI fails if the block and the directory

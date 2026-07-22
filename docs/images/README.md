@@ -12,7 +12,15 @@ These are screenshots *of* the dashboard. They are unrelated to the probe artwor
 
 Handy: put a probe in a glass of hot water to get a non-`idle` reading without firing up the grill.
 
-Capture at a desktop width around 1400 px (the layout is capped at 1220 px, so this leaves a little margin) and keep them under ~500 KB.
+Capture at a desktop width around 1400 px — the layout is capped at 1220 px, so this leaves a little margin.
+
+Retina captures come out around 3200 px wide, which is roughly 3.5× what GitHub actually renders. Downscale before committing:
+
+```bash
+sips --resampleWidth 1800 docs/images/*.png
+```
+
+That cut the current set from 2.6 MB to 1.7 MB with no visible loss.
 
 ## Then wire them into the README
 
