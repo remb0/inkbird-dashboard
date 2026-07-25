@@ -64,15 +64,6 @@ input_text:
     icon: mdi:pencil
     max: 100
 
-  # Leave either of these empty to disable spoken announcements entirely.
-  bbq_tts_speaker:
-    name: BBQ TTS speaker
-    icon: mdi:speaker
-    max: 120
-  bbq_tts_engine:
-    name: BBQ TTS engine
-    icon: mdi:text-to-speech
-    max: 120
 
 input_number:
   inkbird_target_1:
@@ -179,6 +170,35 @@ input_select:
     name: Temperature unit
     icon: mdi:thermometer
     options: ["°C", "°F"]
+
+  # Decorative accent colour for the Cook Control cards — the ember glow on the
+  # logo, the recipe temperatures, the + button, the custom-recipe Apply button.
+  # The green/amber/orange status colours are semantic and do NOT follow this.
+  bbq_accent:
+    name: BBQ accent colour
+    icon: mdi:palette
+    options:
+      - Ember
+      - Blue
+      - Green
+      - Purple
+      - Red
+      - Teal
+
+  # Spoken-announcement targets. These start with just "none" and are filled in
+  # from your live media_player and tts entities by script.bbq_refresh_media_
+  # targets (run on HA start and hourly), so you pick from real devices and can
+  # never mistype one. "none" disables speech, same as leaving it blank did.
+  bbq_tts_speaker:
+    name: BBQ TTS speaker
+    icon: mdi:speaker
+    options:
+      - none
+  bbq_tts_engine:
+    name: BBQ TTS engine
+    icon: mdi:text-to-speech
+    options:
+      - none
 
   # Card styling. "Transparent" drops the card backgrounds and shadows for a
   # glass look over a dashboard background image; "Default" is the dark
@@ -389,6 +409,33 @@ script:
           entity_id: input_boolean.bbq_custom_open
 
   # --------------------------------------------------------------------------
+  #  Keep the TTS speaker/engine dropdowns in sync with the devices that
+  #  actually exist, so you pick from real entities and never mistype one.
+  #  Called on HA start and hourly by automation "BBQ sync media targets".
+  #
+  #  input_select.set_options keeps the current selection if it is still in the
+  #  new list and otherwise falls back to the first option ("none"), so a
+  #  speaker that disappears degrades to "off" rather than erroring.
+  # --------------------------------------------------------------------------
+  bbq_refresh_media_targets:
+    alias: BBQ — refresh TTS device lists
+    icon: mdi:refresh
+    mode: single
+    sequence:
+      - action: input_select.set_options
+        target:
+          entity_id: input_select.bbq_tts_speaker
+        data:
+          options: >
+            {{ ['none'] + (states.media_player | map(attribute='entity_id') | list | sort) }}
+      - action: input_select.set_options
+        target:
+          entity_id: input_select.bbq_tts_engine
+        data:
+          options: >
+            {{ ['none'] + (states.tts | map(attribute='entity_id') | list | sort) }}
+
+  # --------------------------------------------------------------------------
   #  One notification router for every alert in this package: persistent
   #  notification, optional push, optional spoken announcement.
   #
@@ -470,15 +517,15 @@ script:
           # No native condition tests "this text helper is non-empty".
           - condition: template
             value_template: >
-              {{ states('input_text.bbq_tts_speaker') not in ['', 'unknown', 'unavailable']
-                 and states('input_text.bbq_tts_engine') not in ['', 'unknown', 'unavailable'] }}
+              {{ states('input_select.bbq_tts_speaker') not in ['none', 'unknown', 'unavailable']
+                 and states('input_select.bbq_tts_engine') not in ['none', 'unknown', 'unavailable'] }}
         then:
           - action: tts.speak
             continue_on_error: true
             target:
-              entity_id: "{{ states('input_text.bbq_tts_engine') }}"
+              entity_id: "{{ states('input_select.bbq_tts_engine') }}"
             data:
-              media_player_entity_id: "{{ states('input_text.bbq_tts_speaker') }}"
+              media_player_entity_id: "{{ states('input_select.bbq_tts_speaker') }}"
               cache: true
               message: "{{ tts_message | default(message, true) }}"
 
@@ -676,6 +723,23 @@ automation:
           tts_message: "{{ pname }} has stalled at {{ ptemp }} degrees. You may want to wrap it."
           tag: "inkbird_stall_{{ idx }}"
     mode: parallel
+
+  # --------------------------------------------------------------------------
+  #  Keep the TTS dropdowns populated from the live device list.
+  # --------------------------------------------------------------------------
+  - id: inkbird_bbq_sync_media_targets
+    alias: BBQ sync media targets
+    description: >
+      Refills input_select.bbq_tts_speaker / _engine from the media_player and
+      tts entities that currently exist. Runs at startup and hourly.
+    triggers:
+      - trigger: homeassistant
+        event: start
+      - trigger: time_pattern
+        hours: "/1"
+    actions:
+      - action: script.bbq_refresh_media_targets
+    mode: single
 
   # --------------------------------------------------------------------------
   #  Handles the buttons on the phone notification.

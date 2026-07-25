@@ -10,29 +10,21 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ## [Unreleased]
 
-### Fixed
-
-- **The Custom recipe button threw a service error.** It reused the
-  `inkbird_recipe` button-card template, and button-card *deep-merges* a
-  template into the card. Overriding `tap_action.service` therefore left the
-  preset's `tap_action.data` (`label`, `target`) in place, so
-  `input_boolean.toggle` was called with keys it does not accept. The template
-  is now split: `inkbird_recipe_style` carries the look with no action, and
-  `inkbird_recipe` adds the preset action on top. Custom inherits only the
-  style, so there is nothing left to merge.
-- **The help text under Spoken announcements and Setup was always visible.**
-  Those sections each had a permanent markdown card as well as the one behind
-  the Show help toggle, so turning help off left the duplicate on screen. The
-  permanent ones are gone; only the toggled text remains.
-
-- **The HACS install button returned "Repository not found."** The My Home
-  Assistant link used `category=dashboard`, matching what the HACS UI calls
-  this repository type. HACS's actual category enum is `appdaemon`,
-  `integration`, `plugin`, `python_script`, `template`, `theme` — "Dashboard"
-  is only the display label, and the URL parameter is still `plugin`.
-
 ### Added
 
+- **TTS speaker and engine are now dropdowns**, not free-text fields. They list
+  the `media_player` and `tts` entities you actually have — refreshed at
+  startup, hourly, and by a **Refresh device lists** button — so you pick a
+  real device and cannot mistype one. `input_text.bbq_tts_speaker/_engine`
+  became `input_select`; `none` disables speech. **Breaking:** the helper
+  domain changed; the package migrates it, and `script.bbq_notify`'s gating
+  now treats `none` as off.
+- **Test-notification button** on the Settings Alerts section. One tap routes a
+  test through `script.bbq_notify`, so it exercises the persistent
+  notification, the chosen push target and the speaker in one go.
+- **Accent-colour picker** (`input_select.bbq_accent`: Ember, Blue, Green,
+  Purple, Red, Teal). The Cook Control logo glow, recipe temperatures, the +
+  button and the Apply button follow it; the semantic status colours do not.
 - **Screenshots**, at last — Cook Control, Probes and Settings, in
   `docs/images/`. Downscaled from the ~3200 px retina captures to 1800 px
   (2.6 MB → 1.7 MB), which is still well above what GitHub renders.
@@ -47,6 +39,9 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ### Changed
 
+- The custom-recipe **Apply** and **Cancel** buttons now sit on the same
+  reflowing row as the Notify and Announce fields, instead of a separate row
+  underneath.
 - **The Alerts card hides itself when there is nothing to report**, instead of
   taking up space to say "No alerts". Driven by a new `sensor.bbq_alert_count`
   template sensor and a conditional card — a markdown card cannot hide itself.
@@ -54,6 +49,30 @@ id changed, or a step is required on your side after updating** — not an API.
   fallback, rather than presenting them as equal options. The two steps HACS
   cannot do — the YAML package and the probe artwork — are now labelled
   "needed either way" instead of being buried in a route.
+
+### Fixed
+
+- **Restored the Settings page**, which had drifted live into six sections —
+  two empty, Alerts and Spoken announcements merged into one, and TTS tiles
+  still pointing at the deleted `input_text` helpers. Rebuilt from the repo,
+  which was correct throughout.
+- **The Custom recipe button threw a service error.** It reused the
+  `inkbird_recipe` button-card template, and button-card *deep-merges* a
+  template into the card. Overriding `tap_action.service` therefore left the
+  preset's `tap_action.data` (`label`, `target`) in place, so
+  `input_boolean.toggle` was called with keys it does not accept. The template
+  is now split: `inkbird_recipe_style` carries the look with no action, and
+  `inkbird_recipe` adds the preset action on top. Custom inherits only the
+  style, so there is nothing left to merge.
+- **The help text under Spoken announcements and Setup was always visible.**
+  Those sections each had a permanent markdown card as well as the one behind
+  the Show help toggle, so turning help off left the duplicate on screen. The
+  permanent ones are gone; only the toggled text remains.
+- **The HACS install button returned "Repository not found."** The My Home
+  Assistant link used `category=dashboard`, matching what the HACS UI calls
+  this repository type. HACS's actual category enum is `appdaemon`,
+  `integration`, `plugin`, `python_script`, `template`, `theme` — "Dashboard"
+  is only the display label, and the URL parameter is still `plugin`.
 
 ## [1.1.0] — 2026-07-21
 

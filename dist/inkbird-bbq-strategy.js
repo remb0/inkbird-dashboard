@@ -164,7 +164,7 @@ const TEMPLATE = {
                   "background": "#33291f"
                 },
                 {
-                  "color": "#ff6a2c"
+                  "color": "[[[\n  var _ac = states['input_select.bbq_accent'];\n  var _A = {Ember:['#ff6a2c','#ff8a3d'],Blue:['#2f7ce0','#4f98f0'],Green:['#34b56a','#4fd188'],Purple:['#8a5cf0','#a67cff'],Red:['#e0483a','#f26a5c'],Teal:['#1fb6b0','#3fd0ca']};\n  var acc = _A[_ac ? _ac.state : 'Ember'] || _A.Ember;\n  return acc[0];\n]]]\n"
                 },
                 {
                   "font-size": "1.3rem"
@@ -256,7 +256,7 @@ const TEMPLATE = {
         }
       },
       "custom_fields": {
-        "t": "[[[\n  var u = states['input_select.inkbird_unit'];\n  var uf = u ? u.state.indexOf('F') >= 0 : false;\n  var us = uf ? '\\u00b0F' : '\\u00b0C';\n  var c = variables.temp;\n  if (variables.rname === 'Custom') {\n    var o = states['input_number.bbq_custom_target'];\n    c = o ? parseFloat(o.state) : NaN;\n    if (isNaN(c) || c <= 0) {\n      return `<div style=\"font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:#77695c\">\\u2014</div>`;\n    }\n  }\n  var v = uf ? Math.round(c * 9/5 + 32) : Math.round(c);\n  return `<div style=\"font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:#ff6a2c\">${v}<span style=\"font-size:.74rem;color:#a89a8c\">${us}</span></div>`;\n]]]\n",
+        "t": "[[[\n  var _ac = states['input_select.bbq_accent'];\n  var _A = {Ember:['#ff6a2c','#ff8a3d'],Blue:['#2f7ce0','#4f98f0'],Green:['#34b56a','#4fd188'],Purple:['#8a5cf0','#a67cff'],Red:['#e0483a','#f26a5c'],Teal:['#1fb6b0','#3fd0ca']};\n  var acc = _A[_ac ? _ac.state : 'Ember'] || _A.Ember;\n  var u = states['input_select.inkbird_unit'];\n  var uf = u ? u.state.indexOf('F') >= 0 : false;\n  var us = uf ? '\\u00b0F' : '\\u00b0C';\n  var c = variables.temp;\n  if (variables.rname === 'Custom') {\n    var o = states['input_number.bbq_custom_target'];\n    c = o ? parseFloat(o.state) : NaN;\n    if (isNaN(c) || c <= 0) {\n      return `<div style=\"font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:#77695c\">\\u2014</div>`;\n    }\n  }\n  var v = uf ? Math.round(c * 9/5 + 32) : Math.round(c);\n  return `<div style=\"font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:${acc[0]}\">${v}<span style=\"font-size:.74rem;color:#a89a8c\">${us}</span></div>`;\n]]]\n",
         "s": "[[[ return `<div style=\"font-size:.74rem;color:#a89a8c\">${variables.note}</div>`; ]]]\n"
       }
     }
@@ -323,7 +323,7 @@ const TEMPLATE = {
                 }
               },
               "custom_fields": {
-                "mark": "[[[ return `<div style=\"width:46px;height:46px;border-radius:13px;\n  display:grid;place-items:center;\n  background:linear-gradient(150deg,#ff8a3d,#ff6a2c);\n  box-shadow:0 6px 18px -6px #ff6a2c,inset 0 1px 0 rgba(255,255,255,.35)\">\n  <svg width=\"26\" height=\"26\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#fff\"\n    stroke-width=\"2.1\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n    <path d=\"M12 3c1.5 2.5.5 4-.7 5.4C10 10 9 11.4 9 13.2A3 3 0 0 0 15 13.2c0-1.2-.5-2-1-2.8\"/>\n    <path d=\"M12 21a5 5 0 0 0 5-5c0-1.6-.7-2.7-1.5-3.7\"/></svg></div>`; ]]]\n",
+                "mark": "[[[\n  var _ac = states['input_select.bbq_accent'];\n  var _A = {Ember:['#ff6a2c','#ff8a3d'],Blue:['#2f7ce0','#4f98f0'],Green:['#34b56a','#4fd188'],Purple:['#8a5cf0','#a67cff'],Red:['#e0483a','#f26a5c'],Teal:['#1fb6b0','#3fd0ca']};\n  var acc = _A[_ac ? _ac.state : 'Ember'] || _A.Ember;\n  return `<div style=\"width:46px;height:46px;border-radius:13px;\n  display:grid;place-items:center;\n  background:linear-gradient(150deg,${acc[1]},${acc[0]});\n  box-shadow:0 6px 18px -6px ${acc[0]},inset 0 1px 0 rgba(255,255,255,.35)\">\n  <svg width=\"26\" height=\"26\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#fff\"\n    stroke-width=\"2.1\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n    <path d=\"M12 3c1.5 2.5.5 4-.7 5.4C10 10 9 11.4 9 13.2A3 3 0 0 0 15 13.2c0-1.2-.5-2-1-2.8\"/>\n    <path d=\"M12 21a5 5 0 0 0 5-5c0-1.6-.7-2.7-1.5-3.7\"/></svg></div>`;\n]]]\n",
                 "title": "[[[ return `<div style=\"font-family:system-ui;text-align:left\">\n  <div style=\"font-size:1.16rem;font-weight:650;color:#f5ede4;letter-spacing:-.01em\">Cook Control</div>\n  <div style=\"font-size:.74rem;color:#a89a8c;letter-spacing:.14em;text-transform:uppercase\">Inkbird INT-14 (INT-14S-BW)</div>\n</div>`; ]]]\n",
                 "status": "[[[\n  var tr = states['sensor.__INKBIRD_DEVICE___active_transport'];\n  var bc = states['binary_sensor.__INKBIRD_DEVICE___ble_connected'];\n  var t  = tr ? tr.state : 'unknown';\n  var map = {\n    ble:        ['Bluetooth', 'live'],\n    ble_waiting:['Bluetooth', 'wait'],\n    wifi:       ['Wi-Fi',     'live'],\n    wi_fi:      ['Wi-Fi',     'live'],\n    local_lan:  ['LAN',       'live'],\n    lan:        ['LAN',       'live'],\n    cloud:      ['Cloud',     'live'],\n    none:       ['no link',   'down'],\n    unknown:    ['no link',   'down'],\n    unavailable:['no link',   'down']\n  };\n  var m = map[t] || [t.replace(/_/g,' '), 'live'];\n  var how = m[0], mode = m[1];\n  if (mode === 'live' && t.indexOf('ble') === 0 && !(bc && bc.state === 'on')) mode = 'wait';\n  var col  = mode === 'live' ? '#56c271' : mode === 'wait' ? '#f2b441' : '#e8503a';\n  var word = mode === 'live' ? 'Live'    : mode === 'wait' ? 'Connecting' : 'Offline';\n  var pulse = mode === 'wait' ? 'animation:inkbird-pulse 1.4s ease-in-out infinite' : '';\n  var b = states['sensor.__INKBIRD_AREA_PREFIX___base_battery'].state;\n  b = (b === undefined || b === 'unknown' || b === 'unavailable') ? '\\u2014' : b + '%';\n  return `<style>@keyframes inkbird-pulse{0%,100%{opacity:1}50%{opacity:.25}}</style>\n  <div style=\"display:flex;gap:10px;align-items:center;font-family:system-ui\">\n    <span title=\"active transport: ${t}\"\n      style=\"display:inline-flex;align-items:center;gap:8px;background:#211b16;\n      border:1px solid #3a2f27;padding:8px 13px;border-radius:999px;font-size:.82rem;color:#a89a8c\">\n      <span style=\"width:8px;height:8px;border-radius:50%;background:${col};${pulse}\"></span>\n      ${word} \\u00b7 <b style=\"color:#f5ede4\">${how}</b></span>\n    <span style=\"background:#211b16;border:1px solid #3a2f27;padding:8px 13px;\n      border-radius:999px;font-size:.82rem;color:#a89a8c\">Base battery\n      <b style=\"color:#f5ede4\">${b}</b></span>\n  </div>`;\n]]]\n"
               }
@@ -642,14 +642,7 @@ const TEMPLATE = {
                           }
                         ],
                         "features_position": "bottom"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "grid",
-                    "columns": 2,
-                    "square": false,
-                    "cards": [
+                      },
                       {
                         "type": "custom:button-card",
                         "icon": "mdi:check",
@@ -659,7 +652,7 @@ const TEMPLATE = {
                         "styles": {
                           "card": [
                             {
-                              "background": "#ff6a2c"
+                              "background": "[[[\n  var _ac = states['input_select.bbq_accent'];\n  var _A = {Ember:['#ff6a2c','#ff8a3d'],Blue:['#2f7ce0','#4f98f0'],Green:['#34b56a','#4fd188'],Purple:['#8a5cf0','#a67cff'],Red:['#e0483a','#f26a5c'],Teal:['#1fb6b0','#3fd0ca']};\n  var acc = _A[_ac ? _ac.state : 'Ember'] || _A.Ember;\n  return acc[0];\n]]]\n"
                             },
                             {
                               "border-radius": "14px"
@@ -1668,6 +1661,18 @@ const TEMPLATE = {
             },
             {
               "type": "tile",
+              "entity": "input_select.bbq_accent",
+              "name": "Accent colour",
+              "icon": "mdi:palette",
+              "features": [
+                {
+                  "type": "select-options"
+                }
+              ],
+              "features_position": "bottom"
+            },
+            {
+              "type": "tile",
               "entity": "input_select.inkbird_unit",
               "name": "Temperature unit",
               "icon": "mdi:thermometer",
@@ -1802,6 +1807,21 @@ const TEMPLATE = {
                 "type": "markdown",
                 "content": "**Low battery alerts** watch every probe and fire once a battery drops below the threshold. **Stall alerts** fire when a probe stops climbing for 45 minutes while still below target \u2014 the classic brisket stall, and the moment you decide whether to wrap. **Snooze duration** is how long the Snooze button on a push notification waits before reminding you; it also sets the button's label.\n"
               }
+            },
+            {
+              "type": "button",
+              "name": "Send test notification",
+              "icon": "mdi:bell-check-outline",
+              "tap_action": {
+                "action": "perform-action",
+                "perform_action": "script.bbq_notify",
+                "data": {
+                  "title": "\ud83d\udd14 BBQ test",
+                  "message": "If you can read this, notifications are working.",
+                  "tag": "inkbird_test",
+                  "tts_message": "This is a test announcement from your barbecue dashboard."
+                }
+              }
             }
           ]
         },
@@ -1828,15 +1848,27 @@ const TEMPLATE = {
             },
             {
               "type": "tile",
-              "entity": "input_text.bbq_tts_speaker",
+              "entity": "input_select.bbq_tts_speaker",
               "name": "Speaker",
-              "icon": "mdi:speaker"
+              "icon": "mdi:speaker",
+              "features": [
+                {
+                  "type": "select-options"
+                }
+              ],
+              "features_position": "bottom"
             },
             {
               "type": "tile",
-              "entity": "input_text.bbq_tts_engine",
+              "entity": "input_select.bbq_tts_engine",
               "name": "TTS engine",
-              "icon": "mdi:text-to-speech"
+              "icon": "mdi:text-to-speech",
+              "features": [
+                {
+                  "type": "select-options"
+                }
+              ],
+              "features_position": "bottom"
             },
             {
               "type": "conditional",
@@ -1849,7 +1881,16 @@ const TEMPLATE = {
               ],
               "card": {
                 "type": "markdown",
-                "content": "Announcements are spoken through any media player. Paste the entity ids, e.g. `media_player.kitchen` and `tts.home_assistant_cloud`. Each alert has its own spoken wording \u2014 emoji and `\u00b0C` read badly out loud, so the speaker says \"has reached 93 degrees\" rather than the on-screen text. Leave either field empty, or the toggle off, and nothing is spoken.\n"
+                "content": "Announcements are spoken through any media player. Pick a **Speaker** and a **TTS engine** from the dropdowns \u2014 they list the devices you actually have, refreshed at startup and hourly, so you cannot mistype one. Each alert has its own spoken wording. Set either to **none**, or the toggle off, and nothing is spoken.\n"
+              }
+            },
+            {
+              "type": "button",
+              "name": "Refresh device lists",
+              "icon": "mdi:refresh",
+              "tap_action": {
+                "action": "perform-action",
+                "perform_action": "script.bbq_refresh_media_targets"
               }
             }
           ]

@@ -262,7 +262,13 @@ button_card_templates:
             - border-radius: 10px
             - border: 1px solid "#4d3f33"
             - background: '#33291f'
-            - color: '#ff6a2c'
+            - color: |
+                [[[
+                  var _ac = states['input_select.bbq_accent'];
+                  var _A = {Ember:['#ff6a2c','#ff8a3d'],Blue:['#2f7ce0','#4f98f0'],Green:['#34b56a','#4fd188'],Purple:['#8a5cf0','#a67cff'],Red:['#e0483a','#f26a5c'],Teal:['#1fb6b0','#3fd0ca']};
+                  var acc = _A[_ac ? _ac.state : 'Ember'] || _A.Ember;
+                  return acc[0];
+                ]]]
             - font-size: 1.3rem
   inkbird_recipe:
     template: inkbird_recipe_style
@@ -317,6 +323,9 @@ button_card_templates:
     custom_fields:
       t: |
         [[[
+          var _ac = states['input_select.bbq_accent'];
+          var _A = {Ember:['#ff6a2c','#ff8a3d'],Blue:['#2f7ce0','#4f98f0'],Green:['#34b56a','#4fd188'],Purple:['#8a5cf0','#a67cff'],Red:['#e0483a','#f26a5c'],Teal:['#1fb6b0','#3fd0ca']};
+          var acc = _A[_ac ? _ac.state : 'Ember'] || _A.Ember;
           var u = states['input_select.inkbird_unit'];
           var uf = u ? u.state.indexOf('F') >= 0 : false;
           var us = uf ? '\u00b0F' : '\u00b0C';
@@ -329,7 +338,7 @@ button_card_templates:
             }
           }
           var v = uf ? Math.round(c * 9/5 + 32) : Math.round(c);
-          return `<div style="font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:#ff6a2c">${v}<span style="font-size:.74rem;color:#a89a8c">${us}</span></div>`;
+          return `<div style="font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:${acc[0]}">${v}<span style="font-size:.74rem;color:#a89a8c">${us}</span></div>`;
         ]]]
       s: |
         [[[ return `<div style="font-size:.74rem;color:#a89a8c">${variables.note}</div>`; ]]]
@@ -366,14 +375,19 @@ views:
           - justify-self: end
       custom_fields:
         mark: |
-          [[[ return `<div style="width:46px;height:46px;border-radius:13px;
+          [[[
+            var _ac = states['input_select.bbq_accent'];
+            var _A = {Ember:['#ff6a2c','#ff8a3d'],Blue:['#2f7ce0','#4f98f0'],Green:['#34b56a','#4fd188'],Purple:['#8a5cf0','#a67cff'],Red:['#e0483a','#f26a5c'],Teal:['#1fb6b0','#3fd0ca']};
+            var acc = _A[_ac ? _ac.state : 'Ember'] || _A.Ember;
+            return `<div style="width:46px;height:46px;border-radius:13px;
             display:grid;place-items:center;
-            background:linear-gradient(150deg,#ff8a3d,#ff6a2c);
-            box-shadow:0 6px 18px -6px #ff6a2c,inset 0 1px 0 rgba(255,255,255,.35)">
+            background:linear-gradient(150deg,${acc[1]},${acc[0]});
+            box-shadow:0 6px 18px -6px ${acc[0]},inset 0 1px 0 rgba(255,255,255,.35)">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff"
               stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 3c1.5 2.5.5 4-.7 5.4C10 10 9 11.4 9 13.2A3 3 0 0 0 15 13.2c0-1.2-.5-2-1-2.8"/>
-              <path d="M12 21a5 5 0 0 0 5-5c0-1.6-.7-2.7-1.5-3.7"/></svg></div>`; ]]]
+              <path d="M12 21a5 5 0 0 0 5-5c0-1.6-.7-2.7-1.5-3.7"/></svg></div>`;
+          ]]]
         title: |
           [[[ return `<div style="font-family:system-ui;text-align:left">
             <div style="font-size:1.16rem;font-weight:650;color:#f5ede4;letter-spacing:-.01em">Cook Control</div>
@@ -707,10 +721,6 @@ views:
             features:
             - type: toggle
             features_position: bottom
-        - type: grid
-          columns: 2
-          square: false
-          cards:
           - type: custom:button-card
             icon: mdi:check
             name: Apply to probe
@@ -718,7 +728,13 @@ views:
             show_icon: true
             styles:
               card:
-              - background: '#ff6a2c'
+              - background: |
+                  [[[
+                    var _ac = states['input_select.bbq_accent'];
+                    var _A = {Ember:['#ff6a2c','#ff8a3d'],Blue:['#2f7ce0','#4f98f0'],Green:['#34b56a','#4fd188'],Purple:['#8a5cf0','#a67cff'],Red:['#e0483a','#f26a5c'],Teal:['#1fb6b0','#3fd0ca']};
+                    var acc = _A[_ac ? _ac.state : 'Ember'] || _A.Ember;
+                    return acc[0];
+                  ]]]
               - border-radius: 14px
               - padding: 12px
               - color: '#1a1207'
@@ -1367,6 +1383,13 @@ views:
       - type: select-options
       features_position: bottom
     - type: tile
+      entity: input_select.bbq_accent
+      name: Accent colour
+      icon: mdi:palette
+      features:
+      - type: select-options
+      features_position: bottom
+    - type: tile
       entity: input_select.inkbird_unit
       name: Temperature unit
       icon: mdi:thermometer
@@ -1448,6 +1471,17 @@ views:
         type: markdown
         content: |
           **Low battery alerts** watch every probe and fire once a battery drops below the threshold. **Stall alerts** fire when a probe stops climbing for 45 minutes while still below target — the classic brisket stall, and the moment you decide whether to wrap. **Snooze duration** is how long the Snooze button on a push notification waits before reminding you; it also sets the button's label.
+    - type: button
+      name: Send test notification
+      icon: mdi:bell-check-outline
+      tap_action:
+        action: perform-action
+        perform_action: script.bbq_notify
+        data:
+          title: 🔔 BBQ test
+          message: If you can read this, notifications are working.
+          tag: inkbird_test
+          tts_message: This is a test announcement from your barbecue dashboard.
   - type: grid
     cards:
     - type: heading
@@ -1462,13 +1496,19 @@ views:
       - type: toggle
       features_position: bottom
     - type: tile
-      entity: input_text.bbq_tts_speaker
+      entity: input_select.bbq_tts_speaker
       name: Speaker
       icon: mdi:speaker
+      features:
+      - type: select-options
+      features_position: bottom
     - type: tile
-      entity: input_text.bbq_tts_engine
+      entity: input_select.bbq_tts_engine
       name: TTS engine
       icon: mdi:text-to-speech
+      features:
+      - type: select-options
+      features_position: bottom
     - type: conditional
       conditions:
       - condition: state
@@ -1477,7 +1517,13 @@ views:
       card:
         type: markdown
         content: |
-          Announcements are spoken through any media player. Paste the entity ids, e.g. `media_player.kitchen` and `tts.home_assistant_cloud`. Each alert has its own spoken wording — emoji and `°C` read badly out loud, so the speaker says "has reached 93 degrees" rather than the on-screen text. Leave either field empty, or the toggle off, and nothing is spoken.
+          Announcements are spoken through any media player. Pick a **Speaker** and a **TTS engine** from the dropdowns — they list the devices you actually have, refreshed at startup and hourly, so you cannot mistype one. Each alert has its own spoken wording. Set either to **none**, or the toggle off, and nothing is spoken.
+    - type: button
+      name: Refresh device lists
+      icon: mdi:refresh
+      tap_action:
+        action: perform-action
+        perform_action: script.bbq_refresh_media_targets
   - type: grid
     cards:
     - type: heading

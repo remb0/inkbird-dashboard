@@ -88,9 +88,9 @@ In the order they appear:
 | **Base station** | Model, charging state, base temperature, probes detected |
 | **Connection** | Transport mode selector, active transport, Bluetooth and Wi-Fi connectivity, battery-reporting freshness |
 | **Batteries** | Base station and all four probes in one `battery-state-card`, colour-graded by level |
-| **Preferences** | Temperature unit, **card style** (solid or transparent), notification device, active probe, **Show help** |
-| **Alerts** | Low-battery toggle + threshold slider, stall-detection toggle, snooze duration |
-| **Spoken announcements** | TTS on/off, speaker and engine |
+| **Preferences** | Temperature unit, **card style**, **accent colour**, notification device, active probe, **Show help** |
+| **Alerts** | Low-battery toggle + threshold slider, stall-detection toggle, snooze duration, **test-notification button** |
+| **Spoken announcements** | TTS on/off, speaker and engine (both **dropdowns** of your real devices), a refresh button |
 | **Integration** | Version + update button, model support status, last BLE diagnostic, and buttons to run a diagnostic or request a snapshot |
 | **Links** | Integration, dashboard and the community dashboard the Probes page came from |
 | **Setup** | Sensor prefix — retarget the dashboard at a different Inkbird without editing files |

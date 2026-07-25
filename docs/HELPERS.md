@@ -81,6 +81,7 @@ Everything that reads the helper falls back to the repo default if it is empty o
 | `input_number.bbq_rest_minutes` | Number, 0–120 min | Rest reminder after a probe hits its target. **0 switches it off** — the automation has a `numeric_state above: 0` condition, so it never even starts a delay |
 | `input_boolean.bbq_show_help` | Toggle | Reveals the explanatory paragraph under Alerts, Spoken announcements and Setup. With it off those sections show controls only |
 | `input_select.bbq_style` | Default / Transparent | Card look on Cook Control. Transparent drops the backgrounds and shadows and adds a blur, for dashboards with a background image. The cards read it at render time, so it applies with no reload |
+| `input_select.bbq_accent` | Ember / Blue / Green / Purple / Red / Teal | The decorative accent on Cook Control — the logo glow, recipe temperatures, the + button, the custom-recipe Apply button. The green/amber/orange **status** colours are semantic and do not follow it. Read at render time |
 | `sensor.bbq_alert_count` | Sensor | How many probes are `close` or `ready`. The Alerts card is wrapped in a conditional on this, so it disappears entirely when there is nothing to report — a markdown card cannot hide itself |
 
 ## Spoken announcements
@@ -88,8 +89,10 @@ Everything that reads the helper falls back to the repo default if it is empty o
 | Entity | What it does |
 |---|---|
 | `input_boolean.bbq_tts_alerts` | Master on/off for speech |
-| `input_text.bbq_tts_speaker` | Target `media_player.*` entity id, e.g. `media_player.kitchen` |
-| `input_text.bbq_tts_engine` | TTS entity id, e.g. `tts.home_assistant_cloud` |
+| `input_select.bbq_tts_speaker` | Which `media_player.*` speaks. **A dropdown, not free text** |
+| `input_select.bbq_tts_engine` | Which `tts.*` engine renders the speech. Also a dropdown |
+
+The two dropdowns are populated from the `media_player` and `tts` entities that actually exist, by `script.bbq_refresh_media_targets` — run at startup and hourly by automation *BBQ sync media targets*, and on demand by the **Refresh device lists** button on Settings. So you pick a real device and can never mistype one; a speaker that disappears falls back to `none` rather than erroring. Set either to `none` to disable speech.
 
 Every alert passes a separate `tts_message` to `script.bbq_notify` — "Your Beef Brisket is ready. It has reached 93 degrees." rather than the on-screen "🔥 … 93°C", because emoji and `°C` do not read well out loud. If `tts_message` is omitted the spoken text falls back to `message`.
 
