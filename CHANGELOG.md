@@ -10,6 +10,12 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Cook Control current temperature display**: Added `triggers_update: all` to the `inkbird_probe` button-card template and introduced dynamic fallbacks (`bbq_probe_N_control_temperature` -> direct sensor -> `food_1`) so current temperature updates in real time and is always visible even during startup/model detection.
+- **Probes page probe artwork restored**: Re-introduced the probe diagram images (`int12e-probe-black.png` and `int12e-probe-white.png`) with model-aware `picture-elements` overlays for all 4 probes.
+- **Probes page header cleaned**: Removed the description text header card from the Probes page.
+
 ## [1.2.0] — 2026-08-06
 
 ### Added

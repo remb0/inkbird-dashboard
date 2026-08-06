@@ -1,5 +1,6 @@
 button_card_templates:
   inkbird_probe:
+    triggers_update: all
     entity: '[[[ return "input_number.inkbird_target_" + variables.num ]]]'
     show_name: false
     show_icon: false
@@ -94,7 +95,7 @@ button_card_templates:
           return `<div style="display:flex;align-items:center;gap:11px;font-family:system-ui">
             <div style="display:flex;flex-direction:column;align-items:center;gap:3px"
                  title="probe ${n} battery">
-              <div style="width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+              <div style="width:30px;height:30px;border-radius:999px;display:grid;place-items:center;
                    font-family:ui-monospace,monospace;font-weight:700;background:#33291f;
                    border:1px solid #4d3f33;color:#f5ede4">P${n}</div>
               <div style="font-family:ui-monospace,monospace;font-size:.62rem;font-weight:700;
@@ -154,16 +155,22 @@ button_card_templates:
           var _p = states['input_text.inkbird_sensor_prefix'];
           _p = _p ? _p.state : '';
           var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;
-          var eProbe  = 'sensor.bbq_probe_' + n + '_control_temperature';
-          var eBatt   = pfx + '_probe_' + n + '_battery';
           var eTarget = 'input_number.inkbird_target_' + n;
-          var eName   = 'input_text.inkbird_name_' + n;
           var eState  = 'sensor.bbq_probe_' + n + '_status';
-          var eRate   = 'sensor.bbq_probe_' + n + '_rate';
           var _g = function(e){ var o = states[e]; return o ? o.state : undefined; };
+          var choice = _g('input_select.inkbird_dashboard_model') || 'Auto';
+          var profile = _g('sensor.inkbird_int_14_configured_model_profile') || '';
+          var model = _g('sensor.inkbird_int_14_configured_model') || '';
+          var bw = choice === 'INT-14-BW' || (choice === 'Auto' && (profile === 'int14_bw' || (model.includes('14-BW') && !model.includes('14S'))));
+          var eCtrl   = 'sensor.bbq_probe_' + n + '_control_temperature';
+          var eDirect = pfx + '_probe_' + n + '_' + (bw ? 'internal' : 'food_4') + '_temperature';
+          var eAlt    = pfx + '_probe_' + n + '_' + (bw ? 'internal' : 'food_1') + '_temperature';
+          var _gVal = function(e){ var o = states[e]; return (o && o.state !== 'unknown' && o.state !== 'unavailable' && o.state !== '') ? parseFloat(o.state) : NaN; };
+          var t = _gVal(eCtrl);
+          if (isNaN(t)) t = _gVal(eDirect);
+          if (isNaN(t)) t = _gVal(eAlt);
           var s = _g(eState) || 'idle';
           var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';
-          var t = parseFloat(_g(eProbe));
           var g = parseFloat(_g(eTarget));
           var amb = 22, connected = !isNaN(t);
           var pct = connected ? Math.max(0, Math.min(1,(t-amb)/(g-amb))) : 0;
@@ -194,16 +201,23 @@ button_card_templates:
           var _p = states['input_text.inkbird_sensor_prefix'];
           _p = _p ? _p.state : '';
           var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;
-          var eProbe  = 'sensor.bbq_probe_' + n + '_control_temperature';
-          var eBatt   = pfx + '_probe_' + n + '_battery';
           var eTarget = 'input_number.inkbird_target_' + n;
-          var eName   = 'input_text.inkbird_name_' + n;
           var eState  = 'sensor.bbq_probe_' + n + '_status';
           var eRate   = 'sensor.bbq_probe_' + n + '_rate';
           var _g = function(e){ var o = states[e]; return o ? o.state : undefined; };
+          var choice = _g('input_select.inkbird_dashboard_model') || 'Auto';
+          var profile = _g('sensor.inkbird_int_14_configured_model_profile') || '';
+          var model = _g('sensor.inkbird_int_14_configured_model') || '';
+          var bw = choice === 'INT-14-BW' || (choice === 'Auto' && (profile === 'int14_bw' || (model.includes('14-BW') && !model.includes('14S'))));
+          var eCtrl   = 'sensor.bbq_probe_' + n + '_control_temperature';
+          var eDirect = pfx + '_probe_' + n + '_' + (bw ? 'internal' : 'food_4') + '_temperature';
+          var eAlt    = pfx + '_probe_' + n + '_' + (bw ? 'internal' : 'food_1') + '_temperature';
+          var _gVal = function(e){ var o = states[e]; return (o && o.state !== 'unknown' && o.state !== 'unavailable' && o.state !== '') ? parseFloat(o.state) : NaN; };
+          var t = _gVal(eCtrl);
+          if (isNaN(t)) t = _gVal(eDirect);
+          if (isNaN(t)) t = _gVal(eAlt);
           var s = _g(eState) || 'idle';
           var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';
-          var t = parseFloat(_g(eProbe));
           var g = parseFloat(_g(eTarget));
           var connected = !isNaN(t);
           var uf = (_g('input_select.inkbird_unit')||'').indexOf('F') >= 0;
@@ -213,8 +227,6 @@ button_card_templates:
           var footer = !connected ? 'Insert a probe to begin'
             : (s==='ready' ? 'Reached target \u2014 resting'
             : Math.max(0, togo) + '\u00b0 to go');
-          // ETA from the derivative sensor (\u00b0C/h). Only meaningful while actually
-          // climbing — a flat or falling probe would give a nonsense or negative time.
           var rate = parseFloat(_g(eRate));
           var eta = '';
           if (connected && s !== 'ready' && !isNaN(rate) && rate > 0.5 && g > t) {
@@ -224,10 +236,6 @@ button_card_templates:
               eta = hh ? ('\u2248 ' + hh + ' h ' + mm + ' m') : ('\u2248 ' + mm + ' m');
             }
           }
-          var choice = _g('input_select.inkbird_dashboard_model') || 'Auto';
-          var profile = _g('sensor.inkbird_int_14_configured_model_profile') || '';
-          var model = _g('sensor.inkbird_int_14_configured_model') || '';
-          var bw = choice === 'INT-14-BW' || (choice === 'Auto' && (profile === 'int14_bw' || (model.includes('14-BW') && !model.includes('14S'))));
           var primary = bw ? 'Internal' : 'Food 4 · tip';
           var trend = isNaN(rate) ? '\u2014' : ((rate > .15 ? '\u2197 +' : rate < -.15 ? '\u2198 ' : '\u2192 ') + rate.toFixed(1) + ' \u00b0C/h');
           return `<div style="display:flex;flex-direction:column;gap:9px;font-family:system-ui">
@@ -729,16 +737,6 @@ views:
   type: sections
   max_columns: 2
   background: '#16120f'
-  header:
-    layout: center
-    badges_position: bottom
-    badges_wrap: wrap
-    card:
-      type: markdown
-      text_only: true
-      content: |
-        ## Probe detail
-        Compact live channels, editable targets and one-hour history. The dashboard shows two channels per probe for INT-14-BW and five for INT-14S-BW.
   sections:
   - type: grid
     cards:
@@ -757,6 +755,110 @@ views:
       heading: Probe 1
       heading_style: title
       icon: mdi:thermometer-probe
+    - type: conditional
+      inkbird_model: int14_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14-BW
+      card:
+        type: picture-elements
+        image: /local/int12e-probe-black.png
+        elements:
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_1_internal_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 11.7%
+            top: 29.5%
+            color: '#2478c8'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_1_ambient_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 87.4%
+            top: 29.5%
+            color: '#9344a1'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+    - type: conditional
+      inkbird_model: int14s_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14S-BW
+      card:
+        type: picture-elements
+        image: /local/int12e-probe-black.png
+        elements:
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_1_food_4_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 11.7%
+            top: 29.5%
+            color: '#2478c8'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_1_food_1_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 27.1%
+            top: 74%
+            color: '#7669bf'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_1_food_3_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 37.7%
+            top: 29.5%
+            color: '#bd9411'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_1_food_2_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 46.6%
+            top: 74%
+            color: '#49aeba'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_1_ambient_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 87.4%
+            top: 29.5%
+            color: '#9344a1'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
     - type: conditional
       inkbird_model: int14_bw
       conditions:
@@ -858,6 +960,110 @@ views:
         entity: input_select.inkbird_dashboard_model
         state: INT-14-BW
       card:
+        type: picture-elements
+        image: /local/int12e-probe-white.png
+        elements:
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_2_internal_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 11.7%
+            top: 29.5%
+            color: '#2478c8'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_2_ambient_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 87.4%
+            top: 29.5%
+            color: '#9344a1'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+    - type: conditional
+      inkbird_model: int14s_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14S-BW
+      card:
+        type: picture-elements
+        image: /local/int12e-probe-white.png
+        elements:
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_2_food_4_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 11.7%
+            top: 29.5%
+            color: '#2478c8'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_2_food_1_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 27.1%
+            top: 74%
+            color: '#7669bf'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_2_food_3_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 37.7%
+            top: 29.5%
+            color: '#bd9411'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_2_food_2_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 46.6%
+            top: 74%
+            color: '#49aeba'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_2_ambient_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 87.4%
+            top: 29.5%
+            color: '#9344a1'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+    - type: conditional
+      inkbird_model: int14_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14-BW
+      card:
         type: entities
         title: null
         show_header_toggle: false
@@ -952,6 +1158,110 @@ views:
         entity: input_select.inkbird_dashboard_model
         state: INT-14-BW
       card:
+        type: picture-elements
+        image: /local/int12e-probe-black.png
+        elements:
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_3_internal_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 11.7%
+            top: 29.5%
+            color: '#2478c8'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_3_ambient_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 87.4%
+            top: 29.5%
+            color: '#9344a1'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+    - type: conditional
+      inkbird_model: int14s_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14S-BW
+      card:
+        type: picture-elements
+        image: /local/int12e-probe-black.png
+        elements:
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_3_food_4_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 11.7%
+            top: 29.5%
+            color: '#2478c8'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_3_food_1_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 27.1%
+            top: 74%
+            color: '#7669bf'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_3_food_3_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 37.7%
+            top: 29.5%
+            color: '#bd9411'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_3_food_2_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 46.6%
+            top: 74%
+            color: '#49aeba'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_3_ambient_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 87.4%
+            top: 29.5%
+            color: '#9344a1'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+    - type: conditional
+      inkbird_model: int14_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14-BW
+      card:
         type: entities
         title: null
         show_header_toggle: false
@@ -1039,6 +1349,110 @@ views:
       heading: Probe 4
       heading_style: title
       icon: mdi:thermometer-probe
+    - type: conditional
+      inkbird_model: int14_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14-BW
+      card:
+        type: picture-elements
+        image: /local/int12e-probe-white.png
+        elements:
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_4_internal_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 11.7%
+            top: 29.5%
+            color: '#2478c8'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_4_ambient_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 87.4%
+            top: 29.5%
+            color: '#9344a1'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+    - type: conditional
+      inkbird_model: int14s_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14S-BW
+      card:
+        type: picture-elements
+        image: /local/int12e-probe-white.png
+        elements:
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_4_food_4_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 11.7%
+            top: 29.5%
+            color: '#2478c8'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_4_food_1_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 27.1%
+            top: 74%
+            color: '#7669bf'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_4_food_3_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 37.7%
+            top: 29.5%
+            color: '#bd9411'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_4_food_2_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 46.6%
+            top: 74%
+            color: '#49aeba'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
+        - type: state-label
+          entity: sensor.overig_inkbird_int_14_probe_4_ambient_temperature
+          tap_action:
+            action: more-info
+          style:
+            left: 87.4%
+            top: 29.5%
+            color: '#9344a1'
+            font-size: 14px
+            font-weight: '700'
+            line-height: '1'
+            white-space: nowrap
     - type: conditional
       inkbird_model: int14_bw
       conditions:
