@@ -1,10 +1,11 @@
 button_card_templates:
   inkbird_probe:
+    entity: '[[[ return "input_number.inkbird_target_" + variables.num ]]]'
     show_name: false
     show_icon: false
     show_label: false
     tap_action:
-      action: none
+      action: more-info
     styles:
       card:
       - padding: 18px
@@ -21,7 +22,7 @@ button_card_templates:
             var _p = states['input_text.inkbird_sensor_prefix'];
             _p = _p ? _p.state : '';
             var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;
-            var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
+            var eProbe  = 'sensor.bbq_probe_' + n + '_control_temperature';
             var eBatt   = pfx + '_probe_' + n + '_battery';
             var eTarget = 'input_number.inkbird_target_' + n;
             var eName   = 'input_text.inkbird_name_' + n;
@@ -51,9 +52,9 @@ button_card_templates:
             return glass ? 'blur(10px)' : 'none';
           ]]]
       grid:
-      - grid-template-areas: '"header header header header" "fig gauge side side" "fig gauge minus plus"'
+      - grid-template-areas: '"header header header header" "fig gauge side side" "fig gauge minus plus" "spark spark spark spark"'
       - grid-template-columns: 34px 128px 1fr 1fr
-      - grid-template-rows: auto 1fr auto
+      - grid-template-rows: auto 1fr auto 54px
       - gap: 10px 12px
       - align-items: center
       custom_fields:
@@ -67,6 +68,8 @@ button_card_templates:
         - justify-self: stretch
         plus:
         - justify-self: stretch
+        spark:
+        - justify-self: stretch
     custom_fields:
       header: |
         [[[
@@ -74,7 +77,7 @@ button_card_templates:
           var _p = states['input_text.inkbird_sensor_prefix'];
           _p = _p ? _p.state : '';
           var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;
-          var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
+          var eProbe  = 'sensor.bbq_probe_' + n + '_control_temperature';
           var eBatt   = pfx + '_probe_' + n + '_battery';
           var eTarget = 'input_number.inkbird_target_' + n;
           var eName   = 'input_text.inkbird_name_' + n;
@@ -110,7 +113,7 @@ button_card_templates:
           var _p = states['input_text.inkbird_sensor_prefix'];
           _p = _p ? _p.state : '';
           var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;
-          var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
+          var eProbe  = 'sensor.bbq_probe_' + n + '_control_temperature';
           var eBatt   = pfx + '_probe_' + n + '_battery';
           var eTarget = 'input_number.inkbird_target_' + n;
           var eName   = 'input_text.inkbird_name_' + n;
@@ -151,7 +154,7 @@ button_card_templates:
           var _p = states['input_text.inkbird_sensor_prefix'];
           _p = _p ? _p.state : '';
           var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;
-          var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
+          var eProbe  = 'sensor.bbq_probe_' + n + '_control_temperature';
           var eBatt   = pfx + '_probe_' + n + '_battery';
           var eTarget = 'input_number.inkbird_target_' + n;
           var eName   = 'input_text.inkbird_name_' + n;
@@ -191,7 +194,7 @@ button_card_templates:
           var _p = states['input_text.inkbird_sensor_prefix'];
           _p = _p ? _p.state : '';
           var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;
-          var eProbe  = pfx + '_probe_' + n + '_' + ch + '_temperature';
+          var eProbe  = 'sensor.bbq_probe_' + n + '_control_temperature';
           var eBatt   = pfx + '_probe_' + n + '_battery';
           var eTarget = 'input_number.inkbird_target_' + n;
           var eName   = 'input_text.inkbird_name_' + n;
@@ -221,12 +224,19 @@ button_card_templates:
               eta = hh ? ('\u2248 ' + hh + ' h ' + mm + ' m') : ('\u2248 ' + mm + ' m');
             }
           }
+          var choice = _g('input_select.inkbird_dashboard_model') || 'Auto';
+          var profile = _g('sensor.inkbird_int_14_configured_model_profile') || '';
+          var model = _g('sensor.inkbird_int_14_configured_model') || '';
+          var bw = choice === 'INT-14-BW' || (choice === 'Auto' && (profile === 'int14_bw' || (model.includes('14-BW') && !model.includes('14S'))));
+          var primary = bw ? 'Internal' : 'Food 4 · tip';
+          var trend = isNaN(rate) ? '\u2014' : ((rate > .15 ? '\u2197 +' : rate < -.15 ? '\u2198 ' : '\u2192 ') + rate.toFixed(1) + ' \u00b0C/h');
           return `<div style="display:flex;flex-direction:column;gap:9px;font-family:system-ui">
             <div style="display:flex;align-items:center;gap:10px">
               <span style="flex:1;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:#77695c">Target</span>
-              <span style="font-family:ui-monospace,monospace;font-weight:600;font-size:1.05rem;color:#f5ede4">${cv(g)}${us}</span>
+              <span title="Tap the card to edit the target" style="font-family:ui-monospace,monospace;font-weight:600;font-size:1.05rem;color:#f5ede4;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:4px">${cv(g)}${us}</span>
             </div>
             <div style="font-size:.78rem;color:#a89a8c">${footer}</div>
+            <div style="display:flex;gap:10px;align-items:center;font-size:.72rem;color:#77695c"><span>${primary}</span><span style="font-family:ui-monospace,monospace;color:${col}">${trend}</span></div>
             ${eta ? `<div style="font-family:ui-monospace,monospace;font-size:.74rem;color:${col}">${eta}</div>` : ''}
           </div>`;
         ]]]
@@ -270,6 +280,23 @@ button_card_templates:
                   return acc[0];
                 ]]]
             - font-size: 1.3rem
+      spark:
+        card:
+          type: history-graph
+          hours_to_show: 1
+          entities:
+          - entity: '[[[ return "sensor.bbq_probe_" + variables.num + "_control_temperature" ]]]'
+            name: Temperature trend
+          card_mod:
+            style: |
+              ha-card {
+                height: 54px;
+                overflow: hidden;
+                background: transparent;
+                border: 0;
+                box-shadow: none;
+              }
+              .content { padding: 0 !important; }
   inkbird_recipe:
     template: inkbird_recipe_style
     tap_action:
@@ -389,9 +416,14 @@ views:
               <path d="M12 21a5 5 0 0 0 5-5c0-1.6-.7-2.7-1.5-3.7"/></svg></div>`;
           ]]]
         title: |
-          [[[ return `<div style="font-family:system-ui;text-align:left">
+          [[[
+            var ms = states['sensor.inkbird_int_14_configured_model'];
+            var choice = states['input_select.inkbird_dashboard_model'];
+            var model = choice && choice.state !== 'Auto' ? choice.state : (ms && !['unknown','unavailable'].includes(ms.state) ? ms.state.replace(/^Inkbird /,'') : 'Inkbird INT');
+            var active = [1,2,3,4].filter(n => { var s=states['sensor.bbq_probe_'+n+'_control_temperature']; return s && !['unknown','unavailable'].includes(s.state); }).length;
+            return `<div style="font-family:system-ui;text-align:left">
             <div style="font-size:1.16rem;font-weight:650;color:#f5ede4;letter-spacing:-.01em">Cook Control</div>
-            <div style="font-size:.74rem;color:#a89a8c;letter-spacing:.14em;text-transform:uppercase">Inkbird INT-14 (INT-14S-BW)</div>
+            <div style="font-size:.74rem;color:#a89a8c;letter-spacing:.10em;text-transform:uppercase">${model} · ${active}/4 probes active</div>
           </div>`; ]]]
         status: |
           [[[
@@ -405,7 +437,7 @@ views:
               wi_fi:      ['Wi-Fi',     'live'],
               local_lan:  ['LAN',       'live'],
               lan:        ['LAN',       'live'],
-              cloud:      ['Cloud',     'live'],
+              cloud:      ['History',   'history'],
               none:       ['no link',   'down'],
               unknown:    ['no link',   'down'],
               unavailable:['no link',   'down']
@@ -413,13 +445,20 @@ views:
             var m = map[t] || [t.replace(/_/g,' '), 'live'];
             var how = m[0], mode = m[1];
             if (mode === 'live' && t.indexOf('ble') === 0 && !(bc && bc.state === 'on')) mode = 'wait';
-            var col  = mode === 'live' ? '#56c271' : mode === 'wait' ? '#f2b441' : '#e8503a';
-            var word = mode === 'live' ? 'Live'    : mode === 'wait' ? 'Connecting' : 'Offline';
+            var col  = mode === 'live' ? '#56c271' : mode === 'history' ? '#4f98f0' : mode === 'wait' ? '#f2b441' : '#e8503a';
+            var word = mode === 'live' ? 'Live' : mode === 'history' ? 'History' : mode === 'wait' ? 'Connecting' : 'Offline';
             var pulse = mode === 'wait' ? 'animation:inkbird-pulse 1.4s ease-in-out infinite' : '';
-            var b = states['sensor.overig_inkbird_int_14_base_battery'].state;
+            var bs = states['sensor.overig_inkbird_int_14_base_battery'];
+            var b = bs ? bs.state : undefined;
             b = (b === undefined || b === 'unknown' || b === 'unavailable') ? '\u2014' : b + '%';
+            var quality = states['sensor.inkbird_int_14_battery_report_quality'];
+            var suspect = quality && /suspect|degrad/i.test(quality.state);
+            var soundId = Object.keys(states).find(function(id){ return id.indexOf('switch.')===0 && id.indexOf('inkbird')>=0 && /(sound|mute)/.test(id); });
+            var se = soundId ? states[soundId] : null;
+            var ss = se || states['binary_sensor.inkbird_int_14_sound_enabled'];
+            var sound = !ss ? '\ud83d\udd07 \u2014' : ss.state === 'on' ? '\ud83d\udd0a On' : ss.state === 'off' ? '\ud83d\udd07 Off' : '\ud83d\udd07 \u2014';
             return `<style>@keyframes inkbird-pulse{0%,100%{opacity:1}50%{opacity:.25}}</style>
-            <div style="display:flex;gap:10px;align-items:center;font-family:system-ui">
+            <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;font-family:system-ui">
               <span title="active transport: ${t}"
                 style="display:inline-flex;align-items:center;gap:8px;background:#211b16;
                 border:1px solid #3a2f27;padding:8px 13px;border-radius:999px;font-size:.82rem;color:#a89a8c">
@@ -427,7 +466,9 @@ views:
                 ${word} \u00b7 <b style="color:#f5ede4">${how}</b></span>
               <span style="background:#211b16;border:1px solid #3a2f27;padding:8px 13px;
                 border-radius:999px;font-size:.82rem;color:#a89a8c">Base battery
-                <b style="color:#f5ede4">${b}</b></span>
+                <b style="color:${suspect?'#f2b441':'#f5ede4'}">${b}${suspect?'*':''}</b></span>
+              <span title="Station sound status; write control appears when supported by the integration"
+                style="background:#211b16;border:1px solid #3a2f27;padding:8px 11px;border-radius:999px;font-size:.82rem;color:#f5ede4">${sound}</span>
             </div>`;
           ]]]
     - type: conditional
@@ -465,88 +506,6 @@ views:
             {% endif %}
               border-radius: 18px; color: #f5ede4;
             }
-    - type: custom:button-card
-      tap_action:
-        action: none
-      styles:
-        card:
-        - background: |
-            [[[
-              var _s = states['input_select.bbq_style'];
-              var glass = _s && _s.state === 'Transparent';
-              return glass ? 'rgba(33,27,22,.35)' : 'linear-gradient(180deg,#211b16,#2b231d)';
-            ]]]
-        - border: |
-            [[[
-              var _s = states['input_select.bbq_style'];
-              var glass = _s && _s.state === 'Transparent';
-              return glass ? '1px solid rgba(255,255,255,.10)' : '1px solid #3a2f27';
-            ]]]
-        - border-radius: 18px
-        - padding: 20px 24px
-        - box-shadow: |
-            [[[
-              var _s = states['input_select.bbq_style'];
-              var glass = _s && _s.state === 'Transparent';
-              return glass ? 'none' : '0 18px 40px -18px rgba(0,0,0,.7)';
-            ]]]
-        - backdrop-filter: |
-            [[[
-              var _s = states['input_select.bbq_style'];
-              var glass = _s && _s.state === 'Transparent';
-              return glass ? 'blur(10px)' : 'none';
-            ]]]
-        grid:
-        - grid-template-areas: '"dev meta batt"'
-        - grid-template-columns: auto 1fr auto
-        - align-items: center
-        - gap: 26px
-        custom_fields:
-          meta:
-          - justify-self: start
-      custom_fields:
-        dev: |
-          [[[ return `<svg width="172" height="158" viewBox="0 0 172 158" fill="none">
-            <rect x="3" y="3" width="166" height="152" rx="24" fill="#0b0b0d" stroke="#c9cdd2" stroke-width="3"/>
-            <rect x="9" y="9" width="154" height="140" rx="19" fill="#141416" stroke="#2a2a2e"/>
-            <rect x="18" y="20" width="66" height="104" rx="11" fill="#0a0a0c" stroke="#242428"/>
-            <g stroke="#c4c9ce" stroke-width="3">
-              <line x1="30" y1="30" x2="30" y2="118"/><line x1="44" y1="30" x2="44" y2="118"/>
-              <line x1="58" y1="30" x2="58" y2="118"/><line x1="72" y1="30" x2="72" y2="118"/></g>
-            <g font-family="ui-monospace,monospace" font-size="7" fill="#e8e8ea" text-anchor="middle">
-              <text x="30" y="40">1</text><text x="44" y="40">2</text><text x="58" y="40">3</text><text x="72" y="40">4</text></g>
-            <rect x="92" y="20" width="62" height="94" rx="10" fill="#050506" stroke="#242428"/>
-            <g font-family="ui-monospace,monospace" font-weight="700" fill="#f4f4f6">
-              <text x="98" y="46" font-size="12">63</text><text x="98" y="63" font-size="12">57</text>
-              <text x="98" y="80" font-size="12">41</text><text x="98" y="97" font-size="11" fill="#55555a">---</text></g>
-            <text x="123" y="128" font-family="system-ui" font-weight="700" font-size="9" fill="#c9cdd2" text-anchor="middle" letter-spacing="1.5">INKBIRD</text>
-            <circle cx="63" cy="136" r="10" fill="#0a0a0c" stroke="#c9cdd2" stroke-width="1.5"/>
-            <circle cx="63" cy="136" r="6" fill="#1a1a1e"/></svg>`; ]]]
-        meta: |
-          [[[
-            var b = states['sensor.overig_inkbird_int_14_base_battery'].state;
-            b = (b === undefined || b === 'unknown' || b === 'unavailable') ? '—' : b + '%';
-            return `<div style="font-family:system-ui">
-              <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.16em;color:#77695c">Base station</div>
-              <div style="font-size:1.28rem;font-weight:650;color:#f5ede4;margin:2px 0 10px">INT-14S-BW</div>
-              <div style="display:flex;gap:26px">
-                <div><div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:#77695c">Connection</div>
-                  <div style="font-family:ui-monospace,monospace;font-size:1.05rem;font-weight:600;color:#f5ede4">BLE 5.4</div></div>
-                <div><div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:#77695c">Battery</div>
-                  <div style="font-family:ui-monospace,monospace;font-size:1.05rem;font-weight:600;color:#f5ede4">${b}</div></div>
-              </div></div>`;
-          ]]]
-        batt: |
-          [[[
-            var raw = parseInt(states['sensor.overig_inkbird_int_14_base_battery'].state);
-            var pct = isNaN(raw) ? 0 : raw;
-            var col = pct < 20 ? '#e8503a' : '#56c271';
-            return `<div style="display:flex;align-items:center;gap:9px">
-              <div style="width:40px;height:18px;border:2px solid #a89a8c;border-radius:4px;padding:2px;position:relative">
-                <div style="height:100%;width:${pct}%;background:${col};border-radius:1px"></div></div>
-              <span style="font-family:ui-monospace,monospace;font-weight:600;color:#f5ede4">${isNaN(raw)?'—':pct+'%'}</span>
-            </div>`;
-          ]]]
     - type: grid
       columns: 2
       square: false
@@ -770,503 +729,404 @@ views:
   type: sections
   max_columns: 2
   background: '#16120f'
+  header:
+    layout: center
+    badges_position: bottom
+    badges_wrap: wrap
+    card:
+      type: markdown
+      text_only: true
+      content: |
+        ## Probe detail
+        Compact live channels, editable targets and one-hour history. The dashboard shows two channels per probe for INT-14-BW and five for INT-14S-BW.
   sections:
+  - type: grid
+    cards:
+    - type: conditional
+      inkbird_model: auto
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: Auto
+      card:
+        type: markdown
+        content: The HACS strategy detects the model automatically. On the manual YAML route, select **INT-14-BW** or **INT-14S-BW** under Settings - Dashboard layout.
   - type: grid
     cards:
     - type: heading
       heading: Probe 1
       heading_style: title
-      icon: mdi:thermometer
-    - type: picture-elements
-      image: /local/int12e-probe-black.png
-      grid_options:
-        columns: full
-      elements:
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_1_food_4_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 11.7%
-          top: 29.5%
-          color: '#2478c8'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_1_food_1_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 27.1%
-          top: 74%
-          color: '#7669bf'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_1_food_3_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 37.7%
-          top: 29.5%
-          color: '#bd9411'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_1_food_2_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 46.6%
-          top: 74%
-          color: '#49aeba'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_1_ambient_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 87.4%
-          top: 29.5%
-          color: '#9344a1'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_1_food_4_temperature
-      name: Tip
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_1_food_1_temperature
-      name: Food 1
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_1_food_3_temperature
-      name: Food 3
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_1_food_2_temperature
-      name: Food 2
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_1_ambient_temperature
-      name: Ambient
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_1_battery
-      name: Probe battery
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: heading
-      icon: mdi:chart-timeline-variant
-      heading: Last hour
-      heading_style: title
-    - type: history-graph
-      hours_to_show: 1
-      entities:
-      - entity: sensor.overig_inkbird_int_14_probe_1_food_4_temperature
-        name: Tip
-      - entity: sensor.overig_inkbird_int_14_probe_1_food_1_temperature
-        name: Food 1
-      - entity: sensor.overig_inkbird_int_14_probe_1_food_3_temperature
-        name: Food 3
-      - entity: sensor.overig_inkbird_int_14_probe_1_food_2_temperature
-        name: Food 2
-      - entity: sensor.overig_inkbird_int_14_probe_1_ambient_temperature
-        name: Ambient
+      icon: mdi:thermometer-probe
+    - type: conditional
+      inkbird_model: int14_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14-BW
+      card:
+        type: entities
+        title: null
+        show_header_toggle: false
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_1_internal_temperature
+          name: Internal - control
+        - entity: sensor.overig_inkbird_int_14_probe_1_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_1
+          name: Target
+        - entity: sensor.bbq_probe_1_rate
+          name: Rate
+        - entity: sensor.overig_inkbird_int_14_probe_1_battery
+          name: Battery
+    - type: conditional
+      inkbird_model: int14s_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14S-BW
+      card:
+        type: entities
+        title: null
+        show_header_toggle: false
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_1_food_4_temperature
+          name: Food 4 - tip - control
+        - entity: sensor.overig_inkbird_int_14_probe_1_food_1_temperature
+          name: Food 1
+        - entity: sensor.overig_inkbird_int_14_probe_1_food_2_temperature
+          name: Food 2
+        - entity: sensor.overig_inkbird_int_14_probe_1_food_3_temperature
+          name: Food 3
+        - entity: sensor.overig_inkbird_int_14_probe_1_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_1
+          name: Target
+        - entity: sensor.bbq_probe_1_rate
+          name: Rate
+        - entity: sensor.overig_inkbird_int_14_probe_1_battery
+          name: Battery
+    - type: conditional
+      inkbird_model: int14_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14-BW
+      card:
+        type: history-graph
+        title: Last hour
+        hours_to_show: 1
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_1_internal_temperature
+          name: Internal
+        - entity: sensor.overig_inkbird_int_14_probe_1_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_1
+          name: Target
+    - type: conditional
+      inkbird_model: int14s_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14S-BW
+      card:
+        type: history-graph
+        title: Last hour
+        hours_to_show: 1
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_1_food_4_temperature
+          name: Tip
+        - entity: sensor.overig_inkbird_int_14_probe_1_food_1_temperature
+          name: Food 1
+        - entity: sensor.overig_inkbird_int_14_probe_1_food_2_temperature
+          name: Food 2
+        - entity: sensor.overig_inkbird_int_14_probe_1_food_3_temperature
+          name: Food 3
+        - entity: sensor.overig_inkbird_int_14_probe_1_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_1
+          name: Target
   - type: grid
     cards:
     - type: heading
       heading: Probe 2
       heading_style: title
-      icon: mdi:thermometer
-    - type: picture-elements
-      image: /local/int12e-probe-white.png
-      grid_options:
-        columns: full
-      elements:
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_2_food_4_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 11.7%
-          top: 29.5%
-          color: '#2478c8'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_2_food_1_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 27.1%
-          top: 74%
-          color: '#7669bf'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_2_food_3_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 37.7%
-          top: 29.5%
-          color: '#bd9411'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_2_food_2_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 46.6%
-          top: 74%
-          color: '#49aeba'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_2_ambient_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 87.4%
-          top: 29.5%
-          color: '#9344a1'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_2_food_4_temperature
-      name: Tip
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_2_food_1_temperature
-      name: Food 1
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_2_food_3_temperature
-      name: Food 3
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_2_food_2_temperature
-      name: Food 2
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_2_ambient_temperature
-      name: Ambient
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_2_battery
-      name: Probe battery
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: heading
-      icon: mdi:chart-timeline-variant
-      heading: Last hour
-      heading_style: title
-    - type: history-graph
-      hours_to_show: 1
-      entities:
-      - entity: sensor.overig_inkbird_int_14_probe_2_food_4_temperature
-        name: Tip
-      - entity: sensor.overig_inkbird_int_14_probe_2_food_1_temperature
-        name: Food 1
-      - entity: sensor.overig_inkbird_int_14_probe_2_food_3_temperature
-        name: Food 3
-      - entity: sensor.overig_inkbird_int_14_probe_2_food_2_temperature
-        name: Food 2
-      - entity: sensor.overig_inkbird_int_14_probe_2_ambient_temperature
-        name: Ambient
+      icon: mdi:thermometer-probe
+    - type: conditional
+      inkbird_model: int14_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14-BW
+      card:
+        type: entities
+        title: null
+        show_header_toggle: false
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_2_internal_temperature
+          name: Internal - control
+        - entity: sensor.overig_inkbird_int_14_probe_2_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_2
+          name: Target
+        - entity: sensor.bbq_probe_2_rate
+          name: Rate
+        - entity: sensor.overig_inkbird_int_14_probe_2_battery
+          name: Battery
+    - type: conditional
+      inkbird_model: int14s_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14S-BW
+      card:
+        type: entities
+        title: null
+        show_header_toggle: false
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_2_food_4_temperature
+          name: Food 4 - tip - control
+        - entity: sensor.overig_inkbird_int_14_probe_2_food_1_temperature
+          name: Food 1
+        - entity: sensor.overig_inkbird_int_14_probe_2_food_2_temperature
+          name: Food 2
+        - entity: sensor.overig_inkbird_int_14_probe_2_food_3_temperature
+          name: Food 3
+        - entity: sensor.overig_inkbird_int_14_probe_2_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_2
+          name: Target
+        - entity: sensor.bbq_probe_2_rate
+          name: Rate
+        - entity: sensor.overig_inkbird_int_14_probe_2_battery
+          name: Battery
+    - type: conditional
+      inkbird_model: int14_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14-BW
+      card:
+        type: history-graph
+        title: Last hour
+        hours_to_show: 1
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_2_internal_temperature
+          name: Internal
+        - entity: sensor.overig_inkbird_int_14_probe_2_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_2
+          name: Target
+    - type: conditional
+      inkbird_model: int14s_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14S-BW
+      card:
+        type: history-graph
+        title: Last hour
+        hours_to_show: 1
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_2_food_4_temperature
+          name: Tip
+        - entity: sensor.overig_inkbird_int_14_probe_2_food_1_temperature
+          name: Food 1
+        - entity: sensor.overig_inkbird_int_14_probe_2_food_2_temperature
+          name: Food 2
+        - entity: sensor.overig_inkbird_int_14_probe_2_food_3_temperature
+          name: Food 3
+        - entity: sensor.overig_inkbird_int_14_probe_2_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_2
+          name: Target
   - type: grid
     cards:
     - type: heading
       heading: Probe 3
       heading_style: title
-      icon: mdi:thermometer
-    - type: picture-elements
-      image: /local/int12e-probe-black.png
-      grid_options:
-        columns: full
-      elements:
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_3_food_4_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 11.7%
-          top: 29.5%
-          color: '#2478c8'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_3_food_1_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 27.1%
-          top: 74%
-          color: '#7669bf'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_3_food_3_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 37.7%
-          top: 29.5%
-          color: '#bd9411'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_3_food_2_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 46.6%
-          top: 74%
-          color: '#49aeba'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_3_ambient_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 87.4%
-          top: 29.5%
-          color: '#9344a1'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_3_food_4_temperature
-      name: Tip
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_3_food_1_temperature
-      name: Food 1
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_3_food_3_temperature
-      name: Food 3
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_3_food_2_temperature
-      name: Food 2
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_3_ambient_temperature
-      name: Ambient
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_3_battery
-      name: Probe battery
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: heading
-      icon: mdi:chart-timeline-variant
-      heading: Last hour
-      heading_style: title
-    - type: history-graph
-      hours_to_show: 1
-      entities:
-      - entity: sensor.overig_inkbird_int_14_probe_3_food_4_temperature
-        name: Tip
-      - entity: sensor.overig_inkbird_int_14_probe_3_food_1_temperature
-        name: Food 1
-      - entity: sensor.overig_inkbird_int_14_probe_3_food_3_temperature
-        name: Food 3
-      - entity: sensor.overig_inkbird_int_14_probe_3_food_2_temperature
-        name: Food 2
-      - entity: sensor.overig_inkbird_int_14_probe_3_ambient_temperature
-        name: Ambient
+      icon: mdi:thermometer-probe
+    - type: conditional
+      inkbird_model: int14_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14-BW
+      card:
+        type: entities
+        title: null
+        show_header_toggle: false
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_3_internal_temperature
+          name: Internal - control
+        - entity: sensor.overig_inkbird_int_14_probe_3_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_3
+          name: Target
+        - entity: sensor.bbq_probe_3_rate
+          name: Rate
+        - entity: sensor.overig_inkbird_int_14_probe_3_battery
+          name: Battery
+    - type: conditional
+      inkbird_model: int14s_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14S-BW
+      card:
+        type: entities
+        title: null
+        show_header_toggle: false
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_3_food_4_temperature
+          name: Food 4 - tip - control
+        - entity: sensor.overig_inkbird_int_14_probe_3_food_1_temperature
+          name: Food 1
+        - entity: sensor.overig_inkbird_int_14_probe_3_food_2_temperature
+          name: Food 2
+        - entity: sensor.overig_inkbird_int_14_probe_3_food_3_temperature
+          name: Food 3
+        - entity: sensor.overig_inkbird_int_14_probe_3_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_3
+          name: Target
+        - entity: sensor.bbq_probe_3_rate
+          name: Rate
+        - entity: sensor.overig_inkbird_int_14_probe_3_battery
+          name: Battery
+    - type: conditional
+      inkbird_model: int14_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14-BW
+      card:
+        type: history-graph
+        title: Last hour
+        hours_to_show: 1
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_3_internal_temperature
+          name: Internal
+        - entity: sensor.overig_inkbird_int_14_probe_3_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_3
+          name: Target
+    - type: conditional
+      inkbird_model: int14s_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14S-BW
+      card:
+        type: history-graph
+        title: Last hour
+        hours_to_show: 1
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_3_food_4_temperature
+          name: Tip
+        - entity: sensor.overig_inkbird_int_14_probe_3_food_1_temperature
+          name: Food 1
+        - entity: sensor.overig_inkbird_int_14_probe_3_food_2_temperature
+          name: Food 2
+        - entity: sensor.overig_inkbird_int_14_probe_3_food_3_temperature
+          name: Food 3
+        - entity: sensor.overig_inkbird_int_14_probe_3_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_3
+          name: Target
   - type: grid
     cards:
     - type: heading
       heading: Probe 4
       heading_style: title
-      icon: mdi:thermometer
-    - type: picture-elements
-      image: /local/int12e-probe-white.png
-      grid_options:
-        columns: full
-      elements:
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_4_food_4_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 11.7%
-          top: 29.5%
-          color: '#2478c8'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_4_food_1_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 27.1%
-          top: 74%
-          color: '#7669bf'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_4_food_3_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 37.7%
-          top: 29.5%
-          color: '#bd9411'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_4_food_2_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 46.6%
-          top: 74%
-          color: '#49aeba'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-      - type: state-label
-        entity: sensor.overig_inkbird_int_14_probe_4_ambient_temperature
-        tap_action:
-          action: more-info
-        style:
-          left: 87.4%
-          top: 29.5%
-          color: '#9344a1'
-          font-size: 14px
-          font-weight: '700'
-          line-height: '1'
-          white-space: nowrap
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_4_food_4_temperature
-      name: Tip
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_4_food_1_temperature
-      name: Food 1
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_4_food_3_temperature
-      name: Food 3
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_4_food_2_temperature
-      name: Food 2
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_4_ambient_temperature
-      name: Ambient
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_probe_4_battery
-      name: Probe battery
-      grid_options:
-        columns: full
-      features_position: bottom
-    - type: heading
-      icon: mdi:chart-timeline-variant
-      heading: Last hour
-      heading_style: title
-    - type: history-graph
-      hours_to_show: 1
-      entities:
-      - entity: sensor.overig_inkbird_int_14_probe_4_food_4_temperature
-        name: Tip
-      - entity: sensor.overig_inkbird_int_14_probe_4_food_1_temperature
-        name: Food 1
-      - entity: sensor.overig_inkbird_int_14_probe_4_food_3_temperature
-        name: Food 3
-      - entity: sensor.overig_inkbird_int_14_probe_4_food_2_temperature
-        name: Food 2
-      - entity: sensor.overig_inkbird_int_14_probe_4_ambient_temperature
-        name: Ambient
+      icon: mdi:thermometer-probe
+    - type: conditional
+      inkbird_model: int14_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14-BW
+      card:
+        type: entities
+        title: null
+        show_header_toggle: false
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_4_internal_temperature
+          name: Internal - control
+        - entity: sensor.overig_inkbird_int_14_probe_4_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_4
+          name: Target
+        - entity: sensor.bbq_probe_4_rate
+          name: Rate
+        - entity: sensor.overig_inkbird_int_14_probe_4_battery
+          name: Battery
+    - type: conditional
+      inkbird_model: int14s_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14S-BW
+      card:
+        type: entities
+        title: null
+        show_header_toggle: false
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_4_food_4_temperature
+          name: Food 4 - tip - control
+        - entity: sensor.overig_inkbird_int_14_probe_4_food_1_temperature
+          name: Food 1
+        - entity: sensor.overig_inkbird_int_14_probe_4_food_2_temperature
+          name: Food 2
+        - entity: sensor.overig_inkbird_int_14_probe_4_food_3_temperature
+          name: Food 3
+        - entity: sensor.overig_inkbird_int_14_probe_4_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_4
+          name: Target
+        - entity: sensor.bbq_probe_4_rate
+          name: Rate
+        - entity: sensor.overig_inkbird_int_14_probe_4_battery
+          name: Battery
+    - type: conditional
+      inkbird_model: int14_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14-BW
+      card:
+        type: history-graph
+        title: Last hour
+        hours_to_show: 1
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_4_internal_temperature
+          name: Internal
+        - entity: sensor.overig_inkbird_int_14_probe_4_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_4
+          name: Target
+    - type: conditional
+      inkbird_model: int14s_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14S-BW
+      card:
+        type: history-graph
+        title: Last hour
+        hours_to_show: 1
+        entities:
+        - entity: sensor.overig_inkbird_int_14_probe_4_food_4_temperature
+          name: Tip
+        - entity: sensor.overig_inkbird_int_14_probe_4_food_1_temperature
+          name: Food 1
+        - entity: sensor.overig_inkbird_int_14_probe_4_food_2_temperature
+          name: Food 2
+        - entity: sensor.overig_inkbird_int_14_probe_4_food_3_temperature
+          name: Food 3
+        - entity: sensor.overig_inkbird_int_14_probe_4_ambient_temperature
+          name: Ambient
+        - entity: input_number.inkbird_target_4
+          name: Target
 - title: Settings
   path: settings
   icon: mdi:cog
@@ -1274,90 +1134,120 @@ views:
   max_columns: 3
   background: '#16120f'
   header:
-    layout: responsive
+    layout: center
+    badges_position: bottom
+    badges_wrap: wrap
     card:
       type: markdown
       text_only: true
       content: |
-        {% set model = states('sensor.inkbird_int_14_configured_model') %}{% set probes = states('sensor.inkbird_int_14_physical_probe_count') %}{% set tr = states('sensor.inkbird_int_14_active_transport') %}{% set ble = is_state('binary_sensor.inkbird_int_14_ble_connected','on') %}{% set bb = states('sensor.overig_inkbird_int_14_base_battery') %}{% set upd = states('update.inkbird_int_update') %}
-        ## ⚙️ Settings
-        **{{ model }}** · {{ probes }} probes · base battery **{{ bb }}%**
-
-        {{ '🟢 Connected' if ble else '🟠 ' ~ tr }} · {{ '🔷 Integration update available' if upd == 'on' else '✅ Integration up to date' }}
+        ## Settings
+        Model-aware controls and diagnostics. Unsupported entities are omitted by the HACS strategy instead of being shown as unknown.
   sections:
   - type: grid
     cards:
     - type: heading
-      heading: Base station
+      heading: Overview
       heading_style: title
       icon: mdi:grill
-    - type: tile
-      entity: sensor.inkbird_int_14_configured_model
-      name: Model
-      icon: mdi:tag-outline
-    - type: tile
-      entity: binary_sensor.inkbird_int_14_base_charging
-      name: Charging
-      icon: mdi:power-plug
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_base_temperature
-      name: Base temperature
-      icon: mdi:thermometer
-    - type: tile
-      entity: sensor.inkbird_int_14_physical_probe_count
-      name: Probes detected
-      icon: mdi:counter
+    - type: entities
+      title: null
+      show_header_toggle: false
+      entities:
+      - entity: input_select.inkbird_dashboard_model
+        name: Dashboard layout
+      - entity: sensor.inkbird_int_14_configured_model
+        name: Integration model
+      - entity: sensor.inkbird_int_14_physical_probe_count
+        name: Physical probes
+      - entity: sensor.inkbird_int_14_mapped_live_temperature_channel_count
+        name: Live temperature channels
+      - entity: sensor.overig_inkbird_int_14_base_temperature
+        name: Base temperature
+      - entity: sensor.overig_inkbird_int_14_base_battery
+        name: Base battery
+      - entity: sensor.inkbird_int_14_model_support_status
+        name: Model support
   - type: grid
     cards:
     - type: heading
       heading: Connection
       heading_style: title
-      icon: mdi:bluetooth
-    - type: tile
-      entity: select.inkbird_int_14_transport_mode
-      name: Transport mode
-      icon: mdi:swap-horizontal
-      features:
-      - type: select-options
-      features_position: bottom
-    - type: tile
-      entity: sensor.inkbird_int_14_active_transport
-      name: Active transport
-      icon: mdi:transit-connection-variant
-    - type: tile
-      entity: binary_sensor.inkbird_int_14_ble_connected
-      name: Bluetooth
-      icon: mdi:bluetooth-connect
-    - type: tile
-      entity: binary_sensor.inkbird_int_14_wi_fi_connected
-      name: Wi-Fi
-      icon: mdi:wifi
-    - type: tile
-      entity: sensor.inkbird_int_14_battery_report_quality
-      name: Battery reporting
-      icon: mdi:signal-cellular-3
+      icon: mdi:connection
+    - type: entities
+      title: null
+      show_header_toggle: false
+      entities:
+      - entity: select.inkbird_int_14_transport_mode
+        name: Transport mode
+      - entity: sensor.inkbird_int_14_active_transport
+        name: Active transport
+      - entity: binary_sensor.inkbird_int_14_ble_connected
+        name: Bluetooth
+      - entity: binary_sensor.inkbird_int_14_wi_fi_connected
+        name: Wi-Fi
+      - entity: sensor.inkbird_int_14_local_lan_available
+        name: Local LAN available
+      - entity: sensor.inkbird_int_14_last_ble_update_epoch
+        name: Last BLE update
+      - entity: sensor.inkbird_int_14_last_lan_update_epoch
+        name: Last LAN update
+    - type: button
+      entity: button.inkbird_int_14_request_snapshot
+      name: Request fresh snapshot
+      icon: mdi:refresh
+  - type: grid
+    cards:
+    - type: heading
+      heading: Device controls
+      heading_style: title
+      icon: mdi:tune-vertical
+    - type: conditional
+      inkbird_model: int14_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14-BW
+      card:
+        type: entities
+        title: INT-14-BW
+        show_header_toggle: false
+        entities:
+        - entity: number.overig_inkbird_int_14_display_light_command
+          name: Display brightness
+        - entity: binary_sensor.inkbird_int_14_sound_enabled
+          name: Station sound
+        - entity: binary_sensor.inkbird_int_14_muted
+          name: Muted
+        - entity: sensor.inkbird_int_14_temperature_unit
+          name: Station temperature unit
+    - type: conditional
+      inkbird_model: int14s_bw
+      conditions:
+      - condition: state
+        entity: input_select.inkbird_dashboard_model
+        state: INT-14S-BW
+      card:
+        type: entities
+        title: INT-14S-BW - read-only
+        show_header_toggle: false
+        entities:
+        - entity: sensor.inkbird_int_14_display_light
+          name: Display brightness
+        - entity: sensor.inkbird_int_14_temperature_unit
+          name: Station temperature unit
+    - type: markdown
+      content: |
+        Display brightness is writable only when the integration exposes **Display Light Command**. Station sound is shown as status; a toggle is inserted automatically when a future integration version exposes a writable sound switch.
   - type: grid
     cards:
     - type: heading
       heading: Batteries
       heading_style: title
       icon: mdi:battery-heart-variant
-    - type: custom:battery-state-card
+    - type: entities
       title: null
-      sort:
-        by: state
-        desc: false
-      collapse: 0
-      secondary_info: '{last_changed}'
-      colors:
-        steps:
-        - value: 20
-          color: '#e8503a'
-        - value: 40
-          color: '#f2b441'
-        - value: 100
-          color: '#56c271'
-        gradient: true
+      show_header_toggle: false
       entities:
       - entity: sensor.overig_inkbird_int_14_base_battery
         name: Base station
@@ -1369,222 +1259,130 @@ views:
         name: Probe 3
       - entity: sensor.overig_inkbird_int_14_probe_4_battery
         name: Probe 4
+      - entity: sensor.inkbird_int_14_battery_report_quality
+        name: Report quality
+      - entity: sensor.inkbird_int_14_battery_data_age
+        name: Data age
+      - entity: sensor.inkbird_int_14_last_battery_transport
+        name: Source
   - type: grid
     cards:
     - type: heading
-      heading: Preferences
+      heading: Dashboard preferences
       heading_style: title
-      icon: mdi:tune
-    - type: tile
-      entity: input_select.bbq_style
-      name: Card style
-      icon: mdi:palette-outline
-      features:
-      - type: select-options
-      features_position: bottom
-    - type: tile
-      entity: input_select.bbq_accent
-      name: Accent colour
       icon: mdi:palette
-      features:
-      - type: select-options
-      features_position: bottom
-    - type: tile
-      entity: input_select.inkbird_unit
-      name: Temperature unit
-      icon: mdi:thermometer
-      features:
-      - type: select-options
-      features_position: bottom
-    - type: tile
-      entity: input_select.bbq_notify_target
-      name: Notification device
-      icon: mdi:bell-ring
-      features:
-      - type: select-options
-      features_position: bottom
-    - type: tile
-      entity: input_select.inkbird_active_probe
-      name: Active probe
-      icon: mdi:target
-      features:
-      - type: select-options
-      features_position: bottom
-    - type: tile
-      entity: input_boolean.bbq_show_help
-      name: Show help
-      icon: mdi:help-circle-outline
-      features:
-      - type: toggle
-      features_position: bottom
+    - type: entities
+      title: null
+      show_header_toggle: false
+      entities:
+      - entity: input_select.bbq_style
+        name: Card style
+      - entity: input_select.bbq_accent
+        name: Accent colour
+      - entity: input_select.inkbird_unit
+        name: Display unit
+      - entity: input_select.inkbird_active_probe
+        name: Active probe
+      - entity: input_boolean.bbq_show_help
+        name: Show diagnostics
+  - type: grid
+    cards:
+    - type: heading
+      heading: Alerts and announcements
+      heading_style: title
+      icon: mdi:bell-alert
+    - type: entities
+      title: null
+      show_header_toggle: false
+      entities:
+      - entity: input_boolean.bbq_battery_alerts
+        name: Low battery alerts
+      - entity: input_number.bbq_battery_threshold
+        name: Battery threshold
+      - entity: input_boolean.bbq_stall_alerts
+        name: Stall alerts
+      - entity: input_number.bbq_snooze_minutes
+        name: Snooze duration
+      - entity: input_select.bbq_notify_target
+        name: Notification device
+      - entity: input_boolean.bbq_tts_alerts
+        name: Spoken announcements
+      - entity: input_select.bbq_tts_speaker
+        name: Speaker
+      - entity: input_select.bbq_tts_engine
+        name: TTS engine
+    - type: horizontal-stack
+      cards:
+      - type: button
+        name: Test notification
+        icon: mdi:bell-check-outline
+        tap_action:
+          action: perform-action
+          perform_action: script.bbq_notify
+          data:
+            title: BBQ test
+            message: Notifications are working.
+            tag: inkbird_test
+            tts_message: This is a test announcement from your barbecue dashboard.
+      - type: button
+        name: Refresh devices
+        icon: mdi:refresh
+        tap_action:
+          action: perform-action
+          perform_action: script.bbq_refresh_media_targets
+  - type: grid
+    cards:
     - type: conditional
       conditions:
       - condition: state
         entity: input_boolean.bbq_show_help
         state: 'on'
       card:
-        type: markdown
-        content: |
-          **Card style** switches the Cook Control cards between the solid dark look and a transparent one that lets a dashboard background image show through. It changes nothing else — the Probes and Settings pages follow your Home Assistant theme either way.
+        type: vertical-stack
+        cards:
+        - type: heading
+          heading: Advanced diagnostics
+          heading_style: title
+          icon: mdi:stethoscope
+        - type: entities
+          title: null
+          show_header_toggle: false
+          entities:
+          - entity: update.inkbird_int_update
+            name: Integration update
+          - entity: sensor.inkbird_int_14_configured_model_profile
+            name: Model profile
+          - entity: sensor.inkbird_int_14_expected_temperature_channel_count
+            name: Expected channels
+          - entity: sensor.inkbird_int_14_probe_layout
+            name: Probe layout
+          - entity: sensor.inkbird_int_14_last_parsed_transport
+            name: Last parsed transport
+          - entity: sensor.inkbird_int_14_local_lan_last_error
+            name: LAN error
+          - entity: sensor.inkbird_int_14_last_ble_error
+            name: BLE error
+          - entity: sensor.overig_inkbird_int_14_ble_diagnostic_status
+            name: Last BLE diagnostic
+        - type: button
+          entity: button.overig_inkbird_int_14_capture_ble_diagnostics
+          name: Run BLE diagnostic
+          icon: mdi:play-circle-outline
   - type: grid
     cards:
     - type: heading
-      heading: Alerts
-      heading_style: title
-      icon: mdi:bell-alert-outline
-    - type: tile
-      entity: input_boolean.bbq_battery_alerts
-      name: Low battery alerts
-      icon: mdi:battery-alert
-      features:
-      - type: toggle
-      features_position: bottom
-    - type: tile
-      entity: input_number.bbq_battery_threshold
-      name: Battery threshold
-      icon: mdi:battery-alert-variant-outline
-      features:
-      - type: numeric-input
-        style: slider
-      features_position: bottom
-    - type: tile
-      entity: input_boolean.bbq_stall_alerts
-      name: Stall alerts
-      icon: mdi:trending-neutral
-      features:
-      - type: toggle
-      features_position: bottom
-    - type: tile
-      entity: input_number.bbq_snooze_minutes
-      name: Snooze duration
-      icon: mdi:alarm-snooze
-      features:
-      - type: numeric-input
-        style: slider
-      features_position: bottom
-    - type: conditional
-      conditions:
-      - condition: state
-        entity: input_boolean.bbq_show_help
-        state: 'on'
-      card:
-        type: markdown
-        content: |
-          **Low battery alerts** watch every probe and fire once a battery drops below the threshold. **Stall alerts** fire when a probe stops climbing for 45 minutes while still below target — the classic brisket stall, and the moment you decide whether to wrap. **Snooze duration** is how long the Snooze button on a push notification waits before reminding you; it also sets the button's label.
-    - type: button
-      name: Send test notification
-      icon: mdi:bell-check-outline
-      tap_action:
-        action: perform-action
-        perform_action: script.bbq_notify
-        data:
-          title: 🔔 BBQ test
-          message: If you can read this, notifications are working.
-          tag: inkbird_test
-          tts_message: This is a test announcement from your barbecue dashboard.
-  - type: grid
-    cards:
-    - type: heading
-      heading: Spoken announcements
-      heading_style: title
-      icon: mdi:bullhorn
-    - type: tile
-      entity: input_boolean.bbq_tts_alerts
-      name: Announce out loud
-      icon: mdi:bullhorn
-      features:
-      - type: toggle
-      features_position: bottom
-    - type: tile
-      entity: input_select.bbq_tts_speaker
-      name: Speaker
-      icon: mdi:speaker
-      features:
-      - type: select-options
-      features_position: bottom
-    - type: tile
-      entity: input_select.bbq_tts_engine
-      name: TTS engine
-      icon: mdi:text-to-speech
-      features:
-      - type: select-options
-      features_position: bottom
-    - type: conditional
-      conditions:
-      - condition: state
-        entity: input_boolean.bbq_show_help
-        state: 'on'
-      card:
-        type: markdown
-        content: |
-          Announcements are spoken through any media player. Pick a **Speaker** and a **TTS engine** from the dropdowns — they list the devices you actually have, refreshed at startup and hourly, so you cannot mistype one. Each alert has its own spoken wording. Set either to **none**, or the toggle off, and nothing is spoken.
-    - type: button
-      name: Refresh device lists
-      icon: mdi:refresh
-      tap_action:
-        action: perform-action
-        perform_action: script.bbq_refresh_media_targets
-  - type: grid
-    cards:
-    - type: heading
-      heading: Integration
-      heading_style: title
-      icon: mdi:puzzle-outline
-    - type: tile
-      entity: update.inkbird_int_update
-      name: Inkbird INT version
-      icon: mdi:update
-      features:
-      - type: update-actions
-      features_position: bottom
-    - type: tile
-      entity: sensor.inkbird_int_14_model_support_status
-      name: Model support
-      icon: mdi:shield-check-outline
-    - type: tile
-      entity: sensor.overig_inkbird_int_14_ble_diagnostic_status
-      name: Last BLE diagnostic
-      icon: mdi:stethoscope
-    - type: tile
-      entity: button.overig_inkbird_int_14_capture_ble_diagnostics
-      name: Run BLE diagnostic
-      icon: mdi:play-circle-outline
-    - type: tile
-      entity: button.inkbird_int_14_request_snapshot
-      name: Request snapshot
-      icon: mdi:camera-outline
-  - type: grid
-    cards:
-    - type: heading
-      heading: Links
-      heading_style: title
-      icon: mdi:link-variant
-    - type: markdown
-      content: |
-        {% set integration_name = 'Inkbird INT' %}
-        {% set integration_domain = 'inkbird_int14' %}
-        {% set gh_integration = 'https://github.com/zampix1/ha-inkbird-int14' %}
-        {% set gh_dashboard = 'https://github.com/remb0/inkbird-dashboard' %}
-        - 🍖 [food.remb0.nl](http://food.remb0.nl)
-        - 🧩 Integration: **{{ integration_name }}** (`{{ integration_domain }}`) — [GitHub]({{ gh_integration }})
-        - 📊 Dashboard: [GitHub]({{ gh_dashboard }})
-        - 🔬 Probes page adapted from the [INT-12E-BW community dashboard]({{ gh_integration }}/blob/main/docs/int12e_dashboard.md)
-  - type: grid
-    cards:
-    - type: heading
-      heading: Setup
+      heading: Setup and credits
       heading_style: title
       icon: mdi:wrench-outline
-    - type: tile
-      entity: input_text.inkbird_sensor_prefix
-      name: Sensor prefix
-      icon: mdi:identifier
-    - type: conditional
-      conditions:
-      - condition: state
-        entity: input_boolean.bbq_show_help
-        state: 'on'
-      card:
-        type: markdown
-        content: |
-          The **sensor prefix** is the shared start of your Inkbird entity ids, without a trailing underscore. Changing it immediately re-points the four probe cards, the status sensors and every automation. It cannot reach the rate sensors or the Probes page — Home Assistant fixes those entity ids when the config loads, not when they render — so run `scripts/configure.py` once for those.
+    - type: entities
+      title: null
+      show_header_toggle: false
+      entities:
+      - entity: input_text.inkbird_sensor_prefix
+        name: Sensor prefix
+    - type: markdown
+      content: |
+        - Integration: [zampix1/ha-inkbird-int14](https://github.com/zampix1/ha-inkbird-int14)
+        - INT-14-BW integration and original Cook Control foundation: [boris327/ha-inkbird-int14bw](https://github.com/boris327/ha-inkbird-int14bw)
+        - Dashboard: [remb0/inkbird-dashboard](https://github.com/remb0/inkbird-dashboard)
+        - Multi-sensor probe layout adapted from the [INT-12E-BW community dashboard](https://github.com/zampix1/ha-inkbird-int14/blob/main/docs/int12e_dashboard.md)

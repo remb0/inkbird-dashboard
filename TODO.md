@@ -7,21 +7,21 @@ Loosely ordered by "how much better does this make the dashboard per hour of wor
 ## 🐞 Fix first
 
 - [x] ~~**The "Live · via Bluetooth" pill is hardcoded.**~~ Now driven by `sensor.inkbird_int_14_active_transport` + `binary_sensor.inkbird_int_14_ble_connected`: green *Live*, pulsing amber *Connecting* (transport is `ble_waiting`, or claims `ble` while the BLE binary sensor is `off`), red *Offline*.
-- [ ] **"BLE 5.4" in the base-station card is still static text.** The header pill now reports the real transport, but the base-station card below it does not. Point its "Connection" field at the same `active_transport` sensor, or drop the field.
-- [ ] **`ready` can flicker.** A probe hovering exactly on its target re-triggers the notification every time it crosses back and forth. Add `for: "00:00:30"` to the state triggers, or a small hysteresis in the template sensor.
+- [x] ~~**"BLE 5.4" in the base-station card is still static text.**~~ The duplicate base-station card is gone; the compact header reads the configured model, active transport, active probes, base battery and sound status.
+- [x] ~~**`ready` can flicker.**~~ Ready and rest-reminder triggers now require the state to remain stable for 30 seconds before firing.
 - [x] ~~**Recipe buttons always print `°C`.**~~ They convert with the unit toggle now, like the probe cards.
 - [x] ~~**The 6-column recipe row does not fold on mobile.**~~ Both the recipe row and the probe grid use `repeat(auto-fit, minmax(…))` via card-mod, so they reflow instead of squeezing.
 
 ## 📊 Worth adding
 
-- [x] ~~**Probe battery levels.**~~ A colour-coded percentage under each card's P1–P4 badge, plus bar gauges for all four on the Settings page.
+- [x] ~~**Probe battery levels.**~~ A colour-coded percentage under each card's P1–P4 badge, plus a compact Settings entity list.
 - [x] ~~**Low probe battery warning.**~~ Automation with a threshold slider and an on/off toggle, both on the Settings page.
 - [ ] **Temperature history on Cook Control.** The Probes page now has a one-hour `history-graph` per probe, but Cook Control has none. A single card there showing all four probes over 12 hours turns it from a status page into a cook log — the classic brisket stall becomes visible instead of worrying.
 - [x] ~~**ETA to target.**~~ Four `derivative` sensors feed an "≈ 1 h 40 m" line on each probe card. Hidden when the probe is not actually climbing, rather than showing a nonsense number.
 - [x] ~~**Stall detection.**~~ Fires on ±1 °C/h for 45 minutes while the probe is still `heating`.
-- [x] ~~**Surface the ambient and extra food channels.**~~ The Probes page shows all five channels of all four probes.
+- [x] ~~**Surface the ambient and extra food channels.**~~ The Probes page shows Internal + Ambient for INT-14-BW or all five channels for INT-14S-BW.
 - [ ] **Act on the ambient reading, don't just show it.** Displaying pit temperature is not the same as alerting on it — a "grate above 150 °C" or "fire is dying" notification is where the value is.
-- [ ] **Verify the physical channel mapping.** Upstream has only confirmed `food_4` as the tip; `food_1`–`food_3` follow the community layout and are unverified. Cook Control targets `food_1`, which may not be the deepest point of the meat. Worth an ice-bath / boiling-water test to pin down, and worth feeding back upstream.
+- [ ] **Verify the middle physical channel mapping.** Upstream confirms `food_4` as the tip and Cook Control now uses it. `food_1`–`food_3` are parsed but their exact positions remain approximate; an ice-bath / boiling-water test would still improve the diagnostic labels.
 - [x] ~~**Rest reminder.**~~ `input_number.bbq_rest_minutes`, 0 = off, set in the custom recipe form.
 - [x] ~~**Actionable notifications.**~~ Snooze / Dismiss buttons, with a handler automation. The snooze duration is a Settings slider and is echoed in the button label; snooze re-checks the probe is still `ready` before re-notifying.
 - [x] ~~**Doneness presets for steak.**~~ Superseded by the custom recipe form — any target, any name, any probe.

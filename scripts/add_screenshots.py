@@ -29,7 +29,7 @@ END = "<!-- SCREENSHOTS:END -->"
 # filename -> caption, in the order they should appear
 WANTED = [
     ("cook-control.png", "Cook Control — live probe gauges, alerts and recipe presets"),
-    ("probes.png", "Probes — every channel of every probe, over the probe artwork"),
+    ("probes.png", "Probes — compact model-aware channel lists and history"),
     ("settings.png", "Settings — device health, alerts, announcements and setup"),
 ]
 

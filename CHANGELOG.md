@@ -10,8 +10,33 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-08-06
+
 ### Added
 
+- **One dashboard for INT-14-BW and INT-14S-BW.** The strategy reads the model
+  selected in the Inkbird integration, accepts an optional `model:` override,
+  and renders two or five temperature channels per probe as appropriate.
+- **Model-aware control temperatures.** Four stable template sensors select
+  Internal on INT-14-BW and Food 4/tip on INT-14S-BW. Status, alerts, rates,
+  ETA, stall detection and snoozed notifications now share that same source.
+- **Direct target editing and live rates** in every Cook Control tile. Tapping
+  a tile opens the target helper; the existing +/- buttons remain available.
+- **Capability-aware device controls.** Writable display brightness is shown
+  for INT-14-BW, INT-14S-BW brightness is labelled read-only, and station sound
+  is shown as status. A writable sound switch is inserted automatically when a
+  future integration release exposes one.
+- **Boris Pustilnik's INT-14-BW project is now credited as a foundation** for
+  the Cook Control design and direct-target/trend interaction.
+- **Transport-aware Settings health dashboard.** Bluetooth, local Wi-Fi/Tuya
+  LAN and optional cloud history now have separate status blocks with active
+  path, availability, update freshness and last-error information. Missing
+  diagnostics degrade to explanatory text for older integration versions and
+  profiles that do not expose a transport.
+- **Device capability and battery-health summaries** on Settings: configured
+  profile, expected versus mapped temperature channels, probe layout, battery
+  report quality, data age and the transport that supplied the last battery
+  snapshot.
 - **TTS speaker and engine are now dropdowns**, not free-text fields. They list
   the `media_player` and `tts` entities you actually have — refreshed at
   startup, hourly, and by a **Refresh device lists** button — so you pick a
@@ -39,6 +64,22 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ### Changed
 
+- The duplicate full-size base-station card has been replaced by one compact
+  header with model, active probe count, honest transport state, base battery
+  quality and sound status.
+- The Probes page now uses compact native entity lists and history graphs:
+  two channels for INT-14-BW or five for INT-14S-BW, with an editable target,
+  rate and battery in each probe group.
+- Settings is now seven compact entity-list sections. Missing profile entities
+  are removed by the strategy instead of rendering `unknown` tiles; advanced
+  diagnostics stay behind the Show diagnostics toggle.
+- Rate sensors now derive from stable model-aware template sensors and no
+  longer need their install-specific source rewritten by `configure.py`.
+- Settings now leads with connection health, then local LAN, BLE, cloud
+  history, device capabilities and batteries. Preferences, alerts and TTS are
+  unchanged; low-level integration details moved to **Troubleshooting**.
+- The Cook Control base-station card now reads the configured model and active
+  transport instead of printing the static `INT-14S-BW` / `BLE 5.4` pair.
 - The custom-recipe **Apply** and **Cancel** buttons now sit on the same
   reflowing row as the Notify and Announce fields, instead of a separate row
   underneath.
@@ -52,6 +93,8 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ### Fixed
 
+- Ready and rest-reminder automations now require a stable ready state for 30
+  seconds, preventing repeated notifications when a probe flickers at target.
 - **Restored the Settings page**, which had drifted live into six sections —
   two empty, Alerts and Spoken announcements merged into one, and TTS tiles
   still pointing at the deleted `input_text` helpers. Rebuilt from the repo,
@@ -231,7 +274,8 @@ raw export of one person's dashboard to something installable.
 - Initial export of the working dashboard: Cook Control view, a Settings
   subview, two automations and a prose description of the helpers.
 
-[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/remb0/inkbird-dashboard/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/remb0/inkbird-dashboard/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/remb0/inkbird-dashboard/releases/tag/v1.0.0
 [0.1.0]: https://github.com/remb0/inkbird-dashboard/releases/tag/v0.1.0

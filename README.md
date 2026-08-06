@@ -1,7 +1,7 @@
 <h1 align="center">🔥 Inkbird BBQ Dashboard</h1>
 
 <p align="center">
-  A Home Assistant dashboard for the <b>Inkbird INT-14S-BW</b> wireless BBQ thermometer.<br>
+  One model-aware Home Assistant dashboard for the <b>Inkbird INT-14-BW</b> and <b>INT-14S-BW</b>.<br>
   Live probe gauges with an ETA, recipe presets, stall detection, and a push you can snooze.
 </p>
 
@@ -13,7 +13,7 @@
   <img alt="Home Assistant" src="https://img.shields.io/badge/Home%20Assistant-2024.10%2B-41BDF5?logo=homeassistant&logoColor=white">
   <img alt="HACS" src="https://img.shields.io/badge/HACS-custom%20repository-41BDF5?logo=homeassistantcommunitystore&logoColor=white">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-orange">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.2.0-orange">
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@
 <summary align="center">More screenshots</summary>
 
 <p align="center">
-  <img alt="Probes — every channel of every probe, over the probe artwork" src="docs/images/probes.png">
+  <img alt="Probes — compact model-aware channel lists and history" src="docs/images/probes.png">
 </p>
 
 <p align="center">
@@ -49,20 +49,19 @@
 |---|---|
 | 🌡️ **Four probe cards** | Live temperature on a 270° arc gauge, colour-coded by state — grey `idle` · amber `heating` · orange `close` · green `ready` |
 | 🔋 **Per-probe battery** | A bare colour-coded percentage under each card's P1–P4 badge — red below 20 %, amber below 40 % |
-| 📶 **Real connection status** | The header pill reads the actual transport — *Live · Bluetooth*, a pulsing *Connecting*, or red *Offline* — instead of assuming everything is fine |
+| 📶 **Compact live header** | Model, active probes, transport, base battery and sound status in one row — *Bluetooth*, *Wi-Fi LAN*, *History*, *Connecting* or *Offline* |
 | 🥩 **Recipe presets** | One tap writes name + target onto the selected probe — 🐄 Brisket 93 °C, 🍗 Chicken 74 °C, 🥩 Medium Steak 57 °C, 🐖 Pork Ribs 90 °C, 🐟 Salmon 52 °C |
 | 🧪 **Custom recipe** | A sixth button opens a form: name, target, probe, rest reminder, where to notify and whether to announce it |
 | 🥗 **Rest reminder** | Optional second alert once the meat has rested — carryover cooking means "ready" is not "serve now" |
 | 🔔 **Ready notification** | Persistent notification plus an optional phone/watch/TV target, with **Snooze** and **Dismiss** buttons on the push |
 | 🔊 **Spoken announcements** | Optional TTS to any speaker — "Your Beef Brisket is ready" — with its own wording, not the emoji version |
-| ⏳ **ETA to target** | "≈ 1 h 40 m" on each probe card, from a rate-of-change sensor rather than a guess |
+| ⏳ **Rate + ETA** | Each tile shows the model-aware rate in °C/h and an ETA — Internal on INT-14-BW, Food 4/tip on INT-14S-BW |
 | 😐 **Stall detection** | Tells you when a probe has been flat for 45 minutes while still climbing — the moment you decide whether to wrap |
 | 🪫 **Low battery alerts** | Warns before a probe quits at hour six, with a threshold you set and a toggle to silence it |
-| 🎛️ **Base station card** | Battery level and an SVG rendering of the INT-14 base |
 | 🚨 **Alerts card** | Rolls every probe that is `close` or `ready` into one summary at the top, and hides itself when there is nothing to say |
 | 🇺🇸 **°C / °F toggle** | Display-only unit switch — no need to reconfigure the device |
-| 🔬 **Probes page** | All five channels of every probe — tip, three food points and ambient — laid over probe artwork, plus per-channel tiles and a one-hour history graph |
-| ⚙️ **Settings page** | Live device summary over nine sections — device, connection, batteries, preferences, alerts, announcements, integration health, links and setup |
+| 🔬 **Model-aware Probes page** | Compact entity lists: two channels per INT-14-BW probe or five per INT-14S-BW probe, editable targets and one-hour history |
+| ⚙️ **Settings page** | Compact entity lists that omit unsupported controls instead of filling the page with `unknown` |
 
 ### Pages
 
@@ -79,21 +78,19 @@ Cook Control answers "is it done yet?" at a glance. Probes answers "what is actu
 <details>
 <summary>What's on the Settings page</summary>
 
-A live header line (model · probe count · base battery · connection · whether an integration update is waiting), then:
+A compact settings view, in this order:
 
 In the order they appear:
 
 | Section | Shows |
 |---|---|
-| **Base station** | Model, charging state, base temperature, probes detected |
-| **Connection** | Transport mode selector, active transport, Bluetooth and Wi-Fi connectivity, battery-reporting freshness |
-| **Batteries** | Base station and all four probes in one `battery-state-card`, colour-graded by level |
-| **Preferences** | Temperature unit, **card style**, **accent colour**, notification device, active probe, **Show help** |
-| **Alerts** | Low-battery toggle + threshold slider, stall-detection toggle, snooze duration, **test-notification button** |
-| **Spoken announcements** | TTS on/off, speaker and engine (both **dropdowns** of your real devices), a refresh button |
-| **Integration** | Version + update button, model support status, last BLE diagnostic, and buttons to run a diagnostic or request a snapshot |
-| **Links** | Integration, dashboard and the community dashboard the Probes page came from |
-| **Setup** | Sensor prefix — retarget the dashboard at a different Inkbird without editing files |
+| **Overview** | Dashboard model, integration model, probe/channel count, base temperature/battery and support level |
+| **Connection** | Transport mode, active path and only the connection entities this profile exposes |
+| **Device controls** | Writable display brightness on INT-14-BW; read-only brightness on INT-14S-BW; sound status or a writable switch when upstream exposes one |
+| **Batteries** | Base station and probes in one compact list, plus quality, age and source when available |
+| **Dashboard preferences** | Layout override, temperature unit, style, accent and active probe |
+| **Alerts and announcements** | Battery/stall controls, notification target, TTS devices and test buttons |
+| **Advanced diagnostics** | Hidden until **Show diagnostics** is enabled |
 
 Turning **Show help** on reveals a paragraph under Alerts, Spoken announcements and Setup explaining what each one actually does — handy the first time, out of the way afterwards.
 
@@ -105,10 +102,10 @@ It is a native `sections` view built from stock cards — no `card-mod`, so it s
 
 | Requirement | Where to get it |
 |---|---|
-| Inkbird **INT-14S-BW** (or a sibling INT-14 model) | [inkbird.com](https://inkbird.com) |
+| Inkbird **INT-14-BW** or **INT-14S-BW** | [inkbird.com](https://inkbird.com) |
 | **Inkbird INT** custom integration (`inkbird_int14`) | [zampix1/ha-inkbird-int14](https://github.com/zampix1/ha-inkbird-int14) — install via HACS as a custom repository |
-| Three frontend cards | button-card, card-mod, battery-state-card — all from HACS. [Step 1](#1-frontend-cards--needed-either-way) has the links |
-| A Bluetooth adapter or ESPHome BT proxy in range of the base station | — |
+| Two frontend cards | button-card and card-mod — both from HACS. [Step 1](#1-frontend-cards--needed-either-way) has the links |
+| A Bluetooth adapter or ESPHome BT proxy in range; optionally local Tuya-LAN credentials for supported models | — |
 
 ## 🚀 Install
 
@@ -116,13 +113,12 @@ It is a native `sections` view built from stock cards — no `card-mod`, so it s
 
 ### 1. Frontend cards — needed either way
 
-Install all three from **HACS → Frontend**:
+Install both from **HACS → Frontend**:
 
 | Card | Used by |
 |---|---|
 | [button-card](https://github.com/custom-cards/button-card) | Probe gauges, header, recipe buttons |
 | [card-mod](https://github.com/thomasloven/lovelace-card-mod) | The dark theme and the responsive grids |
-| [battery-state-card](https://github.com/maxwroc/battery-state-card) | The Batteries section on Settings |
 
 ### 2. The dashboard
 
@@ -145,6 +141,15 @@ views: []
 ```
 
 That is the entire dashboard config. The strategy builds all three views at render time and finds your entity ids in the entity registry, so **you can skip step 3 completely**.
+
+It also reads the model selected in the Inkbird integration. An optional override is available for troubleshooting:
+
+```yaml
+strategy:
+  type: custom:inkbird-bbq
+  model: int14_bw   # or int14s_bw; omit for automatic detection
+views: []
+```
 
 If discovery guesses wrong — more than one Inkbird, or an unusual naming scheme — pin it:
 
@@ -182,7 +187,7 @@ python3 scripts/configure.py --prefix sensor.kitchen_inkbird_int_14
 
 That rewrites all three files in one pass (~175 ids) and verifies the YAML and JSON dashboards still match. Add `--dry-run` to preview.
 
-There is also a **Sensor prefix** field on the Settings page. It re-points the probe cards, the status sensors and every automation live, with no restart — but it cannot reach the `derivative` rate sensors or the Probes page, because Home Assistant resolves a `source:` and a native card's `entity:` when the config *loads*, not when they render. The script covers those.
+There is also a **Sensor prefix** field on Settings. It re-points the model-aware control sensors, statuses and automations live. The derivative rate sensors now use stable control sensors, so they no longer need an install-specific source. The script still rewrites literal entities on the manual Probes-page route.
 
 <details>
 <summary>The other two flags</summary>
@@ -217,19 +222,7 @@ Everything in the package can equally be built under **Settings → Devices & Se
 
 </details>
 
-### 5. Add the probe artwork (Probes page)
-
-The Probes page lays temperature readings over a picture of a probe. Home Assistant serves those from `/config/www/`, and both files ship in this repo:
-
-```bash
-cp www/*.png /config/www/
-```
-
-Odd-numbered probes use the black artwork, even-numbered the white. Everything else on the page — tiles, history graphs, the temperature values themselves — works without the images; you will just get a broken-image box where the probe should be.
-
-> The artwork is INT-12E-BW, drawn by the community contributor credited below and redistributed here under upstream's MIT licence. It is close enough to the INT-14 probes to read correctly, but it is not a picture of your exact hardware. See [`www/README.md`](www/README.md).
-
-### 6. Point notifications at your phone
+### 5. Point notifications at your phone
 
 Out of the box only a persistent notification is sent. Every alert in this package routes through one script, **`script.bbq_notify`** — add a branch to its `choose:` block and a matching option to `input_select.bbq_notify_target`, and all three alerts use it. You do this once, not once per automation. A worked example is in [`docs/HELPERS.md`](docs/HELPERS.md#notification-routing).
 
@@ -250,7 +243,7 @@ inkbird-dashboard/
 │   ├── test_strategy.mjs      # runs the strategy against a fake install
 │   └── add_screenshots.py     # wires docs/images/*.png into the README
 ├── www/
-│   └── int12e-probe-*.png     # ← copy to <config>/www/ for the Probes page
+│   └── int12e-probe-*.png     # legacy/reference probe artwork
 ├── docs/
 │   ├── HELPERS.md             # every entity explained, for UI-based setup
 │   └── images/                # screenshots
@@ -289,16 +282,16 @@ Editing the dashboard by hand and installing through HACS are not exclusive — 
 This dashboard stands on other people's work:
 
 - **[Home Assistant](https://www.home-assistant.io/)** — the platform everything runs on.
-- **[zampix1/ha-inkbird-int14](https://github.com/zampix1/ha-inkbird-int14)** — the `inkbird_int14` custom integration that talks to the thermometer over BLE. Without it there are no probe sensors and this dashboard has nothing to show. All device communication, probe mapping and the update entity come from there.
-- **[custom-cards/button-card](https://github.com/custom-cards/button-card)** by RomRider — every probe card, the header, the base-station card and the recipe buttons are `custom:button-card` templates. The gauges and device illustrations are inline SVG rendered through its `custom_fields`.
+- **[zampix1/ha-inkbird-int14](https://github.com/zampix1/ha-inkbird-int14)** — the hybrid/local-first `inkbird_int14` custom integration. It supplies BLE, supported local Tuya-LAN and optional read-only cloud-history data. Without it there are no probe sensors and this dashboard has nothing to show. All device communication, probe mapping and the update entity come from there.
+- **[boris327/ha-inkbird-int14bw](https://github.com/boris327/ha-inkbird-int14bw)** by Boris Pustilnik — the original INT-14-BW integration and Cook Control design foundation. The compact header, direct target editing and trend-oriented probe layout build on that MIT-licensed work.
+- **[custom-cards/button-card](https://github.com/custom-cards/button-card)** by RomRider — the probe cards, compact header and recipe buttons are `custom:button-card` templates. The gauges and probe illustrations are inline SVG rendered through its `custom_fields`.
 - **[thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)** — restyles the stock markdown and grid cards to match the dark charcoal/ember theme.
-- **[@Nexus1212](https://github.com/Nexus1212)** — the **Probes** page is a direct adaptation of their INT-12E-BW community dashboard, shared in [Discussion #3](https://github.com/zampix1/ha-inkbird-int14/discussions/3#discussioncomment-17664834) and documented at [`docs/int12e_dashboard.md`](https://github.com/zampix1/ha-inkbird-int14/blob/main/docs/int12e_dashboard.md). The channel order, the label colours, the percentage positions of each reading and the probe artwork are all theirs; this repo only extends the single-probe card to all four INT-14 probes. It uses stock Home Assistant cards — no custom frontend card needed.
-- **[maxwroc/battery-state-card](https://github.com/maxwroc/battery-state-card)** — the Batteries section on the Settings page.
+- **[@Nexus1212](https://github.com/Nexus1212)** — the multi-sensor channel understanding and original probe page came from their INT-12E-BW community dashboard, shared in [Discussion #3](https://github.com/zampix1/ha-inkbird-int14/discussions/3#discussioncomment-17664834) and documented at [`docs/int12e_dashboard.md`](https://github.com/zampix1/ha-inkbird-int14/blob/main/docs/int12e_dashboard.md). The current page keeps the channel insight but uses compact native entity lists.
 - **[Material Design Icons](https://pictogrammers.com/library/mdi/)** — the `mdi:` icons.
-- **Inkbird** — the [INT-14S-BW](https://inkbird.com) hardware and its display, which the base-station SVG is drawn after.
+- **Inkbird** — the INT-14-BW and INT-14S-BW hardware.
 - The settings-page layout (version tile + link card built from Jinja variables) reuses the pattern from the author's Zendure configuration dashboard.
 
-Not affiliated with or endorsed by Inkbird. "Inkbird" and "INT-14S-BW" are trademarks of their respective owner; this is an unofficial community dashboard.
+Not affiliated with or endorsed by Inkbird. "Inkbird", "INT-14-BW" and "INT-14S-BW" are trademarks of their respective owner; this is an unofficial community dashboard.
 
 ## 📦 How the HACS install works
 
@@ -315,7 +308,7 @@ CI fails if `dist/` is stale or the strategy stops resolving ids.
 
 > **Note on the install link:** HACS's category enum is `appdaemon`, `integration`, `plugin`, `python_script`, `template`, `theme`. The UI calls this type **Dashboard**, but the URL parameter is still `plugin` — `category=dashboard` returns *"Repository not found"*.
 
-It still needs button-card, card-mod and battery-state-card — the strategy generates a config that uses them, it does not render anything itself. Dropping that dependency means writing real custom card elements, which is on the roadmap.
+It still needs button-card and card-mod — the strategy generates a config that uses them, it does not render everything itself.
 
 ## 🗺️ Roadmap
 
