@@ -300,7 +300,9 @@ template:
           {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
           {% set model = states('sensor.inkbird_int_14_configured_model') %}
           {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
-          {{ states(p ~ '_probe_1_' ~ ('internal' if bw else 'food_4') ~ '_temperature') not in ['unknown', 'unavailable', ''] }}
+          {% set e1 = p ~ '_probe_1_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
+          {% set e2 = p ~ '_probe_1_food_1_temperature' %}
+          {{ states(e1) not in ['unknown', 'unavailable', ''] or states(e2) not in ['unknown', 'unavailable', ''] }}
         state: >
           {% set p = states('input_text.inkbird_sensor_prefix') %}
           {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
@@ -308,8 +310,10 @@ template:
           {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
           {% set model = states('sensor.inkbird_int_14_configured_model') %}
           {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
-          {% set e = p ~ '_probe_1_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
-          {% set v = states(e) | float %}
+          {% set e1 = p ~ '_probe_1_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
+          {% set e2 = p ~ '_probe_1_food_1_temperature' %}
+          {% set e = e1 if states(e1) not in ['unknown', 'unavailable', ''] else e2 %}
+          {% set v = states(e) | float(0) %}
           {{ ((v - 32) * 5 / 9) | round(2) if state_attr(e, 'unit_of_measurement') in ['°F', 'F'] else v }}
 
       - name: BBQ Probe 2 Control Temperature
@@ -323,7 +327,9 @@ template:
           {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
           {% set model = states('sensor.inkbird_int_14_configured_model') %}
           {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
-          {{ states(p ~ '_probe_2_' ~ ('internal' if bw else 'food_4') ~ '_temperature') not in ['unknown', 'unavailable', ''] }}
+          {% set e1 = p ~ '_probe_2_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
+          {% set e2 = p ~ '_probe_2_food_1_temperature' %}
+          {{ states(e1) not in ['unknown', 'unavailable', ''] or states(e2) not in ['unknown', 'unavailable', ''] }}
         state: >
           {% set p = states('input_text.inkbird_sensor_prefix') %}
           {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
@@ -331,8 +337,10 @@ template:
           {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
           {% set model = states('sensor.inkbird_int_14_configured_model') %}
           {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
-          {% set e = p ~ '_probe_2_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
-          {% set v = states(e) | float %}
+          {% set e1 = p ~ '_probe_2_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
+          {% set e2 = p ~ '_probe_2_food_1_temperature' %}
+          {% set e = e1 if states(e1) not in ['unknown', 'unavailable', ''] else e2 %}
+          {% set v = states(e) | float(0) %}
           {{ ((v - 32) * 5 / 9) | round(2) if state_attr(e, 'unit_of_measurement') in ['°F', 'F'] else v }}
 
       - name: BBQ Probe 3 Control Temperature
@@ -346,7 +354,9 @@ template:
           {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
           {% set model = states('sensor.inkbird_int_14_configured_model') %}
           {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
-          {{ states(p ~ '_probe_3_' ~ ('internal' if bw else 'food_4') ~ '_temperature') not in ['unknown', 'unavailable', ''] }}
+          {% set e1 = p ~ '_probe_3_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
+          {% set e2 = p ~ '_probe_3_food_1_temperature' %}
+          {{ states(e1) not in ['unknown', 'unavailable', ''] or states(e2) not in ['unknown', 'unavailable', ''] }}
         state: >
           {% set p = states('input_text.inkbird_sensor_prefix') %}
           {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
@@ -354,8 +364,10 @@ template:
           {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
           {% set model = states('sensor.inkbird_int_14_configured_model') %}
           {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
-          {% set e = p ~ '_probe_3_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
-          {% set v = states(e) | float %}
+          {% set e1 = p ~ '_probe_3_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
+          {% set e2 = p ~ '_probe_3_food_1_temperature' %}
+          {% set e = e1 if states(e1) not in ['unknown', 'unavailable', ''] else e2 %}
+          {% set v = states(e) | float(0) %}
           {{ ((v - 32) * 5 / 9) | round(2) if state_attr(e, 'unit_of_measurement') in ['°F', 'F'] else v }}
 
       - name: BBQ Probe 4 Control Temperature
@@ -369,7 +381,9 @@ template:
           {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
           {% set model = states('sensor.inkbird_int_14_configured_model') %}
           {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
-          {{ states(p ~ '_probe_4_' ~ ('internal' if bw else 'food_4') ~ '_temperature') not in ['unknown', 'unavailable', ''] }}
+          {% set e1 = p ~ '_probe_4_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
+          {% set e2 = p ~ '_probe_4_food_1_temperature' %}
+          {{ states(e1) not in ['unknown', 'unavailable', ''] or states(e2) not in ['unknown', 'unavailable', ''] }}
         state: >
           {% set p = states('input_text.inkbird_sensor_prefix') %}
           {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
@@ -377,8 +391,10 @@ template:
           {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
           {% set model = states('sensor.inkbird_int_14_configured_model') %}
           {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
-          {% set e = p ~ '_probe_4_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
-          {% set v = states(e) | float %}
+          {% set e1 = p ~ '_probe_4_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
+          {% set e2 = p ~ '_probe_4_food_1_temperature' %}
+          {% set e = e1 if states(e1) not in ['unknown', 'unavailable', ''] else e2 %}
+          {% set v = states(e) | float(0) %}
           {{ ((v - 32) * 5 / 9) | round(2) if state_attr(e, 'unit_of_measurement') in ['°F', 'F'] else v }}
 
       # How many probes are worth shouting about. The Alerts card on Cook
