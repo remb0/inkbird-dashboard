@@ -5,10 +5,10 @@ The main README expects these files:
 | File | What to capture |
 |---|---|
 | `cook-control.png` | The full **Cook Control** view, ideally mid-cook so the probes show different states (one `heating`, one `close`, one `ready`) |
-| `probes.png` | The **Probes** view, with the probe artwork loaded |
+| `probes.png` | The compact, model-aware **Probes** view |
 | `settings.png` | The **Settings** page |
 
-These are screenshots *of* the dashboard. They are unrelated to the probe artwork the Probes page renders — that lives in `/config/www/` on your Home Assistant, not in this repo. See the README install step.
+These are screenshots *of* the dashboard. The images may show an older layout until fresh captures are added after a UI change.
 
 Handy: put a probe in a glass of hot water to get a non-`idle` reading without firing up the grill.
 

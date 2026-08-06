@@ -31,16 +31,16 @@ TARGETS = [
 
 # The area-prefixed sensor base, e.g. sensor.overig_inkbird_int_14 — probes,
 # batteries, base station.
-AREA_RE = re.compile(r"(sensor\.[a-z0-9_]+)_probe_1_food_1_temperature")
+AREA_RE = re.compile(r"(sensor\.[a-z0-9_]+)_probe_1_(?:internal|food_[14])_temperature")
 
 # The bare device slug used by entities that are NOT area-prefixed, e.g.
 # binary_sensor.inkbird_int_14_ble_connected.
 DEVICE_RE = re.compile(r"binary_sensor\.([a-z0-9_]+)_ble_connected")
-DEVICE_DOMAINS = ("sensor", "binary_sensor", "select", "button")
+DEVICE_DOMAINS = ("sensor", "binary_sensor", "select", "button", "switch", "number")
 
 # Domains the area-prefixed ids show up under. `button` matters: the BLE
 # diagnostic button is area-prefixed like the sensors are.
-AREA_DOMAINS = ("sensor", "binary_sensor", "button", "select", "switch")
+AREA_DOMAINS = ("sensor", "binary_sensor", "button", "select", "switch", "number")
 
 UPDATE_RE = re.compile(r"(update\.[a-z0-9_]+)")
 

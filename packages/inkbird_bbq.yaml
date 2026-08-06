@@ -20,14 +20,10 @@
 #  dashboard's Settings page — no file editing, no restart. That covers the
 #  four probe cards, the status sensors and every automation.
 #
-#  Two things CANNOT read a helper at runtime, because Home Assistant resolves
-#  them when the config loads rather than when they render:
-#
-#    * the `derivative` sensors below — `source:` must be a literal entity id
-#    * the Probes page — native picture-elements / tile / history-graph cards
-#      take a literal `entity:`
-#
-#  For those, run the script once (it also updates the prefix default here):
+#  The derivative sensors use stable model-aware template sources, so rates do
+#  not need an install-specific entity id. The manual Probes-page route still
+#  contains literal entity ids; the HACS strategy discovers those at runtime.
+#  For a manual dashboard, run the script once (it also updates the prefix):
 #
 #      python3 scripts/configure.py --prefix sensor.your_inkbird_prefix
 #
@@ -161,6 +157,14 @@ input_boolean:
     icon: mdi:tune-variant
 
 input_select:
+  inkbird_dashboard_model:
+    name: Inkbird dashboard model
+    icon: mdi:devices
+    options:
+      - Auto
+      - INT-14-BW
+      - INT-14S-BW
+
   inkbird_active_probe:
     name: Active probe
     icon: mdi:target
@@ -224,9 +228,8 @@ input_select:
 #  Rate of change, in °C per hour. Drives the ETA on the probe cards and the
 #  stall detection below.
 #
-#  `source:` is the one place that cannot follow the prefix helper — the
-#  derivative integration resolves it at config load. scripts/configure.py
-#  rewrites these four lines.
+#  `source:` points at the stable model-aware template sensors below. They
+#  select Internal for INT-14-BW and Food 4 for INT-14S-BW at runtime.
 #
 #  `time_window` smooths probe jitter; without it the ETA jumps around.
 #  `max_sub_interval` forces a recalculation even when the source sensor goes
@@ -237,7 +240,7 @@ sensor:
   - platform: derivative
     name: BBQ Probe 1 Rate
     unique_id: bbq_probe_1_rate
-    source: sensor.overig_inkbird_int_14_probe_1_food_1_temperature
+    source: sensor.bbq_probe_1_control_temperature
     unit_time: h
     time_window: "00:10:00"
     max_sub_interval: "00:02:00"
@@ -245,7 +248,7 @@ sensor:
   - platform: derivative
     name: BBQ Probe 2 Rate
     unique_id: bbq_probe_2_rate
-    source: sensor.overig_inkbird_int_14_probe_2_food_1_temperature
+    source: sensor.bbq_probe_2_control_temperature
     unit_time: h
     time_window: "00:10:00"
     max_sub_interval: "00:02:00"
@@ -253,7 +256,7 @@ sensor:
   - platform: derivative
     name: BBQ Probe 3 Rate
     unique_id: bbq_probe_3_rate
-    source: sensor.overig_inkbird_int_14_probe_3_food_1_temperature
+    source: sensor.bbq_probe_3_control_temperature
     unit_time: h
     time_window: "00:10:00"
     max_sub_interval: "00:02:00"
@@ -261,7 +264,7 @@ sensor:
   - platform: derivative
     name: BBQ Probe 4 Rate
     unique_id: bbq_probe_4_rate
-    source: sensor.overig_inkbird_int_14_probe_4_food_1_temperature
+    source: sensor.bbq_probe_4_control_temperature
     unit_time: h
     time_window: "00:10:00"
     max_sub_interval: "00:02:00"
@@ -283,6 +286,101 @@ sensor:
 # ----------------------------------------------------------------------------
 template:
   - sensor:
+      # Stable, model-aware sources used by Cook Control, alerts and rates.
+      # INT-14-BW exposes Internal + Ambient; INT-14S-BW exposes Food 1-4 +
+      # Ambient and Food 4 is the community-validated tip channel.
+      - name: BBQ Probe 1 Control Temperature
+        unique_id: bbq_probe_1_control_temperature
+        device_class: temperature
+        unit_of_measurement: "°C"
+        availability: >
+          {% set p = states('input_text.inkbird_sensor_prefix') %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
+          {% set choice = states('input_select.inkbird_dashboard_model') %}
+          {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
+          {% set model = states('sensor.inkbird_int_14_configured_model') %}
+          {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
+          {{ states(p ~ '_probe_1_' ~ ('internal' if bw else 'food_4') ~ '_temperature') not in ['unknown', 'unavailable', ''] }}
+        state: >
+          {% set p = states('input_text.inkbird_sensor_prefix') %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
+          {% set choice = states('input_select.inkbird_dashboard_model') %}
+          {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
+          {% set model = states('sensor.inkbird_int_14_configured_model') %}
+          {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
+          {% set e = p ~ '_probe_1_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
+          {% set v = states(e) | float %}
+          {{ ((v - 32) * 5 / 9) | round(2) if state_attr(e, 'unit_of_measurement') in ['°F', 'F'] else v }}
+
+      - name: BBQ Probe 2 Control Temperature
+        unique_id: bbq_probe_2_control_temperature
+        device_class: temperature
+        unit_of_measurement: "°C"
+        availability: >
+          {% set p = states('input_text.inkbird_sensor_prefix') %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
+          {% set choice = states('input_select.inkbird_dashboard_model') %}
+          {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
+          {% set model = states('sensor.inkbird_int_14_configured_model') %}
+          {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
+          {{ states(p ~ '_probe_2_' ~ ('internal' if bw else 'food_4') ~ '_temperature') not in ['unknown', 'unavailable', ''] }}
+        state: >
+          {% set p = states('input_text.inkbird_sensor_prefix') %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
+          {% set choice = states('input_select.inkbird_dashboard_model') %}
+          {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
+          {% set model = states('sensor.inkbird_int_14_configured_model') %}
+          {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
+          {% set e = p ~ '_probe_2_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
+          {% set v = states(e) | float %}
+          {{ ((v - 32) * 5 / 9) | round(2) if state_attr(e, 'unit_of_measurement') in ['°F', 'F'] else v }}
+
+      - name: BBQ Probe 3 Control Temperature
+        unique_id: bbq_probe_3_control_temperature
+        device_class: temperature
+        unit_of_measurement: "°C"
+        availability: >
+          {% set p = states('input_text.inkbird_sensor_prefix') %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
+          {% set choice = states('input_select.inkbird_dashboard_model') %}
+          {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
+          {% set model = states('sensor.inkbird_int_14_configured_model') %}
+          {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
+          {{ states(p ~ '_probe_3_' ~ ('internal' if bw else 'food_4') ~ '_temperature') not in ['unknown', 'unavailable', ''] }}
+        state: >
+          {% set p = states('input_text.inkbird_sensor_prefix') %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
+          {% set choice = states('input_select.inkbird_dashboard_model') %}
+          {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
+          {% set model = states('sensor.inkbird_int_14_configured_model') %}
+          {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
+          {% set e = p ~ '_probe_3_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
+          {% set v = states(e) | float %}
+          {{ ((v - 32) * 5 / 9) | round(2) if state_attr(e, 'unit_of_measurement') in ['°F', 'F'] else v }}
+
+      - name: BBQ Probe 4 Control Temperature
+        unique_id: bbq_probe_4_control_temperature
+        device_class: temperature
+        unit_of_measurement: "°C"
+        availability: >
+          {% set p = states('input_text.inkbird_sensor_prefix') %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
+          {% set choice = states('input_select.inkbird_dashboard_model') %}
+          {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
+          {% set model = states('sensor.inkbird_int_14_configured_model') %}
+          {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
+          {{ states(p ~ '_probe_4_' ~ ('internal' if bw else 'food_4') ~ '_temperature') not in ['unknown', 'unavailable', ''] }}
+        state: >
+          {% set p = states('input_text.inkbird_sensor_prefix') %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
+          {% set choice = states('input_select.inkbird_dashboard_model') %}
+          {% set profile = states('sensor.inkbird_int_14_configured_model_profile') %}
+          {% set model = states('sensor.inkbird_int_14_configured_model') %}
+          {% set bw = choice == 'INT-14-BW' or (choice == 'Auto' and (profile == 'int14_bw' or ('14-BW' in model and '14S' not in model))) %}
+          {% set e = p ~ '_probe_4_' ~ ('internal' if bw else 'food_4') ~ '_temperature' %}
+          {% set v = states(e) | float %}
+          {{ ((v - 32) * 5 / 9) | round(2) if state_attr(e, 'unit_of_measurement') in ['°F', 'F'] else v }}
+
       # How many probes are worth shouting about. The Alerts card on Cook
       # Control is wrapped in a conditional on this, so it disappears entirely
       # when there is nothing to say rather than showing "no alerts".
@@ -298,9 +396,7 @@ template:
       - name: BBQ Probe 1 Status
         unique_id: bbq_probe_1_status
         state: >
-          {% set p = states('input_text.inkbird_sensor_prefix') %}
-          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
-          {% set t = states(p ~ '_probe_1_food_1_temperature') | float(none) %}
+          {% set t = states('sensor.bbq_probe_1_control_temperature') | float(none) %}
           {% set g = states('input_number.inkbird_target_1') | float(none) %}
           {% if t is none or g is none %} idle
           {% elif t >= g %} ready
@@ -311,9 +407,7 @@ template:
       - name: BBQ Probe 2 Status
         unique_id: bbq_probe_2_status
         state: >
-          {% set p = states('input_text.inkbird_sensor_prefix') %}
-          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
-          {% set t = states(p ~ '_probe_2_food_1_temperature') | float(none) %}
+          {% set t = states('sensor.bbq_probe_2_control_temperature') | float(none) %}
           {% set g = states('input_number.inkbird_target_2') | float(none) %}
           {% if t is none or g is none %} idle
           {% elif t >= g %} ready
@@ -324,9 +418,7 @@ template:
       - name: BBQ Probe 3 Status
         unique_id: bbq_probe_3_status
         state: >
-          {% set p = states('input_text.inkbird_sensor_prefix') %}
-          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
-          {% set t = states(p ~ '_probe_3_food_1_temperature') | float(none) %}
+          {% set t = states('sensor.bbq_probe_3_control_temperature') | float(none) %}
           {% set g = states('input_number.inkbird_target_3') | float(none) %}
           {% if t is none or g is none %} idle
           {% elif t >= g %} ready
@@ -337,9 +429,7 @@ template:
       - name: BBQ Probe 4 Status
         unique_id: bbq_probe_4_status
         state: >
-          {% set p = states('input_text.inkbird_sensor_prefix') %}
-          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
-          {% set t = states(p ~ '_probe_4_food_1_temperature') | float(none) %}
+          {% set t = states('sensor.bbq_probe_4_control_temperature') | float(none) %}
           {% set g = states('input_number.inkbird_target_4') | float(none) %}
           {% if t is none or g is none %} idle
           {% elif t >= g %} ready
@@ -540,18 +630,22 @@ automation:
       - trigger: state
         entity_id: sensor.bbq_probe_1_status
         to: ready
+        for: "00:00:30"
         id: "1"
       - trigger: state
         entity_id: sensor.bbq_probe_2_status
         to: ready
+        for: "00:00:30"
         id: "2"
       - trigger: state
         entity_id: sensor.bbq_probe_3_status
         to: ready
+        for: "00:00:30"
         id: "3"
       - trigger: state
         entity_id: sensor.bbq_probe_4_status
         to: ready
+        for: "00:00:30"
         id: "4"
     actions:
       - variables:
@@ -561,7 +655,7 @@ automation:
           idx: "{{ trigger.id }}"
           snooze: "{{ states('input_number.bbq_snooze_minutes') | int(10) }}"
           pname: "{{ states('input_text.inkbird_name_' ~ trigger.id) }}"
-          ptemp: "{{ states(prefix ~ '_probe_' ~ trigger.id ~ '_food_1_temperature') | round(1) }}"
+          ptemp: "{{ states('sensor.bbq_probe_' ~ trigger.id ~ '_control_temperature') | round(1) }}"
           ptarget: "{{ states('input_number.inkbird_target_' ~ trigger.id) | round(0) }}"
       - action: script.bbq_notify
         data:
@@ -590,18 +684,22 @@ automation:
       - trigger: state
         entity_id: sensor.bbq_probe_1_status
         to: ready
+        for: "00:00:30"
         id: "1"
       - trigger: state
         entity_id: sensor.bbq_probe_2_status
         to: ready
+        for: "00:00:30"
         id: "2"
       - trigger: state
         entity_id: sensor.bbq_probe_3_status
         to: ready
+        for: "00:00:30"
         id: "3"
       - trigger: state
         entity_id: sensor.bbq_probe_4_status
         to: ready
+        for: "00:00:30"
         id: "4"
     conditions:
       - condition: numeric_state
@@ -714,7 +812,7 @@ automation:
             {{ p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' }}
           idx: "{{ trigger.id }}"
           pname: "{{ states('input_text.inkbird_name_' ~ trigger.id) }}"
-          ptemp: "{{ states(prefix ~ '_probe_' ~ trigger.id ~ '_food_1_temperature') | round(1) }}"
+          ptemp: "{{ states('sensor.bbq_probe_' ~ trigger.id ~ '_control_temperature') | round(1) }}"
           ptarget: "{{ states('input_number.inkbird_target_' ~ trigger.id) | round(0) }}"
       - action: script.bbq_notify
         data:
@@ -779,7 +877,7 @@ automation:
               - variables:
                   snooze: "{{ states('input_number.bbq_snooze_minutes') | int(10) }}"
                   pname: "{{ states('input_text.inkbird_name_' ~ idx) }}"
-                  ptemp: "{{ states(prefix ~ '_probe_' ~ idx ~ '_food_1_temperature') | round(1) }}"
+                  ptemp: "{{ states('sensor.bbq_probe_' ~ idx ~ '_control_temperature') | round(1) }}"
               - action: script.bbq_notify
                 data:
                   title: "🔥 {{ pname }} is still ready"

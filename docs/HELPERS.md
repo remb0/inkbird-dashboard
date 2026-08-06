@@ -35,6 +35,12 @@ Options `1`, `2`, `3`, `4`. Icon `mdi:target`.
 
 Decides which probe a recipe preset applies to. It is the first tile in the recipe row so the "pick a probe, then tap a recipe" flow reads left to right.
 
+## `input_select.inkbird_dashboard_model` — dashboard layout
+
+Options `Auto`, `INT-14-BW`, `INT-14S-BW`. Icon `mdi:devices`.
+
+`Auto` follows the model profile selected in the Inkbird integration. The two explicit values are display overrides for the manual YAML route or troubleshooting; they do not reconfigure the physical device or integration.
+
 ## `input_select.inkbird_unit` — "Temperature unit"
 
 Options `°C`, `°F`. Icon `mdi:thermometer`.
@@ -55,18 +61,18 @@ The area-prefixed base of your Inkbird entities, **without** a trailing undersco
 
 **What follows it, live:**
 
-- the four probe cards on Cook Control (button-card builds the ids in JS at render time)
-- `sensor.bbq_probe_1_status` … `_4` (the templates build the ids at render time)
+- the four model-aware control-temperature sensors
+- the four probe cards on Cook Control
+- `sensor.bbq_probe_1_status` … `_4`
 - every automation in the package
 
 **What cannot follow it**, because Home Assistant resolves these when the config *loads* rather than when they render:
 
 | | Why |
 |---|---|
-| The four `derivative` rate sensors | `source:` must be a literal entity id |
-| The Probes page | native `picture-elements` / `tile` / `history-graph` cards take a literal `entity:` |
+| The manual Probes page | native `entities` / `history-graph` cards take literal `entity:` values |
 
-For those, run `scripts/configure.py`. That is not a limitation of this dashboard — it is where HA draws the line between config-time and render-time resolution.
+The derivative sensors no longer have this limitation: they read stable `sensor.bbq_probe_N_control_temperature` entities. Run `scripts/configure.py` only for the manual dashboard route; the HACS strategy discovers and filters channel entities itself.
 
 Everything that reads the helper falls back to the repo default if it is empty or `unknown`, so a missing helper degrades to the old hardcoded behaviour rather than breaking.
 
@@ -102,7 +108,10 @@ All of these have no `initial:` value, so they survive restarts — which also m
 
 ## `sensor.bbq_probe_1_rate` … `_4` — rate of change
 
-`derivative` platform sensors, in **°C per hour**, over the corresponding probe's `food_1` channel.
+`derivative` platform sensors, in **°C per hour**, over the corresponding model-aware control sensor:
+
+- INT-14-BW: `Internal`;
+- INT-14S-BW: `Food 4`, the validated tip channel.
 
 | Setting | Value | Why |
 |---|---|---|
@@ -232,7 +241,8 @@ These are **not** helpers; they are provided by [`inkbird_int14`](https://github
 
 | Used for | Entity on the source install |
 |---|---|
-| Probe temperature | `sensor.overig_inkbird_int_14_probe_N_food_1_temperature` |
+| INT-14-BW control temperature | `sensor.overig_inkbird_int_14_probe_N_internal_temperature` |
+| INT-14S-BW control temperature | `sensor.overig_inkbird_int_14_probe_N_food_4_temperature` |
 | Probe battery (under the P1–P4 badge, and on Settings) | `sensor.overig_inkbird_int_14_probe_N_battery` |
 | Base station battery | `sensor.overig_inkbird_int_14_base_battery` |
 | Integration version + update button | `update.inkbird_int_update` |
@@ -255,9 +265,12 @@ An unrecognised transport value is shown verbatim rather than swallowed, so a fu
 
 ### Channels, and which page uses which
 
-Each INT-14 probe reports **five** channels — confirm yours with `sensor.inkbird_int_14_probe_layout`, which on the source install reads `Probe 1: food_1, food_2, food_3, food_4, ambient; …` for all four probes.
+The channel layout is model-specific:
 
-**Cook Control** deliberately uses only `food_1` per probe. One number per probe is the point of that page; the target, the status colour and the notification all key off it.
+- INT-14-BW: `internal` and `ambient` per physical probe;
+- INT-14S-BW: `food_1`, `food_2`, `food_3`, `food_4` and `ambient` per physical probe.
+
+**Cook Control** deliberately uses one control value per probe: Internal on INT-14-BW and Food 4/tip on INT-14S-BW. Target, status, rate, ETA and notifications all key off the same value.
 
 **Probes** shows all five, using the layout and channel order from the [INT-12E-BW community dashboard](https://github.com/zampix1/ha-inkbird-int14/blob/main/docs/int12e_dashboard.md):
 
@@ -269,10 +282,8 @@ Each INT-14 probe reports **five** channels — confirm yours with `sensor.inkbi
 | Near handle | `food_2` | Food 2 | `#49aeba` |
 | Handle / ambient | `ambient` | Ambient | `#9344a1` |
 
-> Upstream confirms `food_4` as the tip channel on both physical probes tested. **`food_1`–`food_3` follow the community layout and are not a verified physical mapping** — treat the middle positions as approximate until the integration confirms them.
+> Upstream confirms `food_4` as the tip. **`food_1`–`food_3` are parsed correctly but their exact physical positions remain approximate.** This no longer affects Cook Control because it uses Food 4.
 
-That caveat matters for Cook Control too: it targets `food_1`, which is *near* the tip rather than at it. For thin cuts the difference is small; for a thick brisket, `food_4` may be the more honest "is it done" channel. Swapping is a one-line change to each probe card's `probe` variable.
+### Device controls
 
-### Probe artwork
-
-The Probes page overlays readings on `/local/int12e-probe-black.png` and `-white.png`, which live in `/config/www/`. See the README's install step for the download commands. Without them the readings still work — you get a broken-image box instead of the probe drawing.
+INT-14-BW exposes a writable `Display Light Command` number when the selected transport supports writes. INT-14S-BW currently exposes brightness read-only. Sound/mute is status-only in current integration releases; the strategy automatically adds a writable sound switch when a future integration version exposes one.

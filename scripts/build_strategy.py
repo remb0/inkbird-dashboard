@@ -27,11 +27,11 @@ AREA_TOKEN = "__INKBIRD_AREA_PREFIX__"
 DEVICE_TOKEN = "__INKBIRD_DEVICE__"
 UPDATE_TOKEN = "__INKBIRD_UPDATE__"
 
-AREA_RE = re.compile(r"(sensor\.[a-z0-9_]+)_probe_1_food_1_temperature")
+AREA_RE = re.compile(r"(sensor\.[a-z0-9_]+)_probe_1_(?:internal|food_[14])_temperature")
 DEVICE_RE = re.compile(r"binary_sensor\.([a-z0-9_]+)_ble_connected")
 UPDATE_RE = re.compile(r"(update\.[a-z0-9_]+)")
-DEVICE_DOMAINS = ("sensor", "binary_sensor", "select", "button")
-AREA_DOMAINS = ("sensor", "binary_sensor", "button", "select", "switch")
+DEVICE_DOMAINS = ("sensor", "binary_sensor", "select", "button", "switch", "number")
+AREA_DOMAINS = ("sensor", "binary_sensor", "button", "select", "switch", "number")
 
 JS = '''// Inkbird BBQ Dashboard — Lovelace dashboard strategy
 //
@@ -51,9 +51,9 @@ JS = '''// Inkbird BBQ Dashboard — Lovelace dashboard strategy
 //     prefix: sensor.kitchen_inkbird_int_14
 //     device: inkbird_int_14
 //     update_entity: update.inkbird_int_update
+//     model: int14_bw        // auto (default), int14_bw or int14s_bw
 //
-// Requires the button-card and card-mod frontend cards, and the
-// battery-state-card for the Settings page.
+// Requires the button-card and card-mod frontend cards.
 
 const TEMPLATE = __TEMPLATE__;
 
@@ -72,7 +72,7 @@ function discover(hass) {
 
   let area = null;
   for (const id of ids) {
-    const m = id.match(/^(sensor\\.[a-z0-9_]+)_probe_1_food_1_temperature$/);
+    const m = id.match(/^(sensor\\.[a-z0-9_]+)_probe_1_(?:internal|food_[14])_temperature$/);
     if (m && m[1].includes("inkbird")) {
       area = m[1];
       break;
@@ -91,6 +91,103 @@ function discover(hass) {
   const update = ids.find((id) => id.startsWith("update.") && id.includes("inkbird")) || null;
 
   return { area, device, update };
+}
+
+function state(hass, entityId) {
+  const value = hass && hass.states ? hass.states[entityId] : null;
+  return value ? value.state : null;
+}
+
+function chooseModel(config, hass, found) {
+  const explicit = String(config.model || "auto").toLowerCase().replace(/-/g, "_");
+  if (explicit === "int14_bw" || explicit === "int14s_bw") return explicit;
+
+  const helper = state(hass, "input_select.inkbird_dashboard_model");
+  if (helper === "INT-14-BW") return "int14_bw";
+  if (helper === "INT-14S-BW") return "int14s_bw";
+
+  const device = found.device || FALLBACK_DEVICE;
+  const profile = state(hass, "sensor." + device + "_configured_model_profile");
+  if (profile === "int14_bw" || profile === "int14s_bw") return profile;
+  const model = state(hass, "sensor." + device + "_configured_model") || "";
+  if (/14S-BW/i.test(model)) return "int14s_bw";
+  if (/14-BW/i.test(model)) return "int14_bw";
+
+  const ids = Object.keys(hass && hass.states ? hass.states : {});
+  if (ids.some((id) => /_probe_1_internal_temperature$/.test(id))) return "int14_bw";
+  if (ids.some((id) => /_probe_1_food_4_temperature$/.test(id))) return "int14s_bw";
+  return "int14s_bw";
+}
+
+function integrationEntity(entityId) {
+  return typeof entityId === "string"
+    && /^(sensor|binary_sensor|select|button|number|switch|update)\./.test(entityId)
+    && entityId.includes("inkbird")
+    && !entityId.startsWith("sensor.bbq_");
+}
+
+// The source dashboard contains both channel layouts. At runtime, unwrap the
+// selected profile and omit only missing integration entities. Package helpers
+// remain visible so a missing package is diagnosed instead of silently hidden.
+function adapt(node, model, hass) {
+  if (Array.isArray(node)) {
+    return node.map((item) => adapt(item, model, hass)).filter((item) => item !== null);
+  }
+  if (!node || typeof node !== "object") return node;
+
+  if (node.inkbird_model) {
+    if (node.inkbird_model === "auto" || node.inkbird_model !== model) return null;
+    return adapt(node.card, model, hass);
+  }
+
+  // Replaced by the compact model/status/battery header.
+  if (node.type === "custom:button-card" && node.custom_fields && node.custom_fields.dev && node.custom_fields.batt) {
+    return null;
+  }
+  if (integrationEntity(node.entity) && !hass.states[node.entity]) return null;
+
+  const out = {};
+  for (const [key, value] of Object.entries(node)) {
+    if (key === "inkbird_model") continue;
+    if (key === "entities" && Array.isArray(value)) {
+      out[key] = value
+        .filter((row) => {
+          const entityId = typeof row === "string" ? row : row && row.entity;
+          return !integrationEntity(entityId) || Boolean(hass.states[entityId]);
+        })
+        .map((row) => adapt(row, model, hass))
+        .filter((row) => row !== null);
+    } else {
+      out[key] = adapt(value, model, hass);
+    }
+  }
+
+  if ((out.type === "entities" || out.type === "history-graph") && Array.isArray(out.entities) && out.entities.length === 0) {
+    return null;
+  }
+  if ((out.type === "grid" || out.type === "vertical-stack" || out.type === "horizontal-stack") && Array.isArray(out.cards)) {
+    out.cards = out.cards.filter(Boolean);
+    if (out.cards.length === 0) return null;
+  }
+  return out;
+}
+
+function addWritableSoundControl(config, hass) {
+  const soundSwitch = Object.keys(hass.states || {}).find(
+    (id) => id.startsWith("switch.") && id.includes("inkbird") && /(?:sound|mute)/.test(id)
+  );
+  if (!soundSwitch) return config;
+  const settings = (config.views || []).find((view) => view.path === "settings");
+  if (!settings) return config;
+  for (const section of settings.sections || []) {
+    const heading = (section.cards || []).find((card) => card && card.type === "heading");
+    if (!heading || heading.heading !== "Device controls") continue;
+    const entities = (section.cards || []).find((card) => card && card.type === "entities");
+    if (entities && !entities.entities.some((row) => (row.entity || row) === soundSwitch)) {
+      entities.entities.splice(1, 0, { entity: soundSwitch, name: "Station sound" });
+    }
+  }
+  return config;
 }
 
 // Walk the config and swap the tokens for the resolved ids. Strings only —
@@ -115,6 +212,7 @@ function substitute(node, map) {
 class InkbirdBbqDashboardStrategy extends HTMLElement {
   static async generate(config, hass) {
     const found = discover(hass);
+    const model = chooseModel(config, hass, found);
 
     const area = (config.prefix || found.area || "sensor." + FALLBACK_AREA).replace(/^sensor\\./, "");
     const device = config.device || found.device || FALLBACK_DEVICE;
@@ -129,11 +227,14 @@ class InkbirdBbqDashboardStrategy extends HTMLElement {
       );
     }
 
-    return substitute(TEMPLATE, [
+    const resolved = substitute(TEMPLATE, [
       [AREA_TOKEN, area],
       [DEVICE_TOKEN, device],
       [UPDATE_TOKEN, update],
     ]);
+    const adapted = adapt(resolved, model, hass);
+    adapted.inkbird_model = model;
+    return addWritableSoundControl(adapted, hass);
   }
 }
 
