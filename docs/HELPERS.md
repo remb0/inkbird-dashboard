@@ -15,7 +15,7 @@ Everything listed here is created for you by [`packages/inkbird_bbq.yaml`](../pa
 | Unit | `°C` |
 | Display mode | Slider |
 
-The `+` / `−` buttons on each probe card call `input_number.increment` / `decrement` on these. Recipe presets write to them directly.
+Tap a probe card to open the target's more-info dialog and adjust it (the card's `tap_action` targets this helper). Recipe presets write to them directly. The gauge ring shows the current target, so the cards no longer carry a separate target label or `+` / `−` buttons.
 
 Targets are always stored in **°C**, regardless of the display unit — the °F conversion happens in the card, not in the data.
 
@@ -87,7 +87,7 @@ Everything that reads the helper falls back to the repo default if it is empty o
 | `input_number.bbq_rest_minutes` | Number, 0–120 min | Rest reminder after a probe hits its target. **0 switches it off** — the automation has a `numeric_state above: 0` condition, so it never even starts a delay |
 | `input_boolean.bbq_show_help` | Toggle | Reveals the explanatory paragraph under Alerts, Spoken announcements and Setup. With it off those sections show controls only |
 | `input_select.bbq_style` | Default / Transparent | Card look on Cook Control. Transparent drops the backgrounds and shadows and adds a blur, for dashboards with a background image. The cards read it at render time, so it applies with no reload |
-| `input_select.bbq_accent` | Ember / Blue / Green / Purple / Red / Teal | The decorative accent on Cook Control — the logo glow, recipe temperatures, the + button, the sparkline behind each probe card, the custom-recipe Apply button. The green/amber/orange **status** colours are semantic and do not follow it. Read at render time |
+| `input_select.bbq_accent` | Ember / Blue / Green / Purple / Red / Teal | The decorative accent on Cook Control — the logo glow, recipe temperatures, the sparkline behind each probe card, the custom-recipe Apply button. The green/amber/orange **status** colours are semantic and do not follow it. Read at render time |
 | `input_number.bbq_graph_max` | Number, 100–300 °C | Top of the y-axis for the `mini-graph-card` sparkline that sits behind each probe card. Raise it to flatten the trend line so the card reads calmer; lower it to make the line taller. Stored in °C; read at render time (the card re-reads it on every update, no reload) |
 | `sensor.bbq_alert_count` | Sensor | How many probes are `close` or `ready`. The Alerts card is wrapped in a conditional on this, so it disappears entirely when there is nothing to report — a markdown card cannot hide itself |
 

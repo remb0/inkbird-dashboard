@@ -35,13 +35,13 @@
         ],
         "grid": [
           {
-            "grid-template-areas": "\"header header header header\" \"fig gauge side side\" \"fig gauge minus plus\""
+            "grid-template-areas": "\"header header header header\" \"fig gauge side side\""
           },
           {
             "grid-template-columns": "34px 128px 1fr 1fr"
           },
           {
-            "grid-template-rows": "auto 1fr auto"
+            "grid-template-rows": "auto 1fr"
           },
           {
             "gap": "10px 12px"
@@ -95,28 +95,6 @@
               "z-index": "1"
             }
           ],
-          "minus": [
-            {
-              "justify-self": "stretch"
-            },
-            {
-              "position": "relative"
-            },
-            {
-              "z-index": "1"
-            }
-          ],
-          "plus": [
-            {
-              "justify-self": "stretch"
-            },
-            {
-              "position": "relative"
-            },
-            {
-              "z-index": "1"
-            }
-          ],
           "spark": [
             {
               "position": "absolute"
@@ -131,7 +109,7 @@
               "bottom": "0"
             },
             {
-              "height": "172px"
+              "height": "132px"
             },
             {
               "z-index": "0"
@@ -152,77 +130,7 @@
         "header": "[[[\n  var n = variables.num, ch = variables.chan || 'food_1';\n  var _p = states['input_text.inkbird_sensor_prefix'];\n  _p = _p ? _p.state : '';\n  var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;\n  var eProbe  = 'sensor.bbq_probe_' + n + '_control_temperature';\n  var eBatt   = pfx + '_probe_' + n + '_battery';\n  var eTarget = 'input_number.inkbird_target_' + n;\n  var eName   = 'input_text.inkbird_name_' + n;\n  var eState  = 'sensor.bbq_probe_' + n + '_status';\n  var eRate   = 'sensor.bbq_probe_' + n + '_rate';\n  var _g = function(e){ var o = states[e]; return o ? o.state : undefined; };\n  var s = _g(eState) || 'idle';\n  var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';\n  var name = _g(eName);\n  var label = s==='ready' ? 'Ready' : s==='close' ? 'Almost there' : s==='heating' ? 'Heating' : 'Not connected';\n  var bv = parseInt(_g(eBatt));\n  var bok = !isNaN(bv);\n  var bcol = !bok ? '#77695c' : bv < 20 ? '#e8503a' : bv < 40 ? '#f2b441' : '#56c271';\n  return `<div style=\"display:flex;align-items:center;gap:11px;font-family:system-ui\">\n    <div style=\"display:flex;flex-direction:column;align-items:center;gap:3px\"\n         title=\"probe ${n} battery\">\n      <div style=\"width:30px;height:30px;border-radius:999px;display:grid;place-items:center;\n           font-family:ui-monospace,monospace;font-weight:700;background:#33291f;\n           border:1px solid #4d3f33;color:#f5ede4\">P${n}</div>\n      <div style=\"font-family:ui-monospace,monospace;font-size:.62rem;font-weight:700;\n           line-height:1;color:${bcol}\">${bok?bv+'%':'\\u2014'}</div>\n    </div>\n    <div style=\"flex:1;font-weight:620;font-size:1rem;color:#f5ede4\">${name}\n      <div style=\"font-size:.74rem;color:#a89a8c;font-weight:500\">Probe ${n}</div></div>\n    <div style=\"font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;\n         padding:5px 11px;border-radius:999px;color:${col};\n         background:${col}26;border:1px solid ${col}66\">${label}</div>\n  </div>`;\n]]]\n",
         "fig": "[[[\n  var n = variables.num, ch = variables.chan || 'food_1';\n  var _p = states['input_text.inkbird_sensor_prefix'];\n  _p = _p ? _p.state : '';\n  var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;\n  var eProbe  = 'sensor.bbq_probe_' + n + '_control_temperature';\n  var eBatt   = pfx + '_probe_' + n + '_battery';\n  var eTarget = 'input_number.inkbird_target_' + n;\n  var eName   = 'input_text.inkbird_name_' + n;\n  var eState  = 'sensor.bbq_probe_' + n + '_status';\n  var eRate   = 'sensor.bbq_probe_' + n + '_rate';\n  var _g = function(e){ var o = states[e]; return o ? o.state : undefined; };\n  var s = _g(eState) || 'idle';\n  var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';\n  var connected = s !== 'idle';\n  var tip = connected ? col : '#77695c';\n  var glow = connected ? `filter:drop-shadow(0 0 4px ${col})` : '';\n  return `<svg viewBox=\"0 0 26 150\" style=\"height:148px;width:auto;display:block;margin:auto\">\n    <defs>\n      <linearGradient id=\"st${n}\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"0\">\n        <stop offset=\"0\" stop-color=\"#6c7075\"/><stop offset=\".28\" stop-color=\"#eef1f3\"/>\n        <stop offset=\".5\" stop-color=\"#c4c9ce\"/><stop offset=\".72\" stop-color=\"#eef1f3\"/>\n        <stop offset=\"1\" stop-color=\"#5c6065\"/></linearGradient>\n      <linearGradient id=\"gl${n}\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"0\">\n        <stop offset=\"0\" stop-color=\"#0c0c0e\"/><stop offset=\".3\" stop-color=\"#3a3a40\"/>\n        <stop offset=\".5\" stop-color=\"#141418\"/><stop offset=\".75\" stop-color=\"#2a2a30\"/>\n        <stop offset=\"1\" stop-color=\"#050506\"/></linearGradient>\n      <linearGradient id=\"rg${n}\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"0\">\n        <stop offset=\"0\" stop-color=\"#8a8e93\"/><stop offset=\".5\" stop-color=\"#f2f4f6\"/>\n        <stop offset=\"1\" stop-color=\"#7a7e83\"/></linearGradient>\n    </defs>\n    <ellipse cx=\"13\" cy=\"6\" rx=\"7.5\" ry=\"2.6\" fill=\"url(#rg${n})\"/>\n    <path d=\"M5.5 6 L20.5 6 L17 52 L9 52 Z\" fill=\"url(#gl${n})\" stroke=\"#000\" stroke-width=\".6\"/>\n    <text x=\"13\" y=\"30\" text-anchor=\"middle\" font-family=\"ui-monospace,monospace\"\n          font-weight=\"700\" font-size=\"10\" fill=\"${connected?'#f0f0f2':'#8a8a8c'}\">${n}</text>\n    <rect x=\"8.5\" y=\"52\" width=\"9\" height=\"4\" rx=\"1\" fill=\"url(#rg${n})\"/>\n    <rect x=\"10\" y=\"56\" width=\"6\" height=\"82\" fill=\"url(#st${n})\"/>\n    <path d=\"M10 138 L16 138 L13 150 Z\" fill=\"${tip}\" style=\"${glow}\"/>\n  </svg>`;\n]]]\n",
         "gauge": "[[[\n  var n = variables.num, ch = variables.chan || 'food_1';\n  var _p = states['input_text.inkbird_sensor_prefix'];\n  _p = _p ? _p.state : '';\n  var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;\n  var eTarget = 'input_number.inkbird_target_' + n;\n  var eState  = 'sensor.bbq_probe_' + n + '_status';\n  var _g = function(e){ var o = states[e]; return o ? o.state : undefined; };\n  var choice = _g('input_select.inkbird_dashboard_model') || 'Auto';\n  var profile = _g('sensor.inkbird_int_14_configured_model_profile') || '';\n  var model = _g('sensor.inkbird_int_14_configured_model') || '';\n  var bw = choice === 'INT-14-BW' || (choice === 'Auto' && (profile === 'int14_bw' || (model.includes('14-BW') && !model.includes('14S'))));\n  var eCtrl   = 'sensor.bbq_probe_' + n + '_control_temperature';\n  var eDirect = pfx + '_probe_' + n + '_' + (bw ? 'internal' : 'food_4') + '_temperature';\n  var eAlt    = pfx + '_probe_' + n + '_' + (bw ? 'internal' : 'food_1') + '_temperature';\n  var _gVal = function(e){ var o = states[e]; return (o && o.state !== 'unknown' && o.state !== 'unavailable' && o.state !== '') ? parseFloat(o.state) : NaN; };\n  var t = _gVal(eCtrl);\n  if (isNaN(t)) t = _gVal(eDirect);\n  if (isNaN(t)) t = _gVal(eAlt);\n  var s = _g(eState) || 'idle';\n  var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';\n  var g = parseFloat(_g(eTarget));\n  var amb = 22, connected = !isNaN(t);\n  var pct = connected ? Math.max(0, Math.min(1,(t-amb)/(g-amb))) : 0;\n  var R=52, C=2*Math.PI*R, ARC=0.75;\n  var dash=(C*ARC*pct).toFixed(1)+' '+C;\n  var uf = (_g('input_select.inkbird_unit')||'').indexOf('F') >= 0;\n  var us = uf ? '\\u00b0F' : '\\u00b0C';\n  var cv = function(c){ return uf ? Math.round(c*9/5+32) : Math.round(c*10)/10; };\n  var temp = connected ? cv(t) : '\\u2014';\n  return `<div style=\"position:relative;width:128px;height:128px;margin:auto\">\n    <svg width=\"128\" height=\"128\" viewBox=\"0 0 128 128\" style=\"transform:rotate(135deg)\">\n      <circle cx=\"64\" cy=\"64\" r=\"${R}\" fill=\"none\" stroke=\"#33291f\" stroke-width=\"9\"\n        stroke-linecap=\"round\" stroke-dasharray=\"${(C*ARC).toFixed(1)} ${C}\"/>\n      <circle cx=\"64\" cy=\"64\" r=\"${R}\" fill=\"none\" stroke=\"${col}\" stroke-width=\"9\"\n        stroke-linecap=\"round\" stroke-dasharray=\"${dash}\"\n        style=\"transition:stroke-dasharray .6s ease,stroke .4s\"/>\n    </svg>\n    <div style=\"position:absolute;inset:0;display:flex;flex-direction:column;\n         align-items:center;justify-content:center;font-family:ui-monospace,monospace\">\n      <div style=\"font-size:1.7rem;font-weight:650;color:#f5ede4;line-height:1\">${temp}<span style=\"font-size:.9rem;color:#a89a8c\">${us}</span></div>\n      <div style=\"font-size:.72rem;color:#77695c;margin-top:2px\">${connected?'target '+cv(g)+'\\u00b0':'no probe'}</div>\n    </div>\n  </div>`;\n]]]\n",
-        "side": "[[[\n  var n = variables.num, ch = variables.chan || 'food_1';\n  var _p = states['input_text.inkbird_sensor_prefix'];\n  _p = _p ? _p.state : '';\n  var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;\n  var eTarget = 'input_number.inkbird_target_' + n;\n  var eState  = 'sensor.bbq_probe_' + n + '_status';\n  var eRate   = 'sensor.bbq_probe_' + n + '_rate';\n  var _g = function(e){ var o = states[e]; return o ? o.state : undefined; };\n  var choice = _g('input_select.inkbird_dashboard_model') || 'Auto';\n  var profile = _g('sensor.inkbird_int_14_configured_model_profile') || '';\n  var model = _g('sensor.inkbird_int_14_configured_model') || '';\n  var bw = choice === 'INT-14-BW' || (choice === 'Auto' && (profile === 'int14_bw' || (model.includes('14-BW') && !model.includes('14S'))));\n  var eCtrl   = 'sensor.bbq_probe_' + n + '_control_temperature';\n  var eDirect = pfx + '_probe_' + n + '_' + (bw ? 'internal' : 'food_4') + '_temperature';\n  var eAlt    = pfx + '_probe_' + n + '_' + (bw ? 'internal' : 'food_1') + '_temperature';\n  var _gVal = function(e){ var o = states[e]; return (o && o.state !== 'unknown' && o.state !== 'unavailable' && o.state !== '') ? parseFloat(o.state) : NaN; };\n  var t = _gVal(eCtrl);\n  if (isNaN(t)) t = _gVal(eDirect);\n  if (isNaN(t)) t = _gVal(eAlt);\n  var s = _g(eState) || 'idle';\n  var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';\n  var g = parseFloat(_g(eTarget));\n  var connected = !isNaN(t);\n  var uf = (_g('input_select.inkbird_unit')||'').indexOf('F') >= 0;\n  var us = uf ? '\\u00b0F' : '\\u00b0C';\n  var cv = function(c){ return uf ? Math.round(c*9/5+32) : Math.round(c*10)/10; };\n  var togo = uf ? Math.round((g-t)*9/5) : Math.round((g-t)*10)/10;\n  var footer = !connected ? 'Insert a probe to begin'\n    : (s==='ready' ? 'Reached target \\u2014 resting'\n    : Math.max(0, togo) + '\\u00b0 to go');\n  var rate = parseFloat(_g(eRate));\n  var eta = '';\n  if (connected && s !== 'ready' && !isNaN(rate) && rate > 0.5 && g > t) {\n    var mins = Math.round((g - t) / rate * 60);\n    if (mins > 0 && mins <= 1440) {\n      var hh = Math.floor(mins/60), mm = mins % 60;\n      eta = hh ? ('\\u2248 ' + hh + ' h ' + mm + ' m') : ('\\u2248 ' + mm + ' m');\n    }\n  }\n  var primary = bw ? 'Internal' : 'Food 4 \u00b7 tip';\n  var trend = isNaN(rate) ? '\\u2014' : ((rate > .15 ? '\\u2197 +' : rate < -.15 ? '\\u2198 ' : '\\u2192 ') + rate.toFixed(1) + ' \\u00b0C/h');\n  return `<div style=\"display:flex;flex-direction:column;gap:9px;font-family:system-ui\">\n    <div style=\"display:flex;align-items:center;gap:10px\">\n      <span style=\"flex:1;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:#77695c\">Target</span>\n      <span title=\"Tap the card to edit the target\" style=\"font-family:ui-monospace,monospace;font-weight:600;font-size:1.05rem;color:#f5ede4;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:4px\">${cv(g)}${us}</span>\n    </div>\n    <div style=\"font-size:.78rem;color:#a89a8c\">${footer}</div>\n    <div style=\"display:flex;gap:10px;align-items:center;font-size:.72rem;color:#77695c\"><span>${primary}</span><span style=\"font-family:ui-monospace,monospace;color:${col}\">${trend}</span></div>\n    ${eta ? `<div style=\"font-family:ui-monospace,monospace;font-size:.74rem;color:${col}\">${eta}</div>` : ''}\n  </div>`;\n]]]\n",
-        "minus": {
-          "card": {
-            "type": "custom:button-card",
-            "name": "\u2212",
-            "tap_action": {
-              "action": "call-service",
-              "service": "input_number.decrement",
-              "target": {
-                "entity_id": "[[[ return \"input_number.inkbird_target_\" + variables.num ]]]"
-              }
-            },
-            "styles": {
-              "card": [
-                {
-                  "height": "40px"
-                },
-                {
-                  "border-radius": "10px"
-                },
-                {
-                  "border": "1px solid \"#4d3f33\""
-                },
-                {
-                  "background": "#33291f"
-                },
-                {
-                  "color": "#f5ede4"
-                },
-                {
-                  "font-size": "1.3rem"
-                }
-              ]
-            }
-          }
-        },
-        "plus": {
-          "card": {
-            "type": "custom:button-card",
-            "name": "+",
-            "tap_action": {
-              "action": "call-service",
-              "service": "input_number.increment",
-              "target": {
-                "entity_id": "[[[ return \"input_number.inkbird_target_\" + variables.num ]]]"
-              }
-            },
-            "styles": {
-              "card": [
-                {
-                  "height": "40px"
-                },
-                {
-                  "border-radius": "10px"
-                },
-                {
-                  "border": "1px solid \"#4d3f33\""
-                },
-                {
-                  "background": "#33291f"
-                },
-                {
-                  "color": "[[[\n  var _ac = states['input_select.bbq_accent'];\n  var _A = {Ember:['#ff6a2c','#ff8a3d'],Blue:['#2f7ce0','#4f98f0'],Green:['#34b56a','#4fd188'],Purple:['#8a5cf0','#a67cff'],Red:['#e0483a','#f26a5c'],Teal:['#1fb6b0','#3fd0ca']};\n  var acc = _A[_ac ? _ac.state : 'Ember'] || _A.Ember;\n  return acc[0];\n]]]\n"
-                },
-                {
-                  "font-size": "1.3rem"
-                }
-              ]
-            }
-          }
-        },
+        "side": "[[[\n  var n = variables.num, ch = variables.chan || 'food_1';\n  var _p = states['input_text.inkbird_sensor_prefix'];\n  _p = _p ? _p.state : '';\n  var pfx = (_p && _p !== 'unknown' && _p !== 'unavailable') ? _p : variables.prefix;\n  var eTarget = 'input_number.inkbird_target_' + n;\n  var eState  = 'sensor.bbq_probe_' + n + '_status';\n  var eRate   = 'sensor.bbq_probe_' + n + '_rate';\n  var _g = function(e){ var o = states[e]; return o ? o.state : undefined; };\n  var choice = _g('input_select.inkbird_dashboard_model') || 'Auto';\n  var profile = _g('sensor.inkbird_int_14_configured_model_profile') || '';\n  var model = _g('sensor.inkbird_int_14_configured_model') || '';\n  var bw = choice === 'INT-14-BW' || (choice === 'Auto' && (profile === 'int14_bw' || (model.includes('14-BW') && !model.includes('14S'))));\n  var eCtrl   = 'sensor.bbq_probe_' + n + '_control_temperature';\n  var eDirect = pfx + '_probe_' + n + '_' + (bw ? 'internal' : 'food_4') + '_temperature';\n  var eAlt    = pfx + '_probe_' + n + '_' + (bw ? 'internal' : 'food_1') + '_temperature';\n  var _gVal = function(e){ var o = states[e]; return (o && o.state !== 'unknown' && o.state !== 'unavailable' && o.state !== '') ? parseFloat(o.state) : NaN; };\n  var t = _gVal(eCtrl);\n  if (isNaN(t)) t = _gVal(eDirect);\n  if (isNaN(t)) t = _gVal(eAlt);\n  var s = _g(eState) || 'idle';\n  var col = s==='ready' ? '#56c271' : s==='close' ? '#ff6a2c' : s==='heating' ? '#f2b441' : '#77695c';\n  var g = parseFloat(_g(eTarget));\n  var connected = !isNaN(t);\n  var uf = (_g('input_select.inkbird_unit')||'').indexOf('F') >= 0;\n  var us = uf ? '\\u00b0F' : '\\u00b0C';\n  var cv = function(c){ return uf ? Math.round(c*9/5+32) : Math.round(c*10)/10; };\n  var togo = uf ? Math.round((g-t)*9/5) : Math.round((g-t)*10)/10;\n  var footer = !connected ? 'Insert a probe to begin'\n    : (s==='ready' ? 'Reached target \\u2014 resting'\n    : Math.max(0, togo) + '\\u00b0 to go');\n  var rate = parseFloat(_g(eRate));\n  var eta = '';\n  if (connected && s !== 'ready' && !isNaN(rate) && rate > 0.5 && g > t) {\n    var mins = Math.round((g - t) / rate * 60);\n    if (mins > 0 && mins <= 1440) {\n      var hh = Math.floor(mins/60), mm = mins % 60;\n      eta = hh ? ('\\u2248 ' + hh + ' h ' + mm + ' m') : ('\\u2248 ' + mm + ' m');\n    }\n  }\n  var primary = bw ? 'Internal' : 'Food 4 \u00b7 tip';\n  var trend = isNaN(rate) ? '\\u2014' : ((rate > .15 ? '\\u2197 +' : rate < -.15 ? '\\u2198 ' : '\\u2192 ') + rate.toFixed(1) + ' \\u00b0C/h');\n  return `<div style=\"display:flex;flex-direction:column;gap:9px;font-family:system-ui\">\n    <div style=\"font-size:.78rem;color:#a89a8c\">${footer}</div>\n    <div style=\"display:flex;gap:10px;align-items:center;font-size:.72rem;color:#77695c\"><span>${primary}</span><span style=\"font-family:ui-monospace,monospace;color:${col}\">${trend}</span></div>\n    ${eta ? `<div style=\"font-family:ui-monospace,monospace;font-size:.74rem;color:${col}\">${eta}</div>` : ''}\n  </div>`;\n]]]\n",
         "spark": {
           "card": {
             "type": "custom:mini-graph-card",
@@ -234,7 +142,7 @@
             ],
             "hours_to_show": 2,
             "points_per_hour": 60,
-            "height": 172,
+            "height": 132,
             "line_width": 3,
             "lower_bound": 0,
             "upper_bound": "[[[ var v = parseFloat((states['input_number.bbq_graph_max']||{}).state); return isNaN(v) ? 150 : v; ]]]",

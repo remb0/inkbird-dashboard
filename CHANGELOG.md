@@ -8,6 +8,17 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 Because this is a dashboard rather than a library, "breaking" means **an entity
 id changed, or a step is required on your side after updating** — not an API.
 
+## [1.3.1] — 2026-08-17
+
+### Changed
+
+- **Calmer probe cards.** Removed the redundant "Target" label/value row from
+  each probe card — the target already shows inside the gauge ring — and removed
+  the `+` / `−` target buttons. The target is now adjusted by tapping the card
+  (the gauge ring shows it), which also lets the card and its background
+  sparkline sit quieter. The graph band was shortened to match the now-compacter
+  card.
+
 ## [1.3.0] — 2026-08-17
 
 ### Changed

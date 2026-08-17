@@ -53,9 +53,9 @@ button_card_templates:
             return glass ? 'blur(10px)' : 'none';
           ]]]
       grid:
-      - grid-template-areas: '"header header header header" "fig gauge side side" "fig gauge minus plus"'
+      - grid-template-areas: '"header header header header" "fig gauge side side"'
       - grid-template-columns: 34px 128px 1fr 1fr
-      - grid-template-rows: auto 1fr auto
+      - grid-template-rows: auto 1fr
       - gap: 10px 12px
       - align-items: center
       - position: relative
@@ -75,20 +75,12 @@ button_card_templates:
         - justify-self: stretch
         - position: relative
         - z-index: '1'
-        minus:
-        - justify-self: stretch
-        - position: relative
-        - z-index: '1'
-        plus:
-        - justify-self: stretch
-        - position: relative
-        - z-index: '1'
         spark:
         - position: absolute
         - left: '0'
         - right: '0'
         - bottom: '0'
-        - height: 172px
+        - height: 132px
         - z-index: '0'
         - pointer-events: none
         - opacity: '0.5'
@@ -261,55 +253,11 @@ button_card_templates:
           var primary = bw ? 'Internal' : 'Food 4 · tip';
           var trend = isNaN(rate) ? '\u2014' : ((rate > .15 ? '\u2197 +' : rate < -.15 ? '\u2198 ' : '\u2192 ') + rate.toFixed(1) + ' \u00b0C/h');
           return `<div style="display:flex;flex-direction:column;gap:9px;font-family:system-ui">
-            <div style="display:flex;align-items:center;gap:10px">
-              <span style="flex:1;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:#77695c">Target</span>
-              <span title="Tap the card to edit the target" style="font-family:ui-monospace,monospace;font-weight:600;font-size:1.05rem;color:#f5ede4;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:4px">${cv(g)}${us}</span>
-            </div>
             <div style="font-size:.78rem;color:#a89a8c">${footer}</div>
             <div style="display:flex;gap:10px;align-items:center;font-size:.72rem;color:#77695c"><span>${primary}</span><span style="font-family:ui-monospace,monospace;color:${col}">${trend}</span></div>
             ${eta ? `<div style="font-family:ui-monospace,monospace;font-size:.74rem;color:${col}">${eta}</div>` : ''}
           </div>`;
         ]]]
-      minus:
-        card:
-          type: custom:button-card
-          name: −
-          tap_action:
-            action: call-service
-            service: input_number.decrement
-            target:
-              entity_id: '[[[ return "input_number.inkbird_target_" + variables.num ]]]'
-          styles:
-            card:
-            - height: 40px
-            - border-radius: 10px
-            - border: 1px solid "#4d3f33"
-            - background: '#33291f'
-            - color: '#f5ede4'
-            - font-size: 1.3rem
-      plus:
-        card:
-          type: custom:button-card
-          name: +
-          tap_action:
-            action: call-service
-            service: input_number.increment
-            target:
-              entity_id: '[[[ return "input_number.inkbird_target_" + variables.num ]]]'
-          styles:
-            card:
-            - height: 40px
-            - border-radius: 10px
-            - border: 1px solid "#4d3f33"
-            - background: '#33291f'
-            - color: |
-                [[[
-                  var _ac = states['input_select.bbq_accent'];
-                  var _A = {Ember:['#ff6a2c','#ff8a3d'],Blue:['#2f7ce0','#4f98f0'],Green:['#34b56a','#4fd188'],Purple:['#8a5cf0','#a67cff'],Red:['#e0483a','#f26a5c'],Teal:['#1fb6b0','#3fd0ca']};
-                  var acc = _A[_ac ? _ac.state : 'Ember'] || _A.Ember;
-                  return acc[0];
-                ]]]
-            - font-size: 1.3rem
       spark:
         card:
           type: custom:mini-graph-card
@@ -318,7 +266,7 @@ button_card_templates:
             name: Temperature trend
           hours_to_show: 2
           points_per_hour: 60
-          height: 172
+          height: 132
           line_width: 3
           lower_bound: 0
           upper_bound: "[[[ var v = parseFloat((states['input_number.bbq_graph_max']||{}).state); return isNaN(v) ? 150 : v; ]]]"
