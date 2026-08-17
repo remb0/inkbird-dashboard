@@ -18,7 +18,7 @@
 //     update_entity: update.inkbird_int_update
 //     model: int14_bw        // auto (default), int14_bw or int14s_bw
 //
-// Requires the button-card and card-mod frontend cards.
+// Requires the button-card, card-mod and mini-graph-card frontend cards.
 
 const TEMPLATE = {
   "button_card_templates": {
@@ -57,50 +57,115 @@ const TEMPLATE = {
         ],
         "grid": [
           {
-            "grid-template-areas": "\"header header header header\" \"fig gauge side side\" \"fig gauge minus plus\" \"spark spark spark spark\""
+            "grid-template-areas": "\"header header header header\" \"fig gauge side side\" \"fig gauge minus plus\""
           },
           {
             "grid-template-columns": "34px 128px 1fr 1fr"
           },
           {
-            "grid-template-rows": "auto 1fr auto 54px"
+            "grid-template-rows": "auto 1fr auto"
           },
           {
             "gap": "10px 12px"
           },
           {
             "align-items": "center"
+          },
+          {
+            "position": "relative"
           }
         ],
         "custom_fields": {
           "header": [
             {
               "justify-self": "stretch"
+            },
+            {
+              "position": "relative"
+            },
+            {
+              "z-index": "1"
             }
           ],
           "fig": [
             {
               "align-self": "stretch"
+            },
+            {
+              "position": "relative"
+            },
+            {
+              "z-index": "1"
+            }
+          ],
+          "gauge": [
+            {
+              "position": "relative"
+            },
+            {
+              "z-index": "1"
             }
           ],
           "side": [
             {
               "justify-self": "stretch"
+            },
+            {
+              "position": "relative"
+            },
+            {
+              "z-index": "1"
             }
           ],
           "minus": [
             {
               "justify-self": "stretch"
+            },
+            {
+              "position": "relative"
+            },
+            {
+              "z-index": "1"
             }
           ],
           "plus": [
             {
               "justify-self": "stretch"
+            },
+            {
+              "position": "relative"
+            },
+            {
+              "z-index": "1"
             }
           ],
           "spark": [
             {
-              "justify-self": "stretch"
+              "position": "absolute"
+            },
+            {
+              "left": "0"
+            },
+            {
+              "right": "0"
+            },
+            {
+              "bottom": "0"
+            },
+            {
+              "height": "172px"
+            },
+            {
+              "z-index": "0"
+            },
+            {
+              "pointer-events": "none"
+            },
+            {
+              "opacity": "0.5"
+            },
+            {
+              "overflow": "hidden"
             }
           ]
         }
@@ -182,16 +247,31 @@ const TEMPLATE = {
         },
         "spark": {
           "card": {
-            "type": "history-graph",
-            "hours_to_show": 1,
+            "type": "custom:mini-graph-card",
             "entities": [
               {
                 "entity": "[[[ return \"sensor.bbq_probe_\" + variables.num + \"_control_temperature\" ]]]",
                 "name": "Temperature trend"
               }
             ],
+            "hours_to_show": 2,
+            "points_per_hour": 60,
+            "height": 172,
+            "line_width": 3,
+            "lower_bound": 0,
+            "upper_bound": "[[[ var v = parseFloat((states['input_number.bbq_graph_max']||{}).state); return isNaN(v) ? 150 : v; ]]]",
+            "line_color": "[[[\n  var _ac = states['input_select.bbq_accent'];\n  var _A = {Ember:'#ff6a2c',Blue:'#2f7ce0',Green:'#34b56a',Purple:'#8a5cf0',Red:'#e0483a',Teal:'#1fb6b0'};\n  return _A[_ac ? _ac.state : 'Ember'] || _A.Ember;\n]]]\n",
+            "show": {
+              "name": false,
+              "icon": false,
+              "state": false,
+              "legend": false,
+              "labels": false,
+              "points": false,
+              "fill": "fade"
+            },
             "card_mod": {
-              "style": "ha-card {\n  height: 54px;\n  overflow: hidden;\n  background: transparent;\n  border: 0;\n  box-shadow: none;\n}\n.content { padding: 0 !important; }\n"
+              "style": "ha-card {\n  background: transparent !important;\n  border: 0 !important;\n  box-shadow: none !important;\n  padding: 0 !important;\n}\n"
             }
           }
         }
@@ -2260,6 +2340,10 @@ const TEMPLATE = {
                   "name": "Display unit"
                 },
                 {
+                  "entity": "input_number.bbq_graph_max",
+                  "name": "Graph top temperature"
+                },
+                {
                   "entity": "input_select.inkbird_active_probe",
                   "name": "Active probe"
                 },
@@ -2636,6 +2720,6 @@ class InkbirdBbqDashboardStrategy extends HTMLElement {
 customElements.define("ll-strategy-dashboard-inkbird-bbq", InkbirdBbqDashboardStrategy);
 
 // eslint-disable-next-line no-console
-console.info("%c INKBIRD-BBQ-STRATEGY %c 1.2.0 ",
+console.info("%c INKBIRD-BBQ-STRATEGY %c 1.2.1 ",
   "color:#f5ede4;background:#ff6a2c;font-weight:700",
   "color:#ff6a2c;background:#211b16");

@@ -53,7 +53,7 @@ JS = '''// Inkbird BBQ Dashboard — Lovelace dashboard strategy
 //     update_entity: update.inkbird_int_update
 //     model: int14_bw        // auto (default), int14_bw or int14s_bw
 //
-// Requires the button-card and card-mod frontend cards.
+// Requires the button-card, card-mod and mini-graph-card frontend cards.
 
 const TEMPLATE = __TEMPLATE__;
 

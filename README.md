@@ -13,7 +13,7 @@
   <img alt="Home Assistant" src="https://img.shields.io/badge/Home%20Assistant-2024.10%2B-41BDF5?logo=homeassistant&logoColor=white">
   <img alt="HACS" src="https://img.shields.io/badge/HACS-custom%20repository-41BDF5?logo=homeassistantcommunitystore&logoColor=white">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.2.0-orange">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.3.0-orange">
 </p>
 
 <p align="center">
@@ -104,7 +104,7 @@ It is a native `sections` view built from stock cards — no `card-mod`, so it s
 |---|---|
 | Inkbird **INT-14-BW** or **INT-14S-BW** | [inkbird.com](https://inkbird.com) |
 | **Inkbird INT** custom integration (`inkbird_int14`) | [zampix1/ha-inkbird-int14](https://github.com/zampix1/ha-inkbird-int14) — install via HACS as a custom repository |
-| Two frontend cards | button-card and card-mod — both from HACS. [Step 1](#1-frontend-cards--needed-either-way) has the links |
+| Frontend cards | button-card, card-mod and mini-graph-card — all from HACS. [Step 1](#1-frontend-cards--needed-either-way) has the links |
 | A Bluetooth adapter or ESPHome BT proxy in range; optionally local Tuya-LAN credentials for supported models | — |
 
 ## 🚀 Install
@@ -119,6 +119,7 @@ Install both from **HACS → Frontend**:
 |---|---|
 | [button-card](https://github.com/custom-cards/button-card) | Probe gauges, header, recipe buttons |
 | [card-mod](https://github.com/thomasloven/lovelace-card-mod) | The dark theme and the responsive grids |
+| [mini-graph-card](https://github.com/kalkih/mini-graph-card) | The temperature sparkline behind each probe card |
 
 ### 2. The dashboard
 
@@ -286,6 +287,7 @@ This dashboard stands on other people's work:
 - **[boris327/ha-inkbird-int14bw](https://github.com/boris327/ha-inkbird-int14bw)** by Boris Pustilnik — the original INT-14-BW integration and Cook Control design foundation. The compact header, direct target editing and trend-oriented probe layout build on that MIT-licensed work.
 - **[custom-cards/button-card](https://github.com/custom-cards/button-card)** by RomRider — the probe cards, compact header and recipe buttons are `custom:button-card` templates. The gauges and probe illustrations are inline SVG rendered through its `custom_fields`.
 - **[thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)** — restyles the stock markdown and grid cards to match the dark charcoal/ember theme.
+- **[kalkih/mini-graph-card](https://github.com/kalkih/mini-graph-card)** — the temperature sparkline that sits as a pointer-through background behind each probe card, with its top temperature set from `input_number.bbq_graph_max`.
 - **[@Nexus1212](https://github.com/Nexus1212)** — the multi-sensor channel understanding and original probe page came from their INT-12E-BW community dashboard, shared in [Discussion #3](https://github.com/zampix1/ha-inkbird-int14/discussions/3#discussioncomment-17664834) and documented at [`docs/int12e_dashboard.md`](https://github.com/zampix1/ha-inkbird-int14/blob/main/docs/int12e_dashboard.md). The current page keeps the channel insight but uses compact native entity lists.
 - **[Material Design Icons](https://pictogrammers.com/library/mdi/)** — the `mdi:` icons.
 - **Inkbird** — the INT-14-BW and INT-14S-BW hardware.
@@ -308,7 +310,7 @@ CI fails if `dist/` is stale or the strategy stops resolving ids.
 
 > **Note on the install link:** HACS's category enum is `appdaemon`, `integration`, `plugin`, `python_script`, `template`, `theme`. The UI calls this type **Dashboard**, but the URL parameter is still `plugin` — `category=dashboard` returns *"Repository not found"*.
 
-It still needs button-card and card-mod — the strategy generates a config that uses them, it does not render everything itself.
+It still needs button-card, card-mod and mini-graph-card — the strategy generates a config that uses them, it does not render everything itself.
 
 ## 🗺️ Roadmap
 
