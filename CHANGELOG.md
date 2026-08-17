@@ -8,6 +8,30 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 Because this is a dashboard rather than a library, "breaking" means **an entity
 id changed, or a step is required on your side after updating** — not an API.
 
+## [Unreleased]
+
+### Changed
+
+- **Probe-card sparkline moved to the background.** The temperature trend graph
+  used to sit in its own row and swallowed taps meant for the `+` / `−` buttons.
+  It is now a `mini-graph-card` positioned as a `pointer-events: none` layer
+  behind the card, so the target, `+` and `−` controls sit on top and stay
+  tappable. The card is also a touch more compact (the dedicated graph row is
+  gone).
+
+### Added
+
+- **New helper `input_number.bbq_graph_max` (100–300 °C).** Sets the top of the
+  sparkline's y-axis from Settings → Dashboard preferences → *Graph top
+  temperature*. Raising it flattens the trend line; lowering it makes it taller.
+  Because it starts at its minimum on a fresh install, the default ceiling is
+  100 °C — open Settings once to change it.
+
+### Requires
+
+- **New frontend dependency: `mini-graph-card`** (install from HACS → Frontend).
+  The probe cards will not render without it.
+
 ## [1.2.1] — 2026-08-06
 
 ### Fixed

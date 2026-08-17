@@ -18,7 +18,7 @@ Bestaat uit 3 pagina's:
 
 - **Home Assistant Version**: 2024.10+
 - **Architectuur**: Package YAML (`packages/inkbird_bbq.yaml`) + Lovelace dashboard YAML (`www/` / `dashboard/`).
-- **Vereiste Custom Cards**: `button-card`, `battery-state-card`, `card-mod` (optioneel voor styling).
+- **Vereiste Custom Cards**: `button-card`, `battery-state-card`, `card-mod` (optioneel voor styling), `mini-graph-card` (achtergrond-sparkline in de probe-kaarten).
 - **HACS Distribution**: HACS Custom Repository (category `plugin` / `dashboard`).
 - **Units**: Alle interne temperaturen en targets worden opgeslagen in **°C**. Weergave in °F gebeurt dynamically in de UI.
 

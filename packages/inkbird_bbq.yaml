@@ -135,6 +135,20 @@ input_number:
     unit_of_measurement: min
     mode: slider
 
+  # Upper bound (top of the y-axis) of the sparkline behind each probe card.
+  # Raising it flattens the trend line so the card reads calmer / less tall;
+  # lowering it makes the line taller. Always stored in °C. Minimum is 100 so
+  # a fresh install (which starts at `min`, no `initial:` by convention) shows
+  # a sensible BBQ-range ceiling out of the box.
+  bbq_graph_max:
+    name: BBQ graph top temperature
+    icon: mdi:chart-line-variant
+    min: 100
+    max: 300
+    step: 10
+    unit_of_measurement: "°C"
+    mode: slider
+
 input_boolean:
   bbq_battery_alerts:
     name: BBQ battery alerts
