@@ -8,6 +8,17 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 Because this is a dashboard rather than a library, "breaking" means **an entity
 id changed, or a step is required on your side after updating** — not an API.
 
+## [1.3.2] — 2026-08-17
+
+### Changed
+
+- **Sparkline moved to its own strip at the bottom of the probe card.** The
+  trend graph used to run as a background band across the gauge and text, which
+  made both harder to read. It now sits in a dedicated full-width row beneath
+  the gauge/info, and the side text (`… to go`, channel · rate) is aligned to
+  the top of its cell so nothing overlaps the graph line. Still
+  `pointer-events: none`, so tapping the card edits the target.
+
 ## [1.3.1] — 2026-08-17
 
 ### Changed

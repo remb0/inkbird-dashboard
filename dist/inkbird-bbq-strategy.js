@@ -57,13 +57,13 @@ const TEMPLATE = {
         ],
         "grid": [
           {
-            "grid-template-areas": "\"header header header header\" \"fig gauge side side\""
+            "grid-template-areas": "\"header header header header\" \"fig gauge side side\" \"spark spark spark spark\""
           },
           {
             "grid-template-columns": "34px 128px 1fr 1fr"
           },
           {
-            "grid-template-rows": "auto 1fr"
+            "grid-template-rows": "auto 1fr 66px"
           },
           {
             "gap": "10px 12px"
@@ -111,6 +111,9 @@ const TEMPLATE = {
               "justify-self": "stretch"
             },
             {
+              "align-self": "start"
+            },
+            {
               "position": "relative"
             },
             {
@@ -119,28 +122,16 @@ const TEMPLATE = {
           ],
           "spark": [
             {
-              "position": "absolute"
+              "align-self": "stretch"
             },
             {
-              "left": "0"
-            },
-            {
-              "right": "0"
-            },
-            {
-              "bottom": "0"
-            },
-            {
-              "height": "132px"
-            },
-            {
-              "z-index": "0"
+              "justify-self": "stretch"
             },
             {
               "pointer-events": "none"
             },
             {
-              "opacity": "0.5"
+              "opacity": "0.6"
             },
             {
               "overflow": "hidden"
@@ -164,7 +155,7 @@ const TEMPLATE = {
             ],
             "hours_to_show": 2,
             "points_per_hour": 60,
-            "height": 132,
+            "height": 60,
             "line_width": 3,
             "lower_bound": 0,
             "upper_bound": "[[[ var v = parseFloat((states['input_number.bbq_graph_max']||{}).state); return isNaN(v) ? 150 : v; ]]]",
@@ -2628,6 +2619,6 @@ class InkbirdBbqDashboardStrategy extends HTMLElement {
 customElements.define("ll-strategy-dashboard-inkbird-bbq", InkbirdBbqDashboardStrategy);
 
 // eslint-disable-next-line no-console
-console.info("%c INKBIRD-BBQ-STRATEGY %c 1.3.0 ",
+console.info("%c INKBIRD-BBQ-STRATEGY %c 1.3.1 ",
   "color:#f5ede4;background:#ff6a2c;font-weight:700",
   "color:#ff6a2c;background:#211b16");
