@@ -8,7 +8,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 Because this is a dashboard rather than a library, "breaking" means **an entity
 id changed, or a step is required on your side after updating** — not an API.
 
-## [Unreleased]
+## [1.3.0] — 2026-08-17
 
 ### Changed
 
