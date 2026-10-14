@@ -8,6 +8,17 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 Because this is a dashboard rather than a library, "breaking" means **an entity
 id changed, or a step is required on your side after updating** — not an API.
 
+## [Unreleased]
+
+## [1.4.0] — 2026-10-14
+
+### Changed
+
+- Cook Control now uses a light sage `sections` layout with calmer probe and recipe cards, plus a 12-hour graph of all four control temperatures.
+- Mobile app notifications use the selected `notify.mobile_app_*` target directly, including Snooze and Dismiss actions. Set the new `input_text.bbq_notify_service` helper without editing the package. Existing `input_select.bbq_notify_target` selections remain a fallback.
+- Low probe battery triggers follow `input_text.inkbird_sensor_prefix`.
+- Rest reminders check that the probe is still ready and its recipe name and target have not changed after the wait.
+
 ## [1.3.2] — 2026-08-17
 
 ### Changed
@@ -326,7 +337,8 @@ raw export of one person's dashboard to something installable.
 - Initial export of the working dashboard: Cook Control view, a Settings
   subview, two automations and a prose description of the helpers.
 
-[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/remb0/inkbird-dashboard/compare/v1.3.2...v1.4.0
 [1.2.0]: https://github.com/remb0/inkbird-dashboard/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/remb0/inkbird-dashboard/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/remb0/inkbird-dashboard/releases/tag/v1.0.0

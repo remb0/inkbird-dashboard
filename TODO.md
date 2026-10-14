@@ -16,7 +16,7 @@ Loosely ordered by "how much better does this make the dashboard per hour of wor
 
 - [x] ~~**Probe battery levels.**~~ A colour-coded percentage under each card's P1–P4 badge, plus a compact Settings entity list.
 - [x] ~~**Low probe battery warning.**~~ Automation with a threshold slider and an on/off toggle, both on the Settings page.
-- [ ] **Temperature history on Cook Control.** The Probes page now has a one-hour `history-graph` per probe, but Cook Control has none. A single card there showing all four probes over 12 hours turns it from a status page into a cook log — the classic brisket stall becomes visible instead of worrying.
+- [x] **Temperature history on Cook Control.** A 12-hour graph shows all four control temperatures together.
 - [x] ~~**ETA to target.**~~ Four `derivative` sensors feed an "≈ 1 h 40 m" line on each probe card. Hidden when the probe is not actually climbing, rather than showing a nonsense number.
 - [x] ~~**Stall detection.**~~ Fires on ±1 °C/h for 45 minutes while the probe is still `heating`.
 - [x] ~~**Surface the ambient and extra food channels.**~~ The Probes page shows Internal + Ambient for INT-14-BW or all five channels for INT-14S-BW.
@@ -39,7 +39,7 @@ Loosely ordered by "how much better does this make the dashboard per hour of wor
 
 - [ ] **Add the screenshots** `docs/images/cook-control.png`, `probes.png` and `settings.png` (see `docs/images/README.md`). The README's image line is commented out so nothing renders broken in the meantime — uncomment it once the file exists. Capturing these needs either the Claude in Chrome extension connected, or the ha-mcp add-on's *dashboard screenshot* beta feature enabled; neither was available when this was written.
 - [ ] **A short GIF** of tapping a recipe preset and watching the gauge and status pill change would sell the dashboard in three seconds.
-- [ ] **Light theme variant.** Every colour is hardcoded for the dark charcoal/ember look. A light palette (or reading the HA theme variables) would help people who do not run dark mode.
+- [x] **Light theme variant.** Cook Control now uses a light sage palette and native sections, in line with the Test dashboard and Omnibatterij view.
 - [ ] **Post it to the community.** The Home Assistant forum "Share your Projects" section and r/homeassistant are where dashboards like this find users — and it repays the integration author with visibility.
 
 ## 📦 HACS compatibility

@@ -60,6 +60,14 @@ input_text:
     icon: mdi:pencil
     max: 100
 
+  # Optional notify.* service name without the `notify.` prefix. A text helper
+  # lets HACS users configure a phone without editing this package's YAML.
+  bbq_notify_service:
+    name: BBQ notify service
+    icon: mdi:cellphone-message
+    max: 100
+    pattern: "[a-z0-9_]*"
+
 
 input_number:
   inkbird_target_1:
@@ -189,8 +197,8 @@ input_select:
     icon: mdi:thermometer
     options: ["°C", "°F"]
 
-  # Decorative accent colour for the Cook Control cards — the ember glow on the
-  # logo, the recipe temperatures, the + button, the custom-recipe Apply button.
+  # Decorative accent colour for recipe temperatures, sparklines and the
+  # custom-recipe Apply button.
   # The green/amber/orange status colours are semantic and do NOT follow this.
   bbq_accent:
     name: BBQ accent colour
@@ -218,9 +226,8 @@ input_select:
     options:
       - none
 
-  # Card styling. "Transparent" drops the card backgrounds and shadows for a
-  # glass look over a dashboard background image; "Default" is the dark
-  # charcoal/ember look. Read by the cards at render time — no reload.
+  # Card styling. "Transparent" uses translucent white cards over a dashboard
+  # background image; "Default" is the light sage look. No reload needed.
   bbq_style:
     name: BBQ dashboard style
     icon: mdi:palette-outline
@@ -228,8 +235,8 @@ input_select:
       - Default
       - Transparent
 
-  # Options MUST match notify.* services on your instance, minus the `notify.`
-  # prefix. Keep them in sync with the `choose` block in script.bbq_notify.
+  # Legacy selection is still honored when input_text.bbq_notify_service is
+  # empty. New installs should use the text helper for a mobile app service.
   bbq_notify_target:
     name: BBQ notification target
     icon: mdi:bell-ring
@@ -559,12 +566,11 @@ script:
   #  One notification router for every alert in this package: persistent
   #  notification, optional push, optional spoken announcement.
   #
-  #  Every automation calls this instead of carrying its own copy — add a phone
-  #  or a speaker once here and all three alerts use it.
+  #  Every automation calls this instead of carrying its own copy. Add the
+  #  phone's notify service to input_text.bbq_notify_service once.
   #
-  #  notify service names are written out literally on purpose: Home Assistant
-  #  validates a literal `action:` when the config loads, a templated one only
-  #  when it runs — and "my brisket is done" is a bad moment to find a typo.
+  #  A selected notify service is resolved at runtime. The persistent
+  #  notification is created first, even if that service is unavailable.
   # --------------------------------------------------------------------------
   bbq_notify:
     alias: BBQ — send a notification
@@ -611,22 +617,34 @@ script:
           message: "{{ message }}"
           notification_id: "{{ tag }}"
 
-      # Replace [] with one branch per notify service, e.g.:
-      #
-      #   - conditions:
-      #       - condition: state
-      #         entity_id: input_select.bbq_notify_target
-      #         state: mobile_app_your_phone
-      #     sequence:
-      #       - action: notify.mobile_app_your_phone
-      #         data:
-      #           title: "{{ title }}"
-      #           message: "{{ message }}"
-      #           data:
-      #             tag: "{{ tag }}"
-      #             actions: "{{ actions | default([], true) }}"
-      - choose: []
-        default: []
+      - variables:
+          notify_target: >
+            {% set configured = states('input_text.bbq_notify_service') %}
+            {{ configured if configured not in ['unknown', 'unavailable', '']
+               else states('input_select.bbq_notify_target') }}
+      - if:
+          - condition: template
+            value_template: >
+              {{ notify_target not in ['persistent_notification', 'unknown', 'unavailable', '']
+                 and notify_target | regex_match('^[a-z0-9_]+$') }}
+        then:
+          - choose:
+              - conditions: "{{ notify_target.startswith('mobile_app_') }}"
+                sequence:
+                  - action: "{{ 'notify.' ~ notify_target }}"
+                    continue_on_error: true
+                    data:
+                      title: "{{ title }}"
+                      message: "{{ message }}"
+                      data:
+                        tag: "{{ tag }}"
+                        actions: "{{ actions | default([], true) }}"
+            default:
+              - action: "{{ 'notify.' ~ notify_target }}"
+                continue_on_error: true
+                data:
+                  title: "{{ title }}"
+                  message: "{{ message }}"
 
       # Spoken announcement. `continue_on_error` so an unplugged speaker can
       # never swallow the notification that already went out above.
@@ -740,8 +758,14 @@ automation:
           idx: "{{ trigger.id }}"
           rest: "{{ states('input_number.bbq_rest_minutes') | int(0) }}"
           pname: "{{ states('input_text.inkbird_name_' ~ trigger.id) }}"
+          target_at_start: "{{ states('input_number.inkbird_target_' ~ trigger.id) }}"
       - delay:
           minutes: "{{ rest }}"
+      - condition: template
+        value_template: >
+          {{ is_state('sensor.bbq_probe_' ~ idx ~ '_status', 'ready')
+             and states('input_text.inkbird_name_' ~ idx) == pname
+             and states('input_number.inkbird_target_' ~ idx) == target_at_start }}
       - action: script.bbq_notify
         data:
           title: "\U0001f957 {{ pname }} has rested"
@@ -759,21 +783,37 @@ automation:
       Warns when a probe battery drops below the threshold set on the
       dashboard's Settings page. Toggled by input_boolean.bbq_battery_alerts.
     triggers:
-      - trigger: numeric_state
-        entity_id: sensor.overig_inkbird_int_14_probe_1_battery
-        below: input_number.bbq_battery_threshold
+      - trigger: template
+        value_template: >
+          {% set p = states('input_text.inkbird_sensor_prefix') %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
+          {% set battery = states(p ~ '_probe_1_battery') | float(none) %}
+          {% set threshold = states('input_number.bbq_battery_threshold') | float(none) %}
+          {{ battery is not none and threshold is not none and battery < threshold }}
         id: "1"
-      - trigger: numeric_state
-        entity_id: sensor.overig_inkbird_int_14_probe_2_battery
-        below: input_number.bbq_battery_threshold
+      - trigger: template
+        value_template: >
+          {% set p = states('input_text.inkbird_sensor_prefix') %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
+          {% set battery = states(p ~ '_probe_2_battery') | float(none) %}
+          {% set threshold = states('input_number.bbq_battery_threshold') | float(none) %}
+          {{ battery is not none and threshold is not none and battery < threshold }}
         id: "2"
-      - trigger: numeric_state
-        entity_id: sensor.overig_inkbird_int_14_probe_3_battery
-        below: input_number.bbq_battery_threshold
+      - trigger: template
+        value_template: >
+          {% set p = states('input_text.inkbird_sensor_prefix') %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
+          {% set battery = states(p ~ '_probe_3_battery') | float(none) %}
+          {% set threshold = states('input_number.bbq_battery_threshold') | float(none) %}
+          {{ battery is not none and threshold is not none and battery < threshold }}
         id: "3"
-      - trigger: numeric_state
-        entity_id: sensor.overig_inkbird_int_14_probe_4_battery
-        below: input_number.bbq_battery_threshold
+      - trigger: template
+        value_template: >
+          {% set p = states('input_text.inkbird_sensor_prefix') %}
+          {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
+          {% set battery = states(p ~ '_probe_4_battery') | float(none) %}
+          {% set threshold = states('input_number.bbq_battery_threshold') | float(none) %}
+          {{ battery is not none and threshold is not none and battery < threshold }}
         id: "4"
     conditions:
       - condition: state
@@ -783,7 +823,10 @@ automation:
       - variables:
           idx: "{{ trigger.id }}"
           pname: "{{ states('input_text.inkbird_name_' ~ trigger.id) }}"
-          pct: "{{ trigger.to_state.state }}"
+          pct: >
+            {% set p = states('input_text.inkbird_sensor_prefix') %}
+            {% set p = p if p not in ['unknown', 'unavailable', ''] else 'sensor.' ~ 'overig_inkbird_int_14' %}
+            {{ states(p ~ '_probe_' ~ trigger.id ~ '_battery') }}
       - action: script.bbq_notify
         data:
           title: "🪫 Probe {{ idx }} battery low"
@@ -893,9 +936,25 @@ automation:
           parts: "{{ trigger.event.data.action.split('_') }}"
           kind: "{{ parts[1] }}"
           idx: "{{ parts[2] }}"
+          notify_target: >
+            {% set configured = states('input_text.bbq_notify_service') %}
+            {{ configured if configured not in ['unknown', 'unavailable', '']
+               else states('input_select.bbq_notify_target') }}
       - action: persistent_notification.dismiss
         data:
           notification_id: "inkbird_ready_{{ idx }}"
+      - if:
+          - condition: template
+            value_template: >
+              {{ notify_target.startswith('mobile_app_')
+                 and notify_target | regex_match('^[a-z0-9_]+$') }}
+        then:
+          - action: "{{ 'notify.' ~ notify_target }}"
+            continue_on_error: true
+            data:
+              message: clear_notification
+              data:
+                tag: "inkbird_ready_{{ idx }}"
       - choose:
           - conditions: "{{ kind == 'SNOOZE' }}"
             sequence:

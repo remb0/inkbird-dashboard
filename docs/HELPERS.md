@@ -49,11 +49,15 @@ Display-only. The probe cards check this and convert on the fly; nothing is writ
 
 ## `input_select.bbq_notify_target` — "BBQ notification target"
 
-Icon `mdi:bell-ring`. Options must match real `notify.*` services on your instance, **without** the `notify.` prefix — e.g. a service `notify.mobile_app_pixel_9` becomes the option `mobile_app_pixel_9`.
+Legacy dropdown. Existing selections remain supported when `input_text.bbq_notify_service` is empty.
 
-The package ships with only `persistent_notification`. See [Notification routing](#notification-routing) below for adding your own.
+The package ships with only `persistent_notification`. New installs should use the text helper below.
 
 > Renamed from `input_select.bbq_notificatie_apparaat` in 1.0.0 — see [`CHANGELOG.md`](../CHANGELOG.md).
+
+## `input_text.bbq_notify_service` — mobile notification service
+
+Enter the service name without `notify.`, for example `mobile_app_pixel_9`. Leave it empty for persistent notifications only, or to retain an existing `input_select.bbq_notify_target` selection. The dashboard exposes this field in Cook Control and Settings.
 
 ## `input_text.inkbird_sensor_prefix` — the runtime prefix
 
@@ -81,13 +85,13 @@ Everything that reads the helper falls back to the repo default if it is empty o
 | Entity | Type | What it does |
 |---|---|---|
 | `input_boolean.bbq_battery_alerts` | Toggle | Silences the low-battery warning without deleting the automation |
-| `input_number.bbq_battery_threshold` | Number, 5–50 % | The level the warning fires below. Referenced directly by the automation's `below:`, so changing the slider takes effect immediately — no reload |
+| `input_number.bbq_battery_threshold` | Number, 5–50 % | The level the warning fires below. The trigger follows the sensor prefix helper and updates when this value changes |
 | `input_boolean.bbq_stall_alerts` | Toggle | Silences stall detection |
 | `input_number.bbq_snooze_minutes` | Number, 5–60 min | How long Snooze waits before re-notifying. Also sets the button's label, so the phone shows "Snooze 20 min" |
 | `input_number.bbq_rest_minutes` | Number, 0–120 min | Rest reminder after a probe hits its target. **0 switches it off** — the automation has a `numeric_state above: 0` condition, so it never even starts a delay |
 | `input_boolean.bbq_show_help` | Toggle | Reveals the explanatory paragraph under Alerts, Spoken announcements and Setup. With it off those sections show controls only |
-| `input_select.bbq_style` | Default / Transparent | Card look on Cook Control. Transparent drops the backgrounds and shadows and adds a blur, for dashboards with a background image. The cards read it at render time, so it applies with no reload |
-| `input_select.bbq_accent` | Ember / Blue / Green / Purple / Red / Teal | The decorative accent on Cook Control — the logo glow, recipe temperatures, the sparkline behind each probe card, the custom-recipe Apply button. The green/amber/orange **status** colours are semantic and do not follow it. Read at render time |
+| `input_select.bbq_style` | Default / Transparent | Light sage card look on Cook Control. Transparent uses translucent white cards and blur over a background image. Changes apply without a reload |
+| `input_select.bbq_accent` | Ember / Blue / Green / Purple / Red / Teal | Accent for recipe temperatures, sparklines and the custom-recipe Apply button. Probe status colours stay semantic |
 | `input_number.bbq_graph_max` | Number, 100–300 °C | Top of the y-axis for the `mini-graph-card` sparkline that sits behind each probe card. Raise it to flatten the trend line so the card reads calmer; lower it to make the line taller. Stored in °C; read at render time (the card re-reads it on every update, no reload) |
 | `sensor.bbq_alert_count` | Sensor | How many probes are `close` or `ready`. The Alerts card is wrapped in a conditional on this, so it disappears entirely when there is nothing to report — a markdown card cannot hide itself |
 
@@ -190,49 +194,19 @@ The ready notification carries two action buttons:
 | Button | Action id | Effect |
 |---|---|---|
 | Snooze *N* min | `BBQ_SNOOZE_<probe>` | Clears the notification, waits `input_number.bbq_snooze_minutes`, re-sends **only if the probe is still `ready`** |
-| Dismiss | `BBQ_DISMISS_<probe>` | Clears the notification |
+| Dismiss | `BBQ_DISMISS_<probe>` | Clears the persistent notification and the tagged mobile notification |
 
-The probe number is encoded in the action id so one handler covers all four. Re-using the `tag` means a re-notification replaces the old one rather than stacking up.
+The probe number is encoded in the action id so one handler covers all four. Snooze clears both copies before waiting. Re-using the `tag` means a re-notification replaces the old one rather than stacking up.
 
 ---
 
 ## Notification routing
 
-Every alert calls **`script.bbq_notify`** with a title, message, tag and optional action buttons. That script creates the persistent notification and then runs one `choose` block to forward it. **Add a phone here once and all three alerts use it** — this is the only place notify services are named.
+Every alert calls **`script.bbq_notify`** with a title, message, tag and optional action buttons. The script always creates a persistent notification first. If a `notify.*` target is selected, it forwards the message as well.
 
-Service names are written out **literally** rather than templated: Home Assistant validates a literal `action:` when the config loads, but a templated one only when the script actually runs — so a typo in a template stays invisible until the moment your brisket is done.
+Enter the phone's `notify.mobile_app_*` service name in `input_text.bbq_notify_service`, **without** the `notify.` prefix. For example, enter `mobile_app_pixel_9` for `notify.mobile_app_pixel_9`. No package edit is needed. Mobile app targets receive the `tag` and `actions` payload that enables Snooze and Dismiss; other notify services receive title and message only.
 
-Replace `choose: []` in the script with one branch per device:
-
-```yaml
-      - choose:
-          - conditions:
-              - condition: state
-                entity_id: input_select.bbq_notify_target
-                state: mobile_app_pixel_9
-            sequence:
-              - action: notify.mobile_app_pixel_9
-                data:
-                  title: "{{ title }}"
-                  message: "{{ message }}"
-                  data:
-                    tag: "{{ tag }}"
-                    actions: "{{ actions | default([], true) }}"
-          - conditions:
-              - condition: state
-                entity_id: input_select.bbq_notify_target
-                state: notify_pushover
-            sequence:
-              - action: notify.notify_pushover
-                data:
-                  title: "{{ title }}"
-                  message: "{{ message }}"
-        default: []
-```
-
-Then add `mobile_app_pixel_9` and `notify_pushover` to the options of `input_select.bbq_notify_target`. The two lists must stay in sync — an option with no matching branch silently does nothing.
-
-The nested `data:` with `tag` and `actions` is companion-app specific; that is what produces the Snooze/Dismiss buttons. Services that are not the mobile app (Pushover, email, TV) just ignore it, or you can leave it off as in the second branch above.
+The notify action is resolved at runtime, so Home Assistant cannot validate the selected service name while loading the package. Test the chosen target with a low-impact test notification after changing it. If the selected service is unavailable, the persistent notification still appears.
 
 ---
 

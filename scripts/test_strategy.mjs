@@ -79,6 +79,11 @@ for (const [label, hass, model, channelRows] of [
   const cfg = await Strategy.generate({}, hass);
   const json = JSON.stringify(cfg);
   check(`${label} views`, cfg.views.map((view) => view.path).join(','), 'cook,probes,settings');
+  const cook = cfg.views.find((view) => view.path === 'cook');
+  check(`${label} Cook Control layout`, cook.type, 'sections');
+  check(`${label} Cook Control history`, cook.sections.flatMap((section) => section.cards).some(
+    (card) => card.type === 'history-graph' && card.hours_to_show === 12
+  ), true);
   check(`${label} selected model`, cfg.inkbird_model, model);
   check(`${label} probe sections`, probeSections(cfg).length, 4);
   check(`${label} rows per probe`, probeSections(cfg)[0].cards.find((card) => card.type === 'entities').entities.length, channelRows);

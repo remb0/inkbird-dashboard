@@ -13,7 +13,7 @@
   <img alt="Home Assistant" src="https://img.shields.io/badge/Home%20Assistant-2024.10%2B-41BDF5?logo=homeassistant&logoColor=white">
   <img alt="HACS" src="https://img.shields.io/badge/HACS-custom%20repository-41BDF5?logo=homeassistantcommunitystore&logoColor=white">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.3.2-orange">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.4.0-orange">
 </p>
 
 <p align="center">
@@ -48,6 +48,7 @@
 | | |
 |---|---|
 | 🌡️ **Four probe cards** | Live temperature on a 270° arc gauge, colour-coded by state — grey `idle` · amber `heating` · orange `close` · green `ready` |
+| 📈 **Cook history** | All four control temperatures together over the last 12 hours |
 | 🔋 **Per-probe battery** | A bare colour-coded percentage under each card's P1–P4 badge — red below 20 %, amber below 40 % |
 | 📶 **Compact live header** | Model, active probes, transport, base battery and sound status in one row — *Bluetooth*, *Wi-Fi LAN*, *History*, *Connecting* or *Offline* |
 | 🥩 **Recipe presets** | One tap writes name + target onto the selected probe — 🐄 Brisket 93 °C, 🍗 Chicken 74 °C, 🥩 Medium Steak 57 °C, 🐖 Pork Ribs 90 °C, 🐟 Salmon 52 °C |
@@ -118,7 +119,7 @@ Install both from **HACS → Frontend**:
 | Card | Used by |
 |---|---|
 | [button-card](https://github.com/custom-cards/button-card) | Probe gauges, header, recipe buttons |
-| [card-mod](https://github.com/thomasloven/lovelace-card-mod) | The dark theme and the responsive grids |
+| [card-mod](https://github.com/thomasloven/lovelace-card-mod) | Card styling and responsive grids |
 | [mini-graph-card](https://github.com/kalkih/mini-graph-card) | The temperature sparkline behind each probe card |
 
 ### 2. The dashboard
@@ -225,7 +226,7 @@ Everything in the package can equally be built under **Settings → Devices & Se
 
 ### 5. Point notifications at your phone
 
-Out of the box only a persistent notification is sent. Every alert in this package routes through one script, **`script.bbq_notify`** — add a branch to its `choose:` block and a matching option to `input_select.bbq_notify_target`, and all three alerts use it. You do this once, not once per automation. A worked example is in [`docs/HELPERS.md`](docs/HELPERS.md#notification-routing).
+Out of the box only a persistent notification is sent. Every alert routes through **`script.bbq_notify`**. To add your phone, enter its `notify.mobile_app_*` service name (without `notify.`) in `input_text.bbq_notify_service` on Cook Control or Settings. The script forwards alerts, including Snooze and Dismiss buttons, without editing the package. See [`docs/HELPERS.md`](docs/HELPERS.md#notification-routing).
 
 ## 📁 Repo layout
 
@@ -286,7 +287,7 @@ This dashboard stands on other people's work:
 - **[zampix1/ha-inkbird-int14](https://github.com/zampix1/ha-inkbird-int14)** — the hybrid/local-first `inkbird_int14` custom integration. It supplies BLE, supported local Tuya-LAN and optional read-only cloud-history data. Without it there are no probe sensors and this dashboard has nothing to show. All device communication, probe mapping and the update entity come from there.
 - **[boris327/ha-inkbird-int14bw](https://github.com/boris327/ha-inkbird-int14bw)** by Boris Pustilnik — the original INT-14-BW integration and Cook Control design foundation. The compact header, direct target editing and trend-oriented probe layout build on that MIT-licensed work.
 - **[custom-cards/button-card](https://github.com/custom-cards/button-card)** by RomRider — the probe cards, compact header and recipe buttons are `custom:button-card` templates. The gauges and probe illustrations are inline SVG rendered through its `custom_fields`.
-- **[thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)** — restyles the stock markdown and grid cards to match the dark charcoal/ember theme.
+- **[thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)** — styles the cards and responsive grids in the light sage layout.
 - **[kalkih/mini-graph-card](https://github.com/kalkih/mini-graph-card)** — the temperature sparkline that sits as a pointer-through background behind each probe card, with its top temperature set from `input_number.bbq_graph_max`.
 - **[@Nexus1212](https://github.com/Nexus1212)** — the multi-sensor channel understanding and original probe page came from their INT-12E-BW community dashboard, shared in [Discussion #3](https://github.com/zampix1/ha-inkbird-int14/discussions/3#discussioncomment-17664834) and documented at [`docs/int12e_dashboard.md`](https://github.com/zampix1/ha-inkbird-int14/blob/main/docs/int12e_dashboard.md). The current page keeps the channel insight but uses compact native entity lists.
 - **[Material Design Icons](https://pictogrammers.com/library/mdi/)** — the `mdi:` icons.
