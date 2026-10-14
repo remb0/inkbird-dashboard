@@ -10,12 +10,12 @@ button_card_templates:
     styles:
       card:
       - padding: 18px
-      - border-radius: 24px
+      - border-radius: 22px
       - border: |
           [[[
             var _s = states['input_select.bbq_style'];
             var glass = _s && _s.state === 'Transparent';
-            return glass ? '1px solid rgba(52,83,69,.14)' : '1px solid #d7e2d8';
+            return glass ? '1px solid rgba(180,195,187,.18)' : '1px solid var(--divider-color)';
           ]]]
       - border-top: |
           [[[
@@ -38,19 +38,14 @@ button_card_templates:
           [[[
             var _s = states['input_select.bbq_style'];
             var glass = _s && _s.state === 'Transparent';
-            return glass ? 'rgba(255,255,255,.76)' : '#ffffff';
+            return glass ? 'rgba(130,145,138,.08)' : 'var(--ha-card-background, var(--card-background-color))';
           ]]]
-      - box-shadow: |
-          [[[
-            var _s = states['input_select.bbq_style'];
-            var glass = _s && _s.state === 'Transparent';
-            return 'none';
-          ]]]
+      - box-shadow: none
       - backdrop-filter: |
           [[[
             var _s = states['input_select.bbq_style'];
             var glass = _s && _s.state === 'Transparent';
-            return glass ? 'blur(10px)' : 'none';
+            return glass ? 'blur(12px)' : 'none';
           ]]]
       grid:
       - grid-template-areas: '"header header header header" "fig gauge side side" "spark spark spark spark"'
@@ -107,13 +102,13 @@ button_card_templates:
             <div style="display:flex;flex-direction:column;align-items:center;gap:3px"
                  title="probe ${n} battery">
               <div style="width:30px;height:30px;border-radius:999px;display:grid;place-items:center;
-                   font-family:ui-monospace,monospace;font-weight:700;background:#e7eee7;
-                   border:1px solid #d7e2d8;color:#203a32">P${n}</div>
+                   font-family:ui-monospace,monospace;font-weight:700;background:rgba(142,171,151,.18);
+                   border:1px solid rgba(180,195,187,.18);color:var(--primary-text-color)">P${n}</div>
               <div style="font-family:ui-monospace,monospace;font-size:.62rem;font-weight:700;
                    line-height:1;color:${bcol}">${bok?bv+'%':'\u2014'}</div>
             </div>
-            <div style="flex:1;font-weight:620;font-size:1rem;color:#203a32">${name}
-              <div style="font-size:.74rem;color:#64776b;font-weight:500">Probe ${n}</div></div>
+            <div style="flex:1;font-weight:620;font-size:1rem;color:var(--primary-text-color)">${name}
+              <div style="font-size:.74rem;color:var(--secondary-text-color);font-weight:500">Probe ${n}</div></div>
             <div style="font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
                  padding:5px 11px;border-radius:999px;color:${col};
                  background:${col}26;border:1px solid ${col}66">${label}</div>
@@ -195,7 +190,7 @@ button_card_templates:
           var temp = connected ? cv(t) : '\u2014';
           return `<div style="position:relative;width:128px;height:128px;margin:auto">
             <svg width="128" height="128" viewBox="0 0 128 128" style="transform:rotate(135deg)">
-              <circle cx="64" cy="64" r="${R}" fill="none" stroke="#e7eee7" stroke-width="9"
+              <circle cx="64" cy="64" r="${R}" fill="none" stroke="var(--divider-color)" stroke-width="9"
                 stroke-linecap="round" stroke-dasharray="${(C*ARC).toFixed(1)} ${C}"/>
               <circle cx="64" cy="64" r="${R}" fill="none" stroke="${col}" stroke-width="9"
                 stroke-linecap="round" stroke-dasharray="${dash}"
@@ -203,8 +198,8 @@ button_card_templates:
             </svg>
             <div style="position:absolute;inset:0;display:flex;flex-direction:column;
                  align-items:center;justify-content:center;font-family:ui-monospace,monospace">
-              <div style="font-size:1.7rem;font-weight:650;color:#203a32;line-height:1">${temp}<span style="font-size:.9rem;color:#64776b">${us}</span></div>
-              <div style="font-size:.72rem;color:#88988d;margin-top:2px">${connected?'target '+cv(g)+'\u00b0':'no probe'}</div>
+              <div style="font-size:1.7rem;font-weight:650;color:var(--primary-text-color);line-height:1">${temp}<span style="font-size:.9rem;color:var(--secondary-text-color)">${us}</span></div>
+              <div style="font-size:.72rem;color:var(--secondary-text-color);margin-top:2px">${connected?'target '+cv(g)+'\u00b0':'no probe'}</div>
             </div>
           </div>`;
         ]]]
@@ -252,8 +247,8 @@ button_card_templates:
           var primary = bw ? 'Internal' : 'Food 4 · tip';
           var trend = isNaN(rate) ? '\u2014' : ((rate > .15 ? '\u2197 +' : rate < -.15 ? '\u2198 ' : '\u2192 ') + rate.toFixed(1) + ' \u00b0C/h');
           return `<div style="display:flex;flex-direction:column;gap:9px;font-family:system-ui">
-            <div style="font-size:.78rem;color:#64776b">${footer}</div>
-            <div style="display:flex;gap:10px;align-items:center;font-size:.72rem;color:#88988d"><span>${primary}</span><span style="font-family:ui-monospace,monospace;color:${col}">${trend}</span></div>
+            <div style="font-size:.78rem;color:var(--secondary-text-color)">${footer}</div>
+            <div style="display:flex;gap:10px;align-items:center;font-size:.72rem;color:var(--secondary-text-color)"><span>${primary}</span><span style="font-family:ui-monospace,monospace;color:${col}">${trend}</span></div>
             ${eta ? `<div style="font-family:ui-monospace,monospace;font-size:.74rem;color:${col}">${eta}</div>` : ''}
           </div>`;
         ]]]
@@ -309,19 +304,19 @@ button_card_templates:
           [[[
             var _s = states['input_select.bbq_style'];
             var glass = _s && _s.state === 'Transparent';
-            return glass ? '1px solid rgba(52,83,69,.14)' : '1px solid #d7e2d8';
+            return glass ? '1px solid rgba(180,195,187,.18)' : '1px solid var(--divider-color)';
           ]]]
       - background: |
           [[[
             var _s = states['input_select.bbq_style'];
             var glass = _s && _s.state === 'Transparent';
-            return glass ? 'rgba(255,255,255,.76)' : '#ffffff';
+            return glass ? 'rgba(130,145,138,.08)' : 'var(--ha-card-background, var(--card-background-color))';
           ]]]
       - backdrop-filter: |
           [[[
             var _s = states['input_select.bbq_style'];
             var glass = _s && _s.state === 'Transparent';
-            return glass ? 'blur(10px)' : 'none';
+            return glass ? 'blur(12px)' : 'none';
           ]]]
       grid:
       - grid-template-areas: '"i" "n" "t" "s"'
@@ -332,7 +327,7 @@ button_card_templates:
       - color: '[[[ return variables.color ]]]'
       - width: 30px
       name:
-      - color: '#203a32'
+      - color: var(--primary-text-color)
       - font-weight: 620
       - font-size: .92rem
       - justify-self: start
@@ -355,14 +350,14 @@ button_card_templates:
             var o = states['input_number.bbq_custom_target'];
             c = o ? parseFloat(o.state) : NaN;
             if (isNaN(c) || c <= 0) {
-              return `<div style="font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:#88988d">\u2014</div>`;
+              return `<div style="font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:var(--secondary-text-color)">\u2014</div>`;
             }
           }
           var v = uf ? Math.round(c * 9/5 + 32) : Math.round(c);
-          return `<div style="font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:${acc[0]}">${v}<span style="font-size:.74rem;color:#64776b">${us}</span></div>`;
+          return `<div style="font-family:ui-monospace,monospace;font-weight:650;font-size:1.15rem;color:${acc[0]}">${v}<span style="font-size:.74rem;color:var(--secondary-text-color)">${us}</span></div>`;
         ]]]
       s: |
-        [[[ return `<div style="font-size:.74rem;color:#64776b">${variables.note}</div>`; ]]]
+        [[[ return `<div style="font-size:.74rem;color:var(--secondary-text-color)">${variables.note}</div>`; ]]]
 title: Cook Control
 views:
 - title: Cook Control
@@ -370,7 +365,6 @@ views:
   icon: mdi:grill
   type: sections
   max_columns: 3
-  background: '#f5f8f4'
   sections:
   - type: grid
     column_span: 3
@@ -380,9 +374,10 @@ views:
         action: none
       styles:
         card:
-        - background: '#dce8dd'
-        - border: none
-        - border-radius: 24px
+        - background: rgba(142,171,151,.18)
+        - border: 1px solid rgba(180,195,187,.18)
+        - backdrop-filter: blur(12px)
+        - border-radius: 22px
         - box-shadow: none
         - padding: 24px
         grid:
@@ -403,8 +398,8 @@ views:
             var acc = _A[_ac ? _ac.state : 'Ember'] || _A.Ember;
             return `<div style="width:46px;height:46px;border-radius:13px;
             display:grid;place-items:center;
-            background:#203a32">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff"
+            background:rgba(142,171,151,.24)">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--primary-text-color)"
               stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 3c1.5 2.5.5 4-.7 5.4C10 10 9 11.4 9 13.2A3 3 0 0 0 15 13.2c0-1.2-.5-2-1-2.8"/>
               <path d="M12 21a5 5 0 0 0 5-5c0-1.6-.7-2.7-1.5-3.7"/></svg></div>`;
@@ -416,8 +411,8 @@ views:
             var model = choice && choice.state !== 'Auto' ? choice.state : (ms && !['unknown','unavailable'].includes(ms.state) ? ms.state.replace(/^Inkbird /,'') : 'Inkbird INT');
             var active = [1,2,3,4].filter(n => { var s=states['sensor.bbq_probe_'+n+'_control_temperature']; return s && !['unknown','unavailable'].includes(s.state); }).length;
             return `<div style="font-family:system-ui;text-align:left">
-            <div style="font-size:1.55rem;font-weight:650;color:#203a32;letter-spacing:-.03em">Cook Control</div>
-            <div style="font-size:.85rem;color:#526c5e;margin-top:4px">${model} · ${active}/4 probes active</div>
+            <div style="font-size:1.55rem;font-weight:650;color:var(--primary-text-color);letter-spacing:-.03em">Cook Control</div>
+            <div style="font-size:.85rem;color:var(--secondary-text-color);margin-top:4px">${model} · ${active}/4 probes active</div>
           </div>`; ]]]
         status: |
           [[[
@@ -457,15 +452,15 @@ views:
             return `<style>@keyframes inkbird-pulse{0%,100%{opacity:1}50%{opacity:.25}}</style>
             <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;font-family:system-ui">
               <span title="active transport: ${t}"
-                style="display:inline-flex;align-items:center;gap:8px;background:#ffffff;
-                border:1px solid #d7e2d8;padding:8px 13px;border-radius:999px;font-size:.82rem;color:#64776b">
+                style="display:inline-flex;align-items:center;gap:8px;background:rgba(130,145,138,.10);
+                border:1px solid rgba(180,195,187,.18);padding:8px 13px;border-radius:999px;font-size:.82rem;color:var(--secondary-text-color)">
                 <span style="width:8px;height:8px;border-radius:50%;background:${col};${pulse}"></span>
-                ${word} \u00b7 <b style="color:#203a32">${how}</b></span>
-              <span style="background:#ffffff;border:1px solid #d7e2d8;padding:8px 13px;
-                border-radius:999px;font-size:.82rem;color:#64776b">Base battery
-                <b style="color:${suspect?'#946e16':'#203a32'}">${b}${suspect?'*':''}</b></span>
+                ${word} \u00b7 <b style="color:var(--primary-text-color)">${how}</b></span>
+              <span style="background:rgba(130,145,138,.10);border:1px solid rgba(180,195,187,.18);padding:8px 13px;
+                border-radius:999px;font-size:.82rem;color:var(--secondary-text-color)">Base battery
+                <b style="color:${suspect?'#d3a94d':'var(--primary-text-color)'}">${b}${suspect?'*':''}</b></span>
               <span title="Station sound status; write control appears when supported by the integration"
-                style="background:#ffffff;border:1px solid #d7e2d8;padding:8px 11px;border-radius:999px;font-size:.82rem;color:#203a32">${sound}</span>
+                style="background:rgba(130,145,138,.10);border:1px solid rgba(180,195,187,.18);padding:8px 11px;border-radius:999px;font-size:.82rem;color:var(--primary-text-color)">${sound}</span>
             </div>`;
           ]]]
     - type: conditional
@@ -494,14 +489,14 @@ views:
           style: |
             ha-card {
             {% if is_state('input_select.bbq_style','Transparent') %}
-              background: rgba(255,255,255,.76);
-              backdrop-filter: blur(10px);
-              border: 1px solid rgba(52,83,69,.14);
+              background: rgba(130,145,138,.08);
+              backdrop-filter: blur(12px);
+              border: 1px solid rgba(180,195,187,.18);
             {% else %}
-              background: #ffffff;
-              border: 1px solid #d7e2d8;
+              background: var(--ha-card-background, var(--card-background-color));
+              border: 1px solid var(--divider-color);
             {% endif %}
-              border-radius: 22px; box-shadow: none; color: #203a32;
+              border-radius: 22px; box-shadow: none; color: var(--primary-text-color);
             }
   - type: grid
     column_span: 2
@@ -553,7 +548,7 @@ views:
         name: Probe 4
       card_mod:
         style: |
-          ha-card { border-radius: 22px; box-shadow: none; }
+          ha-card { border-radius: 22px; box-shadow: none; background: rgba(130,145,138,.08); border: 1px solid rgba(180,195,187,.18); backdrop-filter: blur(12px); }
   - type: grid
     cards:
     - type: heading
@@ -565,7 +560,7 @@ views:
         #### Recipe presets — first pick the **Active probe** above, then tap a recipe
       card_mod:
         style: |
-          ha-card { background:none;border:none;box-shadow:none;color:#64776b; }
+          ha-card { background:none;border:none;box-shadow:none;color:var(--secondary-text-color); }
     - type: grid
       columns: 6
       square: false
@@ -654,7 +649,7 @@ views:
             Set it up, then **Apply to probe**. Everything below is a normal helper — the recipe presets write to the same places.
           card_mod:
             style: |
-              ha-card { background:none;border:none;box-shadow:none;color:#64776b; }
+              ha-card { background:none;border:none;box-shadow:none;color:var(--secondary-text-color); }
         - type: grid
           columns: 2
           square: false
@@ -718,7 +713,7 @@ views:
                   ]]]
               - border-radius: 14px
               - padding: 12px
-              - color: '#203a32'
+              - color: var(--primary-text-color)
               name:
               - font-weight: 650
               - font-size: .9rem
@@ -732,11 +727,11 @@ views:
             show_icon: true
             styles:
               card:
-              - background: '#ffffff'
-              - border: '1px solid #d7e2d8'
+              - background: rgba(130,145,138,.08)
+              - border: '1px solid rgba(180,195,187,.18)'
               - border-radius: 14px
               - padding: 12px
-              - color: '#64776b'
+              - color: var(--secondary-text-color)
               name:
               - font-size: .9rem
             tap_action:

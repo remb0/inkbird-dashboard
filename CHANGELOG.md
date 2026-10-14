@@ -10,6 +10,12 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ## [Unreleased]
 
+## [1.4.1] — 2026-10-14
+
+### Fixed
+
+- Cook Control now inherits the Home Assistant dashboard background and uses softly tinted translucent cards like Thuis · Test. Probe, recipe, header and graph cards remain legible in dark and light themes.
+
 ## [1.4.0] — 2026-10-14
 
 ### Changed
@@ -337,7 +343,8 @@ raw export of one person's dashboard to something installable.
 - Initial export of the working dashboard: Cook Control view, a Settings
   subview, two automations and a prose description of the helpers.
 
-[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/remb0/inkbird-dashboard/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/remb0/inkbird-dashboard/compare/v1.3.2...v1.4.0
 [1.2.0]: https://github.com/remb0/inkbird-dashboard/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/remb0/inkbird-dashboard/compare/v1.0.0...v1.1.0
