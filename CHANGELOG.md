@@ -10,6 +10,12 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ## [Unreleased]
 
+## [1.4.2] — 2026-10-15
+
+### Fixed
+
+- Cook Control's header puts connection and battery status on a separate wrapping row, so the chips no longer overlap the title on narrow screens.
+
 ## [1.4.1] — 2026-10-14
 
 ### Fixed
@@ -343,7 +349,8 @@ raw export of one person's dashboard to something installable.
 - Initial export of the working dashboard: Cook Control view, a Settings
   subview, two automations and a prose description of the helpers.
 
-[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.4.2...HEAD
+[1.4.2]: https://github.com/remb0/inkbird-dashboard/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/remb0/inkbird-dashboard/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/remb0/inkbird-dashboard/compare/v1.3.2...v1.4.0
 [1.2.0]: https://github.com/remb0/inkbird-dashboard/compare/v1.1.0...v1.2.0

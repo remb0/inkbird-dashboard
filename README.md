@@ -13,7 +13,7 @@
   <img alt="Home Assistant" src="https://img.shields.io/badge/Home%20Assistant-2024.10%2B-41BDF5?logo=homeassistant&logoColor=white">
   <img alt="HACS" src="https://img.shields.io/badge/HACS-custom%20repository-41BDF5?logo=homeassistantcommunitystore&logoColor=white">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.4.1-orange">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.4.2-orange">
 </p>
 
 <p align="center">

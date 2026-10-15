@@ -381,15 +381,18 @@ views:
         - box-shadow: none
         - padding: 24px
         grid:
-        - grid-template-areas: '"mark title status"'
-        - grid-template-columns: auto 1fr auto
+        - grid-template-areas: '"mark title" "status status"'
+        - grid-template-columns: auto minmax(0, 1fr)
+        - grid-template-rows: auto auto
         - align-items: center
-        - gap: 14px
+        - gap: 12px 14px
         custom_fields:
           title:
           - justify-self: start
+          - min-width: 0
           status:
-          - justify-self: end
+          - justify-self: stretch
+          - width: 100%
       custom_fields:
         mark: |
           [[[
@@ -450,7 +453,7 @@ views:
             var ss = se || states['binary_sensor.inkbird_int_14_sound_enabled'];
             var sound = !ss ? '\ud83d\udd07 \u2014' : ss.state === 'on' ? '\ud83d\udd0a On' : ss.state === 'off' ? '\ud83d\udd07 Off' : '\ud83d\udd07 \u2014';
             return `<style>@keyframes inkbird-pulse{0%,100%{opacity:1}50%{opacity:.25}}</style>
-            <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;font-family:system-ui">
+            <div style="display:flex;gap:8px;align-items:center;justify-content:flex-start;flex-wrap:wrap;font-family:system-ui">
               <span title="active transport: ${t}"
                 style="display:inline-flex;align-items:center;gap:8px;background:rgba(130,145,138,.10);
                 border:1px solid rgba(180,195,187,.18);padding:8px 13px;border-radius:999px;font-size:.82rem;color:var(--secondary-text-color)">

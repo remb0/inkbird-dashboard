@@ -281,27 +281,36 @@
                 ],
                 "grid": [
                   {
-                    "grid-template-areas": "\"mark title status\""
+                    "grid-template-areas": "\"mark title\" \"status status\""
                   },
                   {
-                    "grid-template-columns": "auto 1fr auto"
+                    "grid-template-columns": "auto minmax(0, 1fr)"
+                  },
+                  {
+                    "grid-template-rows": "auto auto"
                   },
                   {
                     "align-items": "center"
                   },
                   {
-                    "gap": "14px"
+                    "gap": "12px 14px"
                   }
                 ],
                 "custom_fields": {
                   "title": [
                     {
                       "justify-self": "start"
+                    },
+                    {
+                      "min-width": 0
                     }
                   ],
                   "status": [
                     {
-                      "justify-self": "end"
+                      "justify-self": "stretch"
+                    },
+                    {
+                      "width": "100%"
                     }
                   ]
                 }
@@ -309,7 +318,7 @@
               "custom_fields": {
                 "mark": "[[[\n  var _ac = states['input_select.bbq_accent'];\n  var _A = {Ember:['#b85a27','#ff8a3d'],Blue:['#2f7ce0','#4f98f0'],Green:['#34b56a','#4fd188'],Purple:['#8a5cf0','#a67cff'],Red:['#e0483a','#f26a5c'],Teal:['#1fb6b0','#3fd0ca']};\n  var acc = _A[_ac ? _ac.state : 'Ember'] || _A.Ember;\n  return `<div style=\"width:46px;height:46px;border-radius:13px;\n  display:grid;place-items:center;\n  background:rgba(142,171,151,.24)\">\n  <svg width=\"26\" height=\"26\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"var(--primary-text-color)\"\n    stroke-width=\"2.1\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n    <path d=\"M12 3c1.5 2.5.5 4-.7 5.4C10 10 9 11.4 9 13.2A3 3 0 0 0 15 13.2c0-1.2-.5-2-1-2.8\"/>\n    <path d=\"M12 21a5 5 0 0 0 5-5c0-1.6-.7-2.7-1.5-3.7\"/></svg></div>`;\n]]]\n",
                 "title": "[[[\n  var ms = states['sensor.inkbird_int_14_configured_model'];\n  var choice = states['input_select.inkbird_dashboard_model'];\n  var model = choice && choice.state !== 'Auto' ? choice.state : (ms && !['unknown','unavailable'].includes(ms.state) ? ms.state.replace(/^Inkbird /,'') : 'Inkbird INT');\n  var active = [1,2,3,4].filter(n => { var s=states['sensor.bbq_probe_'+n+'_control_temperature']; return s && !['unknown','unavailable'].includes(s.state); }).length;\n  return `<div style=\"font-family:system-ui;text-align:left\">\n  <div style=\"font-size:1.55rem;font-weight:650;color:var(--primary-text-color);letter-spacing:-.03em\">Cook Control</div>\n  <div style=\"font-size:.85rem;color:var(--secondary-text-color);margin-top:4px\">${model} · ${active}/4 probes active</div>\n</div>`; ]]]\n",
-                "status": "[[[\n  var tr = states['sensor.inkbird_int_14_active_transport'];\n  var bc = states['binary_sensor.inkbird_int_14_ble_connected'];\n  var t  = tr ? tr.state : 'unknown';\n  var map = {\n    ble:        ['Bluetooth', 'live'],\n    ble_waiting:['Bluetooth', 'wait'],\n    wifi:       ['Wi-Fi',     'live'],\n    wi_fi:      ['Wi-Fi',     'live'],\n    local_lan:  ['LAN',       'live'],\n    lan:        ['LAN',       'live'],\n    cloud:      ['History',   'history'],\n    none:       ['no link',   'down'],\n    unknown:    ['no link',   'down'],\n    unavailable:['no link',   'down']\n  };\n  var m = map[t] || [t.replace(/_/g,' '), 'live'];\n  var how = m[0], mode = m[1];\n  if (mode === 'live' && t.indexOf('ble') === 0 && !(bc && bc.state === 'on')) mode = 'wait';\n  var col  = mode === 'live' ? '#238458' : mode === 'history' ? '#4f98f0' : mode === 'wait' ? '#946e16' : '#b8453d';\n  var word = mode === 'live' ? 'Live' : mode === 'history' ? 'History' : mode === 'wait' ? 'Connecting' : 'Offline';\n  var pulse = mode === 'wait' ? 'animation:inkbird-pulse 1.4s ease-in-out infinite' : '';\n  var prefixHelper = states['input_text.inkbird_sensor_prefix'];\n  var prefix = prefixHelper && !['unknown','unavailable',''].includes(prefixHelper.state)\n    ? prefixHelper.state : 'sensor.overig_inkbird_int_14';\n  var bs = states[prefix + '_base_battery'];\n  var b = bs ? bs.state : undefined;\n  b = (b === undefined || b === 'unknown' || b === 'unavailable') ? '\\u2014' : b + '%';\n  var quality = states['sensor.inkbird_int_14_battery_report_quality'];\n  var suspect = quality && /suspect|degrad/i.test(quality.state);\n  var soundId = Object.keys(states).find(function(id){ return id.indexOf('switch.')===0 && id.indexOf('inkbird')>=0 && /(sound|mute)/.test(id); });\n  var se = soundId ? states[soundId] : null;\n  var ss = se || states['binary_sensor.inkbird_int_14_sound_enabled'];\n  var sound = !ss ? '\\ud83d\\udd07 \\u2014' : ss.state === 'on' ? '\\ud83d\\udd0a On' : ss.state === 'off' ? '\\ud83d\\udd07 Off' : '\\ud83d\\udd07 \\u2014';\n  return `<style>@keyframes inkbird-pulse{0%,100%{opacity:1}50%{opacity:.25}}</style>\n  <div style=\"display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;font-family:system-ui\">\n    <span title=\"active transport: ${t}\"\n      style=\"display:inline-flex;align-items:center;gap:8px;background:rgba(130,145,138,.10);\n      border:1px solid rgba(180,195,187,.18);padding:8px 13px;border-radius:999px;font-size:.82rem;color:var(--secondary-text-color)\">\n      <span style=\"width:8px;height:8px;border-radius:50%;background:${col};${pulse}\"></span>\n      ${word} \\u00b7 <b style=\"color:var(--primary-text-color)\">${how}</b></span>\n    <span style=\"background:rgba(130,145,138,.10);border:1px solid rgba(180,195,187,.18);padding:8px 13px;\n      border-radius:999px;font-size:.82rem;color:var(--secondary-text-color)\">Base battery\n      <b style=\"color:${suspect?'#d3a94d':'var(--primary-text-color)'}\">${b}${suspect?'*':''}</b></span>\n    <span title=\"Station sound status; write control appears when supported by the integration\"\n      style=\"background:rgba(130,145,138,.10);border:1px solid rgba(180,195,187,.18);padding:8px 11px;border-radius:999px;font-size:.82rem;color:var(--primary-text-color)\">${sound}</span>\n  </div>`;\n]]]\n"
+                "status": "[[[\n  var tr = states['sensor.inkbird_int_14_active_transport'];\n  var bc = states['binary_sensor.inkbird_int_14_ble_connected'];\n  var t  = tr ? tr.state : 'unknown';\n  var map = {\n    ble:        ['Bluetooth', 'live'],\n    ble_waiting:['Bluetooth', 'wait'],\n    wifi:       ['Wi-Fi',     'live'],\n    wi_fi:      ['Wi-Fi',     'live'],\n    local_lan:  ['LAN',       'live'],\n    lan:        ['LAN',       'live'],\n    cloud:      ['History',   'history'],\n    none:       ['no link',   'down'],\n    unknown:    ['no link',   'down'],\n    unavailable:['no link',   'down']\n  };\n  var m = map[t] || [t.replace(/_/g,' '), 'live'];\n  var how = m[0], mode = m[1];\n  if (mode === 'live' && t.indexOf('ble') === 0 && !(bc && bc.state === 'on')) mode = 'wait';\n  var col  = mode === 'live' ? '#238458' : mode === 'history' ? '#4f98f0' : mode === 'wait' ? '#946e16' : '#b8453d';\n  var word = mode === 'live' ? 'Live' : mode === 'history' ? 'History' : mode === 'wait' ? 'Connecting' : 'Offline';\n  var pulse = mode === 'wait' ? 'animation:inkbird-pulse 1.4s ease-in-out infinite' : '';\n  var prefixHelper = states['input_text.inkbird_sensor_prefix'];\n  var prefix = prefixHelper && !['unknown','unavailable',''].includes(prefixHelper.state)\n    ? prefixHelper.state : 'sensor.overig_inkbird_int_14';\n  var bs = states[prefix + '_base_battery'];\n  var b = bs ? bs.state : undefined;\n  b = (b === undefined || b === 'unknown' || b === 'unavailable') ? '\\u2014' : b + '%';\n  var quality = states['sensor.inkbird_int_14_battery_report_quality'];\n  var suspect = quality && /suspect|degrad/i.test(quality.state);\n  var soundId = Object.keys(states).find(function(id){ return id.indexOf('switch.')===0 && id.indexOf('inkbird')>=0 && /(sound|mute)/.test(id); });\n  var se = soundId ? states[soundId] : null;\n  var ss = se || states['binary_sensor.inkbird_int_14_sound_enabled'];\n  var sound = !ss ? '\\ud83d\\udd07 \\u2014' : ss.state === 'on' ? '\\ud83d\\udd0a On' : ss.state === 'off' ? '\\ud83d\\udd07 Off' : '\\ud83d\\udd07 \\u2014';\n  return `<style>@keyframes inkbird-pulse{0%,100%{opacity:1}50%{opacity:.25}}</style>\n  <div style=\"display:flex;gap:8px;align-items:center;justify-content:flex-start;flex-wrap:wrap;font-family:system-ui\">\n    <span title=\"active transport: ${t}\"\n      style=\"display:inline-flex;align-items:center;gap:8px;background:rgba(130,145,138,.10);\n      border:1px solid rgba(180,195,187,.18);padding:8px 13px;border-radius:999px;font-size:.82rem;color:var(--secondary-text-color)\">\n      <span style=\"width:8px;height:8px;border-radius:50%;background:${col};${pulse}\"></span>\n      ${word} \\u00b7 <b style=\"color:var(--primary-text-color)\">${how}</b></span>\n    <span style=\"background:rgba(130,145,138,.10);border:1px solid rgba(180,195,187,.18);padding:8px 13px;\n      border-radius:999px;font-size:.82rem;color:var(--secondary-text-color)\">Base battery\n      <b style=\"color:${suspect?'#d3a94d':'var(--primary-text-color)'}\">${b}${suspect?'*':''}</b></span>\n    <span title=\"Station sound status; write control appears when supported by the integration\"\n      style=\"background:rgba(130,145,138,.10);border:1px solid rgba(180,195,187,.18);padding:8px 11px;border-radius:999px;font-size:.82rem;color:var(--primary-text-color)\">${sound}</span>\n  </div>`;\n]]]\n"
               }
             },
             {
