@@ -511,6 +511,8 @@ views:
     - type: grid
       columns: 2
       square: false
+      grid_options:
+        columns: full
       cards:
       - type: custom:button-card
         template: inkbird_probe
@@ -539,6 +541,8 @@ views:
           }
     - type: history-graph
       title: Temperatuurverloop · 12 uur
+      grid_options:
+        columns: full
       hours_to_show: 12
       entities:
       - entity: sensor.bbq_probe_1_control_temperature

@@ -10,6 +10,12 @@ id changed, or a step is required on your side after updating** — not an API.
 
 ## [Unreleased]
 
+## [1.4.3] — 2026-10-15
+
+### Fixed
+
+- Cook Control gives the four probe cards the full width of their section, restoring a two-by-two grid on wide screens. The temperature history now sits below the probes instead of beside them.
+
 ## [1.4.2] — 2026-10-15
 
 ### Fixed
@@ -349,7 +355,8 @@ raw export of one person's dashboard to something installable.
 - Initial export of the working dashboard: Cook Control view, a Settings
   subview, two automations and a prose description of the helpers.
 
-[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/remb0/inkbird-dashboard/compare/v1.4.3...HEAD
+[1.4.3]: https://github.com/remb0/inkbird-dashboard/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/remb0/inkbird-dashboard/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/remb0/inkbird-dashboard/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/remb0/inkbird-dashboard/compare/v1.3.2...v1.4.0

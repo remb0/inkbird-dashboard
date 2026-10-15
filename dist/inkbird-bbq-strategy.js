@@ -376,6 +376,9 @@ const TEMPLATE = {
               "type": "grid",
               "columns": 2,
               "square": false,
+              "grid_options": {
+                "columns": "full"
+              },
               "cards": [
                 {
                   "type": "custom:button-card",
@@ -417,6 +420,9 @@ const TEMPLATE = {
             {
               "type": "history-graph",
               "title": "Temperatuurverloop \u00b7 12 uur",
+              "grid_options": {
+                "columns": "full"
+              },
               "hours_to_show": 12,
               "entities": [
                 {
@@ -2673,6 +2679,6 @@ class InkbirdBbqDashboardStrategy extends HTMLElement {
 customElements.define("ll-strategy-dashboard-inkbird-bbq", InkbirdBbqDashboardStrategy);
 
 // eslint-disable-next-line no-console
-console.info("%c INKBIRD-BBQ-STRATEGY %c 1.4.2 ",
+console.info("%c INKBIRD-BBQ-STRATEGY %c 1.4.3 ",
   "color:#f5ede4;background:#ff6a2c;font-weight:700",
   "color:#ff6a2c;background:#211b16");

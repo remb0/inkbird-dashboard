@@ -13,7 +13,7 @@
   <img alt="Home Assistant" src="https://img.shields.io/badge/Home%20Assistant-2024.10%2B-41BDF5?logo=homeassistant&logoColor=white">
   <img alt="HACS" src="https://img.shields.io/badge/HACS-custom%20repository-41BDF5?logo=homeassistantcommunitystore&logoColor=white">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.4.2-orange">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.4.3-orange">
 </p>
 
 <p align="center">
@@ -50,7 +50,7 @@
 | 🌡️ **Four probe cards** | Live temperature on a 270° arc gauge, colour-coded by state — grey `idle` · amber `heating` · orange `close` · green `ready` |
 | 📈 **Cook history** | All four control temperatures together over the last 12 hours |
 | 🔋 **Per-probe battery** | A bare colour-coded percentage under each card's P1–P4 badge — red below 20 %, amber below 40 % |
-| 📶 **Compact live header** | Model, active probes, transport, base battery and sound status in one row — *Bluetooth*, *Wi-Fi LAN*, *History*, *Connecting* or *Offline* |
+| 📶 **Compact live header** | Model, active probes, transport, base battery and sound status in a wrapping header — *Bluetooth*, *Wi-Fi LAN*, *History*, *Connecting* or *Offline* |
 | 🥩 **Recipe presets** | One tap writes name + target onto the selected probe — 🐄 Brisket 93 °C, 🍗 Chicken 74 °C, 🥩 Medium Steak 57 °C, 🐖 Pork Ribs 90 °C, 🐟 Salmon 52 °C |
 | 🧪 **Custom recipe** | A sixth button opens a form: name, target, probe, rest reminder, where to notify and whether to announce it |
 | 🥗 **Rest reminder** | Optional second alert once the meat has rested — carryover cooking means "ready" is not "serve now" |
