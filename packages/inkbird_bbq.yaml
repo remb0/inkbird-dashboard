@@ -68,6 +68,17 @@ input_text:
     max: 100
     pattern: "[a-z0-9_]*"
 
+  bbq_tv_notify_service:
+    name: BBQ TV notify service
+    icon: mdi:television
+    max: 100
+    pattern: "[a-z0-9_]*"
+
+  bbq_tv_entity:
+    name: BBQ TV media player
+    icon: mdi:television
+    max: 100
+
 
 input_number:
   inkbird_target_1:
@@ -167,6 +178,9 @@ input_boolean:
   bbq_tts_alerts:
     name: BBQ spoken announcements
     icon: mdi:bullhorn
+  bbq_tv_alerts:
+    name: BBQ TV text notifications
+    icon: mdi:television
 
   # Reveals the explanatory text beside each Settings section.
   bbq_show_help:
@@ -225,6 +239,7 @@ input_select:
     icon: mdi:text-to-speech
     options:
       - none
+      - Alexa (native)
 
   # Card styling. "Transparent" uses translucent white cards over a dashboard
   # background image; "Default" is the light sage look. No reload needed.
@@ -540,9 +555,8 @@ script:
   #  actually exist, so you pick from real entities and never mistype one.
   #  Called on HA start and hourly by automation "BBQ sync media targets".
   #
-  #  input_select.set_options keeps the current selection if it is still in the
-  #  new list and otherwise falls back to the first option ("none"), so a
-  #  speaker that disappears degrades to "off" rather than erroring.
+  #  Keep the selected target during temporary outages. Otherwise an hourly
+  #  refresh could silently reset it to "none" and disable later announcements.
   # --------------------------------------------------------------------------
   bbq_refresh_media_targets:
     alias: BBQ — refresh TTS device lists
@@ -554,13 +568,23 @@ script:
           entity_id: input_select.bbq_tts_speaker
         data:
           options: >
-            {{ ['none'] + (states.media_player | map(attribute='entity_id') | list | sort) }}
+            {% set selected = states('input_select.bbq_tts_speaker') %}
+            {% set available = states.media_player
+               | rejectattr('state', 'in', ['unknown', 'unavailable'])
+               | map(attribute='entity_id') | list %}
+            {% set retained = [selected] if selected is match('^media_player[.][a-z0-9_]+$') else [] %}
+            {{ ['none'] + ((available + retained) | unique | sort) }}
       - action: input_select.set_options
         target:
           entity_id: input_select.bbq_tts_engine
         data:
           options: >
-            {{ ['none'] + (states.tts | map(attribute='entity_id') | list | sort) }}
+            {% set selected = states('input_select.bbq_tts_engine') %}
+            {% set native = ['Alexa (native)'] if integration_entities('alexa_media') | count > 0 or selected == 'Alexa (native)' else [] %}
+            {% set available = states.tts | rejectattr('state', 'in', ['unknown', 'unavailable'])
+               | map(attribute='entity_id') | list %}
+            {% set retained = [selected] if selected is match('^tts[.][a-z0-9_]+$') else [] %}
+            {{ ['none'] + native + ((available + retained) | unique | sort) }}
 
   # --------------------------------------------------------------------------
   #  One notification router for every alert in this package: persistent
@@ -646,26 +670,87 @@ script:
                   title: "{{ title }}"
                   message: "{{ message }}"
 
-      # Spoken announcement. `continue_on_error` so an unplugged speaker can
-      # never swallow the notification that already went out above.
+      # TV toasts are independent of phone notifications and spoken audio.
+      # Never wake a TV, change its source, or replace what it is playing.
+      - if:
+          - condition: state
+            entity_id: input_boolean.bbq_tv_alerts
+            state: "on"
+        then:
+          - variables:
+              tv_service: "{{ states('input_text.bbq_tv_notify_service') }}"
+              tv_entity: "{{ states('input_text.bbq_tv_entity') }}"
+          - choose:
+              - conditions: >
+                  {{ tv_service | regex_match('^[a-z0-9_]+$')
+                     and tv_entity | regex_match('^media_player\\.[a-z0-9_]+$')
+                     and has_value(tv_entity) }}
+                sequence:
+                  - if: "{{ not is_state(tv_entity, 'off') }}"
+                    then:
+                      - action: "{{ 'notify.' ~ tv_service }}"
+                        continue_on_error: true
+                        data:
+                          message: "{{ title }}: {{ message }}"
+            default:
+              - action: persistent_notification.create
+                data:
+                  notification_id: inkbird_tv_configuration
+                  title: BBQ TV notification unavailable
+                  message: Check the TV notify service and media player in the dashboard settings.
+
+      # Alexa Media Player has its own announcement service. It cannot be used
+      # as a generic tts.speak audio-URL target. Earlier notifications survive
+      # speech failures; keep failures visible in the script trace.
       - if:
           - condition: state
             entity_id: input_boolean.bbq_tts_alerts
             state: "on"
-          # No native condition tests "this text helper is non-empty".
-          - condition: template
-            value_template: >
-              {{ states('input_select.bbq_tts_speaker') not in ['none', 'unknown', 'unavailable']
-                 and states('input_select.bbq_tts_engine') not in ['none', 'unknown', 'unavailable'] }}
         then:
-          - action: tts.speak
-            continue_on_error: true
-            target:
-              entity_id: "{{ states('input_select.bbq_tts_engine') }}"
-            data:
-              media_player_entity_id: "{{ states('input_select.bbq_tts_speaker') }}"
-              cache: true
-              message: "{{ tts_message | default(message, true) }}"
+          - variables:
+              speaker: "{{ states('input_select.bbq_tts_speaker') }}"
+              engine: "{{ states('input_select.bbq_tts_engine') }}"
+              alexa_speaker: "{{ states('input_select.bbq_tts_speaker') in integration_entities('alexa_media') }}"
+          - choose:
+              - conditions: "{{ engine == 'none' or speaker == 'none' }}"
+                sequence:
+                  - stop: Speech disabled by the device selector.
+              - conditions: >
+                  {{ engine == 'Alexa (native)' and alexa_speaker
+                     and has_value(speaker) }}
+                sequence:
+                  - action: notify.alexa_media
+                    data:
+                      target: "{{ [speaker] }}"
+                      title: "{{ title }}"
+                      message: "{{ tts_message | default(message, true) }}"
+                      data:
+                        type: announce
+                        method: speak
+              - conditions: >
+                  {{ engine.startswith('tts.') and has_value(engine)
+                     and has_value(speaker) and not alexa_speaker
+                     and not is_state(speaker, 'off')
+                     and (state_attr(speaker, 'supported_features') | int(0) | bitwise_and(512)) != 0 }}
+                sequence:
+                  - action: tts.speak
+                    target:
+                      entity_id: "{{ engine }}"
+                    data:
+                      media_player_entity_id: "{{ speaker }}"
+                      cache: true
+                      message: "{{ tts_message | default(message, true) }}"
+            default:
+              - action: persistent_notification.create
+                data:
+                  notification_id: inkbird_audio_configuration
+                  title: BBQ announcement not sent
+                  message: >
+                    The selected speaker or voice engine is unavailable or incompatible.
+                    For an Alexa Media Player speaker, choose Alexa (native).
+                    Other players need an available TTS engine and audio playback support.
+              - stop: Invalid BBQ speech configuration.
+                error: true
 
 automation:
   # --------------------------------------------------------------------------

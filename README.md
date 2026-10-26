@@ -228,6 +228,29 @@ Everything in the package can equally be built under **Settings → Devices & Se
 
 Out of the box only a persistent notification is sent. Every alert routes through **`script.bbq_notify`**. To add your phone, enter its `notify.mobile_app_*` service name (without `notify.`) in `input_text.bbq_notify_service` on Cook Control or Settings. The script forwards alerts, including Snooze and Dismiss buttons, without editing the package. See [`docs/HELPERS.md`](docs/HELPERS.md#notification-routing).
 
+### Echo announcements and TV messages
+
+For an Echo connected through **Alexa Media Player**, enable Spoken announcements,
+choose the Echo in Speaker and choose **Alexa (native)** as the voice engine.
+This uses Alexa's announcement service, not `tts.speak`. It does not need an
+OpenAI API key. Other supported media players can still use an available HA TTS
+engine. The device refresh hides unavailable choices, but keeps your selected
+speaker and engine through an outage so a temporary disconnection does not
+silently switch later announcements off.
+
+TV messages are a separate, optional text notification. Enable TV text
+notifications and enter your TV's `media_player` entity and its notify service
+name without `notify.`. For example, a webOS TV can display a toast while the
+Echo speaks. A TV that is off is skipped; the script does not turn it on, change
+its input or adjust volume. This does not add spoken audio to the TV.
+
+Use Test notification to check delivery. Home Assistant's persistent notification
+is always created first. An invalid speech configuration also creates a useful
+error notification instead of silently appearing to succeed.
+
+Existing users need to update the YAML package as well as the dashboard resource
+for these new helpers and routing changes. Keep your existing helper values.
+
 ## 📁 Repo layout
 
 ```
@@ -285,7 +308,7 @@ This dashboard stands on other people's work:
 
 - **[Home Assistant](https://www.home-assistant.io/)** — the platform everything runs on.
 - **[zampix1/ha-inkbird-int14](https://github.com/zampix1/ha-inkbird-int14)** — the hybrid/local-first `inkbird_int14` custom integration. It supplies BLE, supported local Tuya-LAN and optional read-only cloud-history data. Without it there are no probe sensors and this dashboard has nothing to show. All device communication, probe mapping and the update entity come from there.
-- **[boris327/ha-inkbird-int14bw](https://github.com/boris327/ha-inkbird-int14bw)** by Boris Pustilnik — the original INT-14-BW integration and Cook Control design foundation. The compact header, direct target editing and trend-oriented probe layout build on that MIT-licensed work.
+- **Cook Control dashboard design from [boris327/ha-inkbird-int14bw](https://github.com/boris327/ha-inkbird-int14bw)** by Boris Pustilnik — the compact header, direct target editing and trend-oriented probe layout build on that MIT-licensed dashboard work. This is a design credit, not the source of the `inkbird_int14` integration or its protocol implementation. The device integration used here is `zampix1/ha-inkbird-int14`.
 - **[custom-cards/button-card](https://github.com/custom-cards/button-card)** by RomRider — the probe cards, compact header and recipe buttons are `custom:button-card` templates. The gauges and probe illustrations are inline SVG rendered through its `custom_fields`.
 - **[thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)** — styles the cards and responsive grids in the light sage layout.
 - **[kalkih/mini-graph-card](https://github.com/kalkih/mini-graph-card)** — the temperature sparkline that sits as a pointer-through background behind each probe card, with its top temperature set from `input_number.bbq_graph_max`.

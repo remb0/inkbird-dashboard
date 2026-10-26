@@ -2358,7 +2358,19 @@ const TEMPLATE = {
                 },
                 {
                   "entity": "input_select.bbq_tts_engine",
-                  "name": "TTS engine"
+                  "name": "Voice engine / Alexa native"
+                },
+                {
+                  "entity": "input_boolean.bbq_tv_alerts",
+                  "name": "TV text notifications"
+                },
+                {
+                  "entity": "input_text.bbq_tv_entity",
+                  "name": "TV media player entity"
+                },
+                {
+                  "entity": "input_text.bbq_tv_notify_service",
+                  "name": "TV notify service (without notify.)"
                 }
               ]
             },
@@ -2374,7 +2386,7 @@ const TEMPLATE = {
                     "perform_action": "script.bbq_notify",
                     "data": {
                       "title": "BBQ test",
-                      "message": "Notifications are working.",
+                      "message": "Test notification from the BBQ dashboard.",
                       "tag": "inkbird_test",
                       "tts_message": "This is a test announcement from your barbecue dashboard."
                     }
@@ -2486,7 +2498,7 @@ const TEMPLATE = {
             },
             {
               "type": "markdown",
-              "content": "- Integration: [zampix1/ha-inkbird-int14](https://github.com/zampix1/ha-inkbird-int14)\n- INT-14-BW integration and original Cook Control foundation: [boris327/ha-inkbird-int14bw](https://github.com/boris327/ha-inkbird-int14bw)\n- Dashboard: [remb0/inkbird-dashboard](https://github.com/remb0/inkbird-dashboard)\n- Multi-sensor probe layout adapted from the [INT-12E-BW community dashboard](https://github.com/zampix1/ha-inkbird-int14/blob/main/docs/int12e_dashboard.md)\n"
+              "content": "- Device communication, protocol implementation and probe sensors: [zampix1/ha-inkbird-int14](https://github.com/zampix1/ha-inkbird-int14)\n- Cook Control dashboard design reference (not the device integration used here): [boris327/ha-inkbird-int14bw](https://github.com/boris327/ha-inkbird-int14bw)\n- Dashboard: [remb0/inkbird-dashboard](https://github.com/remb0/inkbird-dashboard)\n- Multi-sensor probe layout adapted from the [INT-12E-BW community dashboard](https://github.com/zampix1/ha-inkbird-int14/blob/main/docs/int12e_dashboard.md)\n"
             }
           ]
         }

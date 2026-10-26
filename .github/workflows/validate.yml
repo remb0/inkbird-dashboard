@@ -16,8 +16,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install PyYAML
-        run: pip install --quiet pyyaml
+      - name: Install test dependencies
+        run: pip install --quiet pyyaml jinja2
+
+      - name: Notification routing contracts
+        run: python3 scripts/test_notifications.py
 
       - name: Everything parses
         run: |
